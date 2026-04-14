@@ -1,6 +1,14 @@
-def main():
-    print("Hello from backend!")
+import os
+
+import django
+from fastapi import FastAPI
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+django.setup()
+
+app = FastAPI(title="Portfolio API")
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/health")
+def healthcheck() -> dict[str, str]:
+    return {"status": "ok"}
