@@ -9,13 +9,17 @@ django.setup()
 
 from django.core.wsgi import get_wsgi_application  # noqa: E402
 
-app = FastAPI(title="Portfolio API")
+from api.registry import register_routers  # noqa: E402
+
+app = FastAPI(title="Timewise API", version="1.0.0")
 
 
-@app.get("/health")
+@app.get("/health", tags=["health"])
 def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 
+
+register_routers(app)
 
 # Django handles /admin/ and /static/ (via whitenoise middleware).
 # This mount must come last — FastAPI routes defined above take priority.

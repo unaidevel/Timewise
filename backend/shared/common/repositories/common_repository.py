@@ -1,0 +1,2 @@
+class CommonRepository:
+    pass
