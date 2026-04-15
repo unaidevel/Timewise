@@ -8,11 +8,17 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("name", help="Name of the app")
-        parser.add_argument("directory", nargs="?", help="Optional destination directory")
+        parser.add_argument(
+            "directory", nargs="?", help="Optional destination directory"
+        )
 
     def handle(self, **options):
         app_name = options["name"]
-        base = Path(options["directory"]) if options["directory"] else Path.cwd() / app_name
+        base = (
+            Path(options["directory"])
+            if options["directory"]
+            else Path.cwd() / app_name
+        )
 
         if base.exists():
             raise CommandError(f"Directory '{base}' already exists.")
@@ -23,10 +29,15 @@ class Command(BaseCommand):
             "__init__.py": "",
             "models.py": "from django.db import models\n",
             "admin.py": "from django.contrib import admin\n",
+            "entities/__init__.py": "",
+            "dtos/__init__.py": "",
+            "dtos/mappers/__init__.py": "",
             "api/__init__.py": "",
             "api/router.py": (
                 "from fastapi import APIRouter\n\n"
-                f'router = APIRouter(prefix="/{app_name}", tags=["{app_name}"])\n'
+                f'PREFIX = "/api/v1/{app_name}"\n'
+                f'TAGS = ["{app_name}"]\n\n'
+                f"router = APIRouter()\n"
             ),
             "services/__init__.py": "",
             f"services/{app_name}_service.py": f"class {camel}Service:\n    pass\n",
@@ -46,18 +57,32 @@ class Command(BaseCommand):
             file.parent.mkdir(parents=True, exist_ok=True)
             file.write_text(content)
 
-        self._register_app(app_name)
+        self._register_app(base)
         self.stdout.write(self.style.SUCCESS(f"App '{app_name}' created at {base}"))
 
-    def _register_app(self, app_name: str) -> None:
-        settings_path = Path(__file__).resolve().parents[3] / "config" / "settings.py"
+    def _register_app(self, base: Path) -> None:
+        backend_root = Path(__file__).resolve().parents[3]
+        settings_path = backend_root / "config" / "settings.py"
+
+        # Compute dotted path relative to backend root
+        # e.g. backend/product/workforce → product.workforce
+        try:
+            relative = base.resolve().relative_to(backend_root.resolve())
+            dotted_path = ".".join(relative.parts)
+        except ValueError:
+            dotted_path = base.name
+
         source = settings_path.read_text(encoding="utf-8")
 
         marker = "INSTALLED_APPS = ["
         if marker not in source:
-            self.stdout.write(self.style.WARNING("Could not find INSTALLED_APPS in settings.py — add it manually."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Could not find INSTALLED_APPS in settings.py — add it manually."
+                )
+            )
             return
 
-        insertion = f'    "{app_name}",\n'
+        insertion = f'    "{dotted_path}",\n'
         updated = source.replace(marker, marker + "\n" + insertion.rstrip("\n"), 1)
         settings_path.write_text(updated, encoding="utf-8")

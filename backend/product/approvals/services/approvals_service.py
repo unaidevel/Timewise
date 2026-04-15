@@ -1,0 +1,2 @@
+class ApprovalsService:
+    pass

@@ -48,8 +48,20 @@ DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "*")
 
 INSTALLED_APPS = [
-    "milestone",
     "config",
+    # product
+    "product.workforce",
+    "product.timekeeping",
+    "product.costing",
+    "product.approvals",
+    # infra
+    "infra.tenants",
+    "infra.licensing",
+    "infra.authz",
+    # shared
+    "shared.audit",
+    "shared.notifications",
+    "shared.common",
     "unfold",
     "django.contrib.admin",
     "django.contrib.auth",

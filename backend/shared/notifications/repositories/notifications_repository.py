@@ -1,0 +1,2 @@
+class NotificationsRepository:
+    pass

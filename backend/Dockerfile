@@ -17,4 +17,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uv run python manage.py migrate --no-input && uv run python manage.py collectstatic --no-input && uv run uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "uv run python manage.py migrate --no-input && uv run python manage.py collectstatic --no-input && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000"]

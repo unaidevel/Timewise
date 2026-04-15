@@ -16,5 +16,28 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "pytest-cov>=6.0.0",
     "ruff>=0.15.10",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort — ordena imports
+]
+ignore = ["E501"]  # line too long — los strings largos son inevitables
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.coverage.run]
+omit = [
+    "*/.venv/*",
+    "*/tests/*",
+    "*/migrations/*",
+    "manage.py",
 ]
