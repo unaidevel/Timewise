@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import SharedModel
+from .models import TimekeepingModel
 
-admin.site.register(SharedModel)
+admin.site.register(TimekeepingModel)
