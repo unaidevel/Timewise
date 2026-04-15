@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     # platform
     "platform.tenants",
     "platform.licensing",
-    "platform.auth",
+    "platform.authz",
     # shared
     "shared.audit",
     "shared.notifications",
