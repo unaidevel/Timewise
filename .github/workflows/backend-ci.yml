@@ -2,7 +2,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
@@ -10,6 +10,7 @@ on:
     branches: [main, develop]
     paths:
       - "backend/**"
+      - ".github/workflows/backend-ci.yml"
 
 jobs:
   lint:
