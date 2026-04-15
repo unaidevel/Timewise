@@ -97,7 +97,6 @@ jobs:
         run: |
           uv run pytest \
             --cov=. \
-            --cov-omit="*/.venv/*,*/tests/*,*/migrations/*,manage.py" \
             --cov-report=xml \
             --cov-report=term-missing \
             --cov-fail-under=80 \

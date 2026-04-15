@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 # Grupos donde viven las apps. El registry los escanea en orden.
-APP_GROUPS = ["product", "platform", "shared"]
+APP_GROUPS = ["product", "infra", "shared"]
 
 
 def register_routers(app: FastAPI) -> None:

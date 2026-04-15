@@ -54,10 +54,10 @@ INSTALLED_APPS = [
     "product.timekeeping",
     "product.costing",
     "product.approvals",
-    # platform
-    "platform.tenants",
-    "platform.licensing",
-    "platform.authz",
+    # infra
+    "infra.tenants",
+    "infra.licensing",
+    "infra.authz",
     # shared
     "shared.audit",
     "shared.notifications",

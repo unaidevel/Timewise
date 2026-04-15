@@ -33,3 +33,11 @@ ignore = ["E501"]  # line too long — los strings largos son inevitables
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.coverage.run]
+omit = [
+    "*/.venv/*",
+    "*/tests/*",
+    "*/migrations/*",
+    "manage.py",
+]
