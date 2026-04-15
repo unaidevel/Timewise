@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
@@ -9,11 +8,17 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("name", help="Name of the app")
-        parser.add_argument("directory", nargs="?", help="Optional destination directory")
+        parser.add_argument(
+            "directory", nargs="?", help="Optional destination directory"
+        )
 
     def handle(self, **options):
         app_name = options["name"]
-        base = Path(options["directory"]) if options["directory"] else Path.cwd() / app_name
+        base = (
+            Path(options["directory"])
+            if options["directory"]
+            else Path.cwd() / app_name
+        )
 
         if base.exists():
             raise CommandError(f"Directory '{base}' already exists.")
@@ -71,7 +76,11 @@ class Command(BaseCommand):
 
         marker = "INSTALLED_APPS = ["
         if marker not in source:
-            self.stdout.write(self.style.WARNING("Could not find INSTALLED_APPS in settings.py — add it manually."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Could not find INSTALLED_APPS in settings.py — add it manually."
+                )
+            )
             return
 
         insertion = f'    "{dotted_path}",\n'
