@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -31,10 +30,3 @@ class LoginResponse(BaseModel):
     token_type: str
     expires_at: datetime
     user: UserResponse
-
-
-class AuthSession:
-    access_token: str
-    token_type: str
-    expires_at: datetime
-    user: Any

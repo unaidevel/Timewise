@@ -48,18 +48,18 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="authusermodel",
-            index=models.Index(fields=["email"], name="authz_users_email_bec237_idx"),
+            index=models.Index(fields=["email"], name="authz_users_email_81ee10_idx"),
         ),
         migrations.AddIndex(
             model_name="authusermodel",
-            index=models.Index(fields=["is_active"], name="authz_users_is_acti_594997_idx"),
+            index=models.Index(fields=["is_active"], name="authz_users_is_acti_f34988_idx"),
         ),
         migrations.AddIndex(
             model_name="authtokenmodel",
-            index=models.Index(fields=["expires_at"], name="authz_tokens_expires_3d419f_idx"),
+            index=models.Index(fields=["expires_at"], name="authz_token_expires_bc05cf_idx"),
         ),
         migrations.AddIndex(
             model_name="authtokenmodel",
-            index=models.Index(fields=["revoked_at"], name="authz_tokens_revoked_2e4df6_idx"),
+            index=models.Index(fields=["revoked_at"], name="authz_token_revoked_be88c3_idx"),
         ),
     ]

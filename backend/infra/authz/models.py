@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 
@@ -18,6 +19,12 @@ class AuthUserModel(models.Model):
         indexes = [
             models.Index(fields=["email"]),
             models.Index(fields=["is_active"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"),
+                name="authz_users_email_ci_unique",
+            )
         ]
 
     def __str__(self) -> str:
@@ -46,3 +53,17 @@ class AuthTokenModel(models.Model):
     @property
     def is_valid(self) -> bool:
         return self.revoked_at is None and self.expires_at > timezone.now()
+
+
+class AuthLoginAttemptModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    email = models.CharField(max_length=254)
+    ip_address = models.CharField(max_length=64)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "authz_login_attempts"
+        indexes = [
+            models.Index(fields=["email", "attempted_at"]),
+            models.Index(fields=["ip_address", "attempted_at"]),
+        ]

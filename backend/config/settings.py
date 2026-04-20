@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -24,10 +26,16 @@ def load_env_file(env_path: Path) -> None:
 
 for candidate in (
     BASE_DIR / ".env",
+    BASE_DIR / ".env" / "global.env",
+    BASE_DIR / ".env" / "auth.env",
     BASE_DIR / ".env" / ".env",
     BASE_DIR / ".env" / ".env.local",
 ):
     load_env_file(candidate)
+
+
+POSTGRES_DB_NAME = os.getenv("POSTGRES_DB", "timewise")
+POSTGRES_TEST_DB_NAME = os.getenv("POSTGRES_TEST_DB", f"{POSTGRES_DB_NAME}_test")
 
 
 def env_bool(name: str, default: bool = False) -> bool:
@@ -37,6 +45,22 @@ def env_bool(name: str, default: bool = False) -> bool:
 def env_list(name: str, default: str = "") -> list[str]:
     raw_value = os.getenv(name, default)
     return [item.strip() for item in raw_value.split(",") if item.strip()]
+
+
+def env_int(name: str, default: int, minimum: int = 0) -> int:
+    raw_value = os.getenv(name)
+    if raw_value is None or raw_value == "":
+        value = default
+    else:
+        try:
+            value = int(raw_value)
+        except ValueError as exc:
+            raise ImproperlyConfigured(f"{name} must be an integer") from exc
+
+    if value < minimum:
+        raise ImproperlyConfigured(f"{name} must be >= {minimum}")
+
+    return value
 
 
 SECRET_KEY = os.getenv(
@@ -104,11 +128,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("POSTGRES_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.getenv("POSTGRES_DB", "portfolio"),
+        "NAME": POSTGRES_DB_NAME,
         "USER": os.getenv("POSTGRES_USER", "postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
         "HOST": os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "TEST": {
+            "NAME": POSTGRES_TEST_DB_NAME,
+        },
     }
 }
 
@@ -126,6 +153,23 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+AUTH_TOKEN_TTL_HOURS = env_int("AUTH_TOKEN_TTL_HOURS", 8, minimum=1)
+AUTH_MAX_FAILED_ATTEMPTS_PER_ACCOUNT = env_int(
+    "AUTH_MAX_FAILED_ATTEMPTS_PER_ACCOUNT",
+    5,
+    minimum=1,
+)
+AUTH_MAX_FAILED_ATTEMPTS_PER_IP = env_int(
+    "AUTH_MAX_FAILED_ATTEMPTS_PER_IP",
+    20,
+    minimum=1,
+)
+AUTH_LOCKOUT_WINDOW_MINUTES = env_int(
+    "AUTH_LOCKOUT_WINDOW_MINUTES",
+    15,
+    minimum=1,
+)
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = os.getenv("DJANGO_TIME_ZONE", "Europe/Madrid")
