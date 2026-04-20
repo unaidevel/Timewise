@@ -15,6 +15,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "--coverage",
+            action="store_true",
+            help="Run both suites under coverage and generate coverage reports.",
+        )
+        parser.add_argument(
             "--keepdb",
             action="store_true",
             help="Preserve the test databases between runs.",
@@ -50,14 +55,18 @@ class Command(BaseCommand):
         else:
             env.pop("TESTALL_DROPDB", None)
 
+        if options["coverage"]:
+            self.stdout.write("Preparing coverage data...")
+            self._run_subprocess(
+                [sys.executable, "-m", "coverage", "erase"],
+                backend_root,
+                env,
+                "Coverage initialization failed.",
+            )
+
         if django_targets:
             self.stdout.write("Running Django tests...")
-            django_command = [
-                sys.executable,
-                "manage.py",
-                "test",
-                f"--verbosity={options['verbosity']}",
-            ]
+            django_command = self._django_test_command(options["verbosity"], options)
             if options["keepdb"]:
                 django_command.append("--keepdb")
 
@@ -73,19 +82,34 @@ class Command(BaseCommand):
         if pytest_targets:
             self.stdout.write("Running API pytest tests...")
             self._run_subprocess(
-                [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    *self._pytest_verbosity_args(options["verbosity"]),
-                    *pytest_targets,
-                ],
+                self._pytest_command(options["verbosity"], options, pytest_targets),
                 backend_root,
                 env,
                 "API pytest tests failed.",
             )
         else:
             self.stdout.write("Skipping API pytest tests because none were discovered.")
+
+        if options["coverage"]:
+            self.stdout.write("Combining coverage data...")
+            self._run_subprocess(
+                [sys.executable, "-m", "coverage", "combine"],
+                backend_root,
+                env,
+                "Coverage combine failed.",
+            )
+            self._run_subprocess(
+                [sys.executable, "-m", "coverage", "xml"],
+                backend_root,
+                env,
+                "Coverage XML generation failed.",
+            )
+            self._run_subprocess(
+                [sys.executable, "-m", "coverage", "report", "-m"],
+                backend_root,
+                env,
+                "Coverage report generation failed.",
+            )
 
         self.stdout.write(self.style.SUCCESS("All test suites passed."))
 
@@ -148,6 +172,34 @@ class Command(BaseCommand):
         if verbosity == 1:
             return []
         return ["-" + ("v" * verbosity)]
+
+    def _django_test_command(self, verbosity: int, options) -> list[str]:
+        base_command = [sys.executable]
+        if options["coverage"]:
+            base_command.extend(["-m", "coverage", "run", "--parallel-mode"])
+
+        base_command.extend(["manage.py", "test", f"--verbosity={verbosity}"])
+        return base_command
+
+    def _pytest_command(
+        self,
+        verbosity: int,
+        options,
+        pytest_targets: list[str],
+    ) -> list[str]:
+        command = [sys.executable]
+        if options["coverage"]:
+            command.extend(["-m", "coverage", "run", "--parallel-mode"])
+
+        command.extend(
+            [
+                "-m",
+                "pytest",
+                *self._pytest_verbosity_args(verbosity),
+                *pytest_targets,
+            ]
+        )
+        return command
 
     def _project_apps(self) -> list[str]:
         return [

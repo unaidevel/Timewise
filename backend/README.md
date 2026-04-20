@@ -34,10 +34,11 @@ Run development tools:
 uv run pytest
 uv run python manage.py test
 uv run python manage.py testall
+uv run python manage.py testall --coverage
 uv run ruff check .
 ```
 
-`testall` also supports `--keepdb` and `--dropdb`.
+`testall` also supports `--keepdb`, `--dropdb`, and `--coverage`.
 
 ## Notes
 
