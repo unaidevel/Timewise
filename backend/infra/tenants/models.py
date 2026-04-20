@@ -19,6 +19,7 @@ class TenantModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=200)
     slug = models.CharField(max_length=100, unique=True)
+    vat = models.IntegerField(unique=True, max_length=12)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         AuthUserModel,
@@ -35,6 +36,7 @@ class TenantModel(models.Model):
         indexes = [
             models.Index(fields=["slug"]),
             models.Index(fields=["is_active"]),
+            models.Index(fields=["vat"]),
         ]
 
     def __str__(self) -> str:

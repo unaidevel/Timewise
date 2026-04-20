@@ -25,14 +25,14 @@ class TenantRepository:
         return to_tenant(model)
 
     @staticmethod
-    def find_by_id(tenant_id: UUID) -> Tenant | None:
-        model = TenantModel.objects.filter(id=tenant_id).first()
-        return to_tenant(model) if model else None
+    def get_by_id(tenant_id: UUID) -> Tenant | None:
+        tenant = TenantModel.objects.filter(id=tenant_id).first()
+        return to_tenant(tenant)
 
     @staticmethod
     def find_by_slug(slug: str) -> Tenant | None:
-        model = TenantModel.objects.filter(slug=slug).first()
-        return to_tenant(model) if model else None
+        tenant = TenantModel.objects.filter(slug=slug).first()
+        return to_tenant(tenant)
 
     @staticmethod
     def list_all() -> list[Tenant]:

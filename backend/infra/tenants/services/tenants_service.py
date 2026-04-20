@@ -10,6 +10,7 @@ from infra.tenants.exceptions import (
 )
 from infra.tenants.models import TENANT_ROLE_OWNER
 from infra.tenants.repositories.tenants_repository import TenantRepository
+from django.db import transaction
 
 
 class TenantService:
@@ -23,22 +24,23 @@ class TenantService:
                 f"A tenant with slug '{tenant_slug.value}' already exists."
             )
 
-        tenant = TenantRepository.create(
-            name=tenant_name.value,
-            slug=tenant_slug.value,
-            created_by_id=created_by_id,
-        )
-        TenantRepository.add_membership(
-            tenant_id=tenant.id,
-            user_id=created_by_id,
-            role=TENANT_ROLE_OWNER,
-            invited_by_id=None,
-        )
+        with transaction.atomic():
+            tenant = TenantRepository.create(
+                name=tenant_name.value,
+                slug=tenant_slug.value,
+                created_by_id=created_by_id,
+            )
+            TenantRepository.add_membership(
+                tenant_id=tenant.id,
+                user_id=created_by_id,
+                role=TENANT_ROLE_OWNER,
+                invited_by_id=None,
+            )
         return tenant
 
     @staticmethod
     def get_by_id(tenant_id: UUID) -> Tenant:
-        tenant = TenantRepository.find_by_id(tenant_id)
+        tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
         return tenant
