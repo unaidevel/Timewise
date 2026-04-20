@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 
-from infra.authz.dtos.auth_dtos import AuthUser
+from infra.authz.api.dependencies import (
+    CurrentUser,
+    bearer_security,
+    get_current_user,
+    unauthorized_exception,
+)
 from infra.authz.dtos.dtos import (
     LoginRequest,
     LoginResponse,
@@ -19,31 +24,13 @@ from infra.common.exceptions import (
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-security = HTTPBearer(auto_error=False)
-
-
-def _unauthorized_exception(detail: str) -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=detail,
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+__all__ = ["router", "get_current_user"]
 
 
 def _get_client_ip(request: Request) -> str:
     if request.client and request.client.host:
         return request.client.host
     return "unknown"
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-) -> AuthUser:
-    access_token = credentials.credentials if credentials else ""
-    user = AuthService.authenticate(access_token)
-    if not user:
-        raise _unauthorized_exception("Invalid or expired token")
-    return user
 
 
 @router.post(
@@ -88,7 +75,7 @@ def login_user(payload: LoginRequest, request: Request) -> LoginResponse:
             detail=str(exc),
         ) from exc
     except InvalidCredentialsError as exc:
-        raise _unauthorized_exception(str(exc)) from exc
+        raise unauthorized_exception(str(exc)) from exc
     except TooManyLoginAttemptsError as exc:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)
@@ -98,13 +85,13 @@ def login_user(payload: LoginRequest, request: Request) -> LoginResponse:
 
 
 @router.get("/me", response_model=UserResponse)
-def get_me(current_user: AuthUser = Depends(get_current_user)) -> UserResponse:
+def get_me(current_user: CurrentUser) -> UserResponse:
     return to_user_response(current_user)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_security),
 ) -> None:
     if credentials:
         AuthService.logout(credentials.credentials)
