@@ -4,9 +4,9 @@ from django.utils import timezone
 from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
 from infra.tenants.exceptions import (
-    MemberAlreadyExistsError,
     InvalidTenantNameError,
     InvalidTenantSlugError,
+    MemberAlreadyExistsError,
     TenantAlreadyExistsError,
     TenantNotFoundError,
 )

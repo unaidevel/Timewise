@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from infra.authz.api.dependencies import CurrentUser
+from infra.common.responses import STATUS_RESPONSES
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
     TenantIn,
@@ -18,7 +19,6 @@ from infra.tenants.exceptions import (
     TenantNotFoundError,
 )
 from infra.tenants.services.tenants_service import TenantService
-from infra.common.responses import STATUS_RESPONSES
 
 router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
 

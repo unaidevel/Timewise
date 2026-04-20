@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
 from infra.tenants.entities.tenant_entities import TenantEntity
@@ -8,7 +10,6 @@ from infra.tenants.exceptions import (
 )
 from infra.tenants.models import TENANT_ROLE_OWNER
 from infra.tenants.repositories.tenants_repository import TenantRepository
-from django.db import transaction
 
 
 class TenantService:

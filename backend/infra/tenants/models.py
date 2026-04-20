@@ -1,7 +1,7 @@
 from django.db import models
 
-from infra.common.classes import MembershipRoles
 from infra.authz.models import AuthUserModel
+from infra.common.classes import MembershipRoles
 
 TENANT_ROLE_OWNER = MembershipRoles.OWNER.value
 TENANT_ROLE_CREATOR = MembershipRoles.CREATOR.value
