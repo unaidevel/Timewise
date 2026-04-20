@@ -7,34 +7,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("authz", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AuthLoginAttemptModel',
+            name="AuthLoginAttemptModel",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('email', models.CharField(max_length=254)),
-                ('ip_address', models.CharField(max_length=64)),
-                ('attempted_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("email", models.CharField(max_length=254)),
+                ("ip_address", models.CharField(max_length=64)),
+                ("attempted_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'authz_login_attempts',
+                "db_table": "authz_login_attempts",
             },
         ),
         migrations.AddConstraint(
-            model_name='authusermodel',
-            constraint=models.UniqueConstraint(django.db.models.functions.text.Lower('email'), name='authz_users_email_ci_unique'),
+            model_name="authusermodel",
+            constraint=models.UniqueConstraint(
+                django.db.models.functions.text.Lower("email"),
+                name="authz_users_email_ci_unique",
+            ),
         ),
         migrations.AddIndex(
-            model_name='authloginattemptmodel',
-            index=models.Index(fields=['email', 'attempted_at'], name='authz_login_email_ae179b_idx'),
+            model_name="authloginattemptmodel",
+            index=models.Index(
+                fields=["email", "attempted_at"], name="authz_login_email_ae179b_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='authloginattemptmodel',
-            index=models.Index(fields=['ip_address', 'attempted_at'], name='authz_login_ip_addr_dab25c_idx'),
+            model_name="authloginattemptmodel",
+            index=models.Index(
+                fields=["ip_address", "attempted_at"],
+                name="authz_login_ip_addr_dab25c_idx",
+            ),
         ),
     ]
