@@ -1,9 +1,15 @@
 import re
 from dataclasses import dataclass
 
-from infra.tenants.exceptions import InvalidTenantNameError, InvalidTenantSlugError
+from infra.common.classes import MembershipRoles
+from infra.tenants.exceptions import (
+    InvalidMemberRoleError,
+    InvalidTenantNameError,
+    InvalidTenantSlugError,
+)
 
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
+_VALID_ROLES = {role.value for role in MembershipRoles}
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,3 +49,19 @@ class TenantEntity:
                 "lowercase letters, digits, or hyphens."
             )
         return slug
+
+
+@dataclass(frozen=True, slots=True)
+class TenantMembershipEntity:
+    role: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "role", self._validate_role(self.role))
+
+    @staticmethod
+    def _validate_role(value: str) -> str:
+        if value not in _VALID_ROLES:
+            raise InvalidMemberRoleError(
+                f"Invalid role '{value}'. Must be one of: {', '.join(sorted(_VALID_ROLES))}."
+            )
+        return value

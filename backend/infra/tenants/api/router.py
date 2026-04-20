@@ -8,11 +8,11 @@ from infra.tenants.dtos.dtos import (
     TenantMemberResponse,
     TenantOut,
 )
-from infra.tenants.dtos.mappers.tenant_mapper import (
-    to_tenant_member_response,
-    to_tenant_response,
-)
+from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
 from infra.tenants.exceptions import (
+    InvalidMemberRoleError,
+    InvalidTenantNameError,
+    InvalidTenantSlugError,
     MemberAlreadyExistsError,
     MemberNotFoundError,
     TenantAlreadyExistsError,
@@ -23,31 +23,38 @@ from infra.tenants.services.tenants_service import TenantService
 router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
 
 
-@router.post("", response_model=TenantOut, responses=STATUS_RESPONSES, status_code=status.HTTP_201_CREATED)
-def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
+@router.post(
+    "",
+    response_model=TenantOut,
+    responses=STATUS_RESPONSES,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_tenant(payload: TenantIn, current_user: CurrentUser) -> Tenant:
     try:
-        tenant = TenantService.create(payload=payload, created_by_id=current_user.id)
+        return TenantService.create(payload=payload, created_by_id=current_user.id)
     except TenantAlreadyExistsError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+    except (InvalidTenantNameError, InvalidTenantSlugError) as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
         ) from exc
-    return to_tenant_response(tenant)
 
 
 @router.get("", response_model=list[TenantOut])
-def list_tenants(_: CurrentUser) -> list[TenantOut]:
-    return [to_tenant_response(tenant) for tenant in TenantService.list_all()]
+def list_tenants(_: CurrentUser) -> list[Tenant]:
+    return TenantService.list_all()
 
 
 @router.get("/{tenant_id}", response_model=TenantOut)
-def get_tenant(tenant_id: int, _: CurrentUser) -> TenantOut:
+def get_tenant(tenant_id: int, _: CurrentUser) -> Tenant:
     try:
-        tenant = TenantService.get_by_id(tenant_id)
+        return TenantService.get_by_id(tenant_id)
     except TenantNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
-    return to_tenant_response(tenant)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -59,28 +66,35 @@ def add_member(
     tenant_id: int,
     payload: AddMemberRequest,
     current_user: CurrentUser,
-) -> TenantMemberResponse:
+) -> TenantMembership:
     try:
-        membership = TenantService.add_member(
+        return TenantService.add_member(
             tenant_id=tenant_id,
-            user_id=payload.user_id,
-            role=payload.role,
+            payload=payload,
             invited_by_id=current_user.id,
         )
     except TenantNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
     except MemberAlreadyExistsError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    return to_tenant_member_response(membership)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
+    except InvalidMemberRoleError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
 
 
 @router.get("/{tenant_id}/members", response_model=list[TenantMemberResponse])
-def list_members(tenant_id: int, _: CurrentUser) -> list[TenantMemberResponse]:
+def list_members(tenant_id: int, _: CurrentUser) -> list[TenantMembership]:
     try:
-        memberships = TenantService.list_members(tenant_id)
+        return TenantService.list_members(tenant_id)
     except TenantNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
-    return [to_tenant_member_response(m) for m in memberships]
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
 
 
 @router.delete(
@@ -92,15 +106,18 @@ def remove_member(
     membership_id: int,
     reason: str = "",
     _: CurrentUser = None,
-) -> TenantMemberResponse:
+) -> TenantMembership:
     try:
-        membership = TenantService.remove_member(
+        return TenantService.remove_member(
             tenant_id=tenant_id,
             membership_id=membership_id,
             reason=reason,
         )
     except TenantNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
     except MemberNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
-    return to_tenant_member_response(membership)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc

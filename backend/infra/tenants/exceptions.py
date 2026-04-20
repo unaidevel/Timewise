@@ -24,3 +24,7 @@ class MemberAlreadyExistsError(TenantError):
 
 class MemberNotFoundError(TenantError):
     pass
+
+
+class InvalidMemberRoleError(TenantError):
+    pass

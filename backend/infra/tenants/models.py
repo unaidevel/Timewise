@@ -1,14 +1,7 @@
 from django.db import models
 
 from infra.authz.models import AuthUserModel
-from infra.common.classes import MembershipRoles
-
-TENANT_ROLE_OWNER = MembershipRoles.OWNER.value
-TENANT_ROLE_CREATOR = MembershipRoles.CREATOR.value
-TENANT_ROLE_ADMIN = MembershipRoles.ADMIN.value
-TENANT_ROLE_MEMBER = MembershipRoles.MEMBER.value
-
-_ROLE_CHOICES = [(role.value, role.name.title()) for role in MembershipRoles]
+from infra.common.classes import ROLE_CHOICES
 
 
 class TenantModel(models.Model):
@@ -56,7 +49,7 @@ class TenantMembershipModel(models.Model):
         on_delete=models.CASCADE,
         related_name="tenant_memberships",
     )
-    role = models.CharField(max_length=20, choices=_ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     joined_at = models.DateTimeField(auto_now_add=True)
     invited_by = models.ForeignKey(
         AuthUserModel,

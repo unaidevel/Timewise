@@ -6,3 +6,6 @@ class MembershipRoles(str, Enum):
     CREATOR = "creator"
     ADMIN = "admin"
     MEMBER = "member"
+
+
+ROLE_CHOICES = [(role.value, role.name.title()) for role in MembershipRoles]

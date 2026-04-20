@@ -1,37 +1,34 @@
 from django.db import transaction
 
-from infra.tenants.dtos.dtos import TenantIn
+from infra.common.classes import MembershipRoles
+from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
-from infra.tenants.entities.tenant_entities import TenantEntity
+from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.exceptions import (
     MemberAlreadyExistsError,
+    MemberNotFoundError,
     TenantAlreadyExistsError,
     TenantNotFoundError,
 )
-from infra.tenants.models import TENANT_ROLE_OWNER
 from infra.tenants.repositories.tenants_repository import TenantRepository
 
 
 class TenantService:
     @staticmethod
     def create(payload: TenantIn, created_by_id: int) -> Tenant:
-        tenant = TenantEntity(**payload.model_dump())
+        entity = TenantEntity(**payload.model_dump())
 
-        if TenantRepository.find_by_slug(tenant.slug):
+        if TenantRepository.find_by_slug(entity.slug):
             raise TenantAlreadyExistsError(
-                f"A tenant with slug '{tenant.slug}' already exists."
+                f"A tenant with slug '{entity.slug}' already exists."
             )
 
         with transaction.atomic():
-            created_tenant = TenantRepository.create(
-                name=tenant.name,
-                slug=tenant.slug,
-                created_by_id=created_by_id,
-            )
+            created_tenant = TenantRepository.create(entity, created_by_id)
             TenantRepository.add_membership(
                 tenant_id=created_tenant.id,
                 user_id=created_by_id,
-                role=TENANT_ROLE_OWNER,
+                entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
                 invited_by_id=None,
             )
         return created_tenant
@@ -50,23 +47,23 @@ class TenantService:
     @staticmethod
     def add_member(
         tenant_id: int,
-        user_id: int,
-        role: str,
+        payload: AddMemberRequest,
         invited_by_id: int,
     ) -> TenantMembership:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
 
-        existing = TenantRepository.find_active_membership(tenant_id, user_id)
+        existing = TenantRepository.find_active_membership(tenant_id, payload.user_id)
         if existing:
             raise MemberAlreadyExistsError("User is already an active member.")
 
+        entity = TenantMembershipEntity(role=payload.role)
         return TenantRepository.add_membership(
-            tenant_id=tenant_id,
-            user_id=user_id,
-            role=role,
-            invited_by_id=invited_by_id,
+            tenant_id,
+            payload.user_id,
+            entity,
+            invited_by_id,
         )
 
     @staticmethod
@@ -85,4 +82,7 @@ class TenantService:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
-        return TenantRepository.remove_membership(membership_id, reason)
+        membership = TenantRepository.remove_membership(membership_id, reason)
+        if not membership:
+            raise MemberNotFoundError("Membership not found or already inactive.")
+        return membership

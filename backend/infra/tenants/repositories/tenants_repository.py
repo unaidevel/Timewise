@@ -1,29 +1,21 @@
-from django.db import IntegrityError
 from django.utils import timezone
 
 from infra.tenants.dtos.mappers.tenant_mapper import to_tenant, to_tenant_membership
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
-from infra.tenants.exceptions import (
-    MemberAlreadyExistsError,
-    MemberNotFoundError,
-    TenantAlreadyExistsError,
-)
+from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.models import TenantMembershipModel, TenantModel
 
 
 class TenantRepository:
     @staticmethod
-    def create(name: str, slug: str, created_by_id: int) -> Tenant:
-        try:
-            model = TenantModel.objects.create(
-                name=name,
-                slug=slug,
-                created_by_id=created_by_id,
-            )
-        except IntegrityError as exc:
-            raise TenantAlreadyExistsError(
-                f"A tenant with slug '{slug}' already exists."
-            ) from exc
+    def create(entity: TenantEntity, created_by_id: int) -> Tenant:
+        if not isinstance(entity, TenantEntity):
+            raise TypeError(f"Expected TenantEntity, got {type(entity).__name__}")
+        model = TenantModel.objects.create(
+            name=entity.name,
+            slug=entity.slug,
+            created_by_id=created_by_id,
+        )
         return to_tenant(model)
 
     @staticmethod
@@ -44,20 +36,17 @@ class TenantRepository:
     def add_membership(
         tenant_id: int,
         user_id: int,
-        role: str,
+        entity: TenantMembershipEntity,
         invited_by_id: int | None,
     ) -> TenantMembership:
-        try:
-            model = TenantMembershipModel.objects.create(
-                tenant_id=tenant_id,
-                user_id=user_id,
-                role=role,
-                invited_by_id=invited_by_id,
-            )
-        except IntegrityError as exc:
-            raise MemberAlreadyExistsError(
-                "User is already an active member of this tenant."
-            ) from exc
+        if not isinstance(entity, TenantMembershipEntity):
+            raise TypeError(f"Expected TenantMembershipEntity, got {type(entity).__name__}")
+        model = TenantMembershipModel.objects.create(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            role=entity.role,
+            invited_by_id=invited_by_id,
+        )
         return to_tenant_membership(model)
 
     @staticmethod
@@ -79,12 +68,12 @@ class TenantRepository:
         ]
 
     @staticmethod
-    def remove_membership(membership_id: int, reason: str) -> TenantMembership:
+    def remove_membership(membership_id: int, reason: str) -> TenantMembership | None:
         rows = TenantMembershipModel.objects.filter(
             id=membership_id,
             left_at__isnull=True,
         ).update(left_at=timezone.now(), left_reason=reason)
         if rows == 0:
-            raise MemberNotFoundError("Membership not found or already inactive.")
+            return None
         model = TenantMembershipModel.objects.get(id=membership_id)
         return to_tenant_membership(model)
