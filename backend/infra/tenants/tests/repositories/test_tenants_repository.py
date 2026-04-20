@@ -20,7 +20,7 @@ class TenantRepositoryTests(TestCase):
         user = make_user()
         tenant = TenantRepository.create("Acme Corp", "acme-corp", user.id)
 
-        found = TenantRepository.find_by_id(tenant.id)
+        found = TenantRepository.get_by_id(tenant.id)
 
         self.assertIsNotNone(found)
         self.assertEqual(found.name, "Acme Corp")

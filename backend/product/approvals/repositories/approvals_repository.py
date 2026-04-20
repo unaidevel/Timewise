@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from product.approvals.dtos.approval_dtos import Approval
 from product.approvals.models import ApprovalModel
 
@@ -21,7 +19,7 @@ class ApprovalsRepository:
     def create_approval(
         title: str,
         description: str,
-        created_by_user_id: UUID,
+        created_by_user_id: int,
     ) -> Approval:
         approval_model = ApprovalModel.objects.create(
             title=title,
@@ -31,7 +29,7 @@ class ApprovalsRepository:
         return _to_approval(approval_model)
 
     @staticmethod
-    def list_approvals_for_owner(created_by_user_id: UUID) -> list[Approval]:
+    def list_approvals_for_owner(created_by_user_id: int) -> list[Approval]:
         approval_models = ApprovalModel.objects.filter(
             created_by_id=created_by_user_id
         ).order_by("-created_at")
@@ -39,8 +37,8 @@ class ApprovalsRepository:
 
     @staticmethod
     def find_by_id_for_owner(
-        approval_id: UUID,
-        created_by_user_id: UUID,
+        approval_id: int,
+        created_by_user_id: int,
     ) -> Approval | None:
         approval_model = ApprovalModel.objects.filter(
             id=approval_id,
@@ -50,8 +48,8 @@ class ApprovalsRepository:
 
     @staticmethod
     def update_approval(
-        approval_id: UUID,
-        created_by_user_id: UUID,
+        approval_id: int,
+        created_by_user_id: int,
         *,
         title: str | None = None,
         description: str | None = None,
@@ -76,7 +74,7 @@ class ApprovalsRepository:
         return _to_approval(approval_model)
 
     @staticmethod
-    def delete_approval(approval_id: UUID, created_by_user_id: UUID) -> int:
+    def delete_approval(approval_id: int, created_by_user_id: int) -> int:
         deleted_count, _ = ApprovalModel.objects.filter(
             id=approval_id,
             created_by_id=created_by_user_id,

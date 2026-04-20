@@ -1,6 +1,5 @@
 from datetime import UTC, datetime
 from unittest.mock import patch
-from uuid import uuid4
 
 from django.test import SimpleTestCase
 
@@ -14,7 +13,7 @@ from product.approvals.services.approvals_service import ApprovalsService
 
 def build_approval(created_by_user_id):
     return Approval(
-        id=uuid4(),
+        id=1,
         title="Budget review",
         description="Check the attached documents.",
         status="pending",
@@ -32,7 +31,7 @@ class ApprovalsServiceTests(SimpleTestCase):
         self,
         create_approval_mock,
     ):
-        owner_id = uuid4()
+        owner_id = 10
         expected_approval = build_approval(owner_id)
         create_approval_mock.return_value = expected_approval
 
@@ -52,8 +51,8 @@ class ApprovalsServiceTests(SimpleTestCase):
     def test_update_approval_requires_at_least_one_field(self):
         with self.assertRaises(InvalidApprovalValueError):
             ApprovalsService.update_approval(
-                uuid4(),
-                uuid4(),
+                1,
+                10,
             )
 
     @patch(
@@ -66,7 +65,7 @@ class ApprovalsServiceTests(SimpleTestCase):
         find_by_id_for_owner_mock.return_value = None
 
         with self.assertRaises(ApprovalNotFoundError):
-            ApprovalsService.get_approval(uuid4(), uuid4())
+            ApprovalsService.get_approval(1, 10)
 
     @patch(
         "product.approvals.services.approvals_service.ApprovalsRepository.update_approval"
@@ -75,8 +74,8 @@ class ApprovalsServiceTests(SimpleTestCase):
         self,
         update_approval_mock,
     ):
-        approval_id = uuid4()
-        owner_id = uuid4()
+        approval_id = 1
+        owner_id = 10
         update_approval_mock.return_value = build_approval(owner_id)
 
         ApprovalsService.update_approval(

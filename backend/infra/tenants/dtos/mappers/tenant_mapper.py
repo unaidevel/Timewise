@@ -1,4 +1,4 @@
-from infra.tenants.dtos.dtos import TenantMemberResponse, TenantResponse
+from infra.tenants.dtos.dtos import TenantMemberResponse, TenantOut
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
 
 
@@ -9,6 +9,7 @@ def to_tenant(model) -> Tenant:
         slug=model.slug,
         is_active=model.is_active,
         created_at=model.created_at,
+        updated_at=model.updated_at,
         created_by_id=model.created_by_id,
     )
 
@@ -26,13 +27,14 @@ def to_tenant_membership(model) -> TenantMembership:
     )
 
 
-def to_tenant_response(tenant: Tenant) -> TenantResponse:
-    return TenantResponse(
+def to_tenant_response(tenant: Tenant) -> TenantOut:
+    return TenantOut(
         id=tenant.id,
         name=tenant.name,
         slug=tenant.slug,
         is_active=tenant.is_active,
         created_at=tenant.created_at,
+        updated_at=tenant.updated_at,
     )
 
 

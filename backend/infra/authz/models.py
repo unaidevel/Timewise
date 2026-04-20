@@ -1,12 +1,10 @@
-from uuid import uuid4
-
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils import timezone
 
 
 class AuthUserModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=200)
     password_hash = models.CharField(max_length=255)
@@ -32,7 +30,7 @@ class AuthUserModel(models.Model):
 
 
 class AuthTokenModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         AuthUserModel,
         on_delete=models.CASCADE,
@@ -56,7 +54,7 @@ class AuthTokenModel(models.Model):
 
 
 class AuthLoginAttemptModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     email = models.CharField(max_length=254)
     ip_address = models.CharField(max_length=64)
     attempted_at = models.DateTimeField(auto_now_add=True)

@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from product.approvals.dtos.approval_dtos import Approval
 from product.approvals.entities.approval_entities import (
     ApprovalDescription,
@@ -18,7 +16,7 @@ class ApprovalsService:
     def create_approval(
         title: str,
         description: str,
-        created_by_user_id: UUID,
+        created_by_user_id: int,
     ) -> Approval:
         return ApprovalsRepository.create_approval(
             title=ApprovalTitle(title).value,
@@ -27,11 +25,11 @@ class ApprovalsService:
         )
 
     @staticmethod
-    def list_approvals(created_by_user_id: UUID) -> list[Approval]:
+    def list_approvals(created_by_user_id: int) -> list[Approval]:
         return ApprovalsRepository.list_approvals_for_owner(created_by_user_id)
 
     @staticmethod
-    def get_approval(approval_id: UUID, created_by_user_id: UUID) -> Approval:
+    def get_approval(approval_id: int, created_by_user_id: int) -> Approval:
         approval = ApprovalsRepository.find_by_id_for_owner(
             approval_id,
             created_by_user_id,
@@ -43,8 +41,8 @@ class ApprovalsService:
 
     @staticmethod
     def update_approval(
-        approval_id: UUID,
-        created_by_user_id: UUID,
+        approval_id: int,
+        created_by_user_id: int,
         *,
         title: str | None = None,
         description: str | None = None,
@@ -72,7 +70,7 @@ class ApprovalsService:
         return updated_approval
 
     @staticmethod
-    def delete_approval(approval_id: UUID, created_by_user_id: UUID) -> None:
+    def delete_approval(approval_id: int, created_by_user_id: int) -> None:
         deleted_count = ApprovalsRepository.delete_approval(
             approval_id,
             created_by_user_id,

@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from fastapi import APIRouter, HTTPException, status
 
 from infra.authz.api.dependencies import CurrentUser
@@ -62,7 +60,7 @@ def list_approvals(current_user: CurrentUser) -> list[ApprovalResponse]:
 
 @router.get("/{approval_id}", response_model=ApprovalResponse)
 def get_approval(
-    approval_id: UUID,
+    approval_id: int,
     current_user: CurrentUser,
 ) -> ApprovalResponse:
     try:
@@ -75,7 +73,7 @@ def get_approval(
 
 @router.patch("/{approval_id}", response_model=ApprovalResponse)
 def update_approval(
-    approval_id: UUID,
+    approval_id: int,
     payload: UpdateApprovalRequest,
     current_user: CurrentUser,
 ) -> ApprovalResponse:
@@ -94,7 +92,7 @@ def update_approval(
 
 
 @router.delete("/{approval_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_approval(approval_id: UUID, current_user: CurrentUser) -> None:
+def delete_approval(approval_id: int, current_user: CurrentUser) -> None:
     try:
         ApprovalsService.delete_approval(approval_id, current_user.id)
     except ApprovalNotFoundError as exc:

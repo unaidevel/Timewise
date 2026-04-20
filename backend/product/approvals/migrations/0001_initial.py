@@ -1,5 +1,3 @@
-import uuid
-
 import django.db.models.deletion
 from django.db import migrations, models
 
@@ -16,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ApprovalModel',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('title', models.CharField(max_length=200)),
                 ('description', models.TextField(blank=True)),
                 ('status', models.CharField(choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending', max_length=20)),

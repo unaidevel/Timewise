@@ -1,25 +1,21 @@
-from uuid import uuid4
-
 from django.db import models
 
+from infra.common.classes import MembershipRoles
 from infra.authz.models import AuthUserModel
 
-TENANT_ROLE_OWNER = "owner"
-TENANT_ROLE_ADMIN = "admin"
-TENANT_ROLE_MEMBER = "member"
+TENANT_ROLE_OWNER = MembershipRoles.OWNER.value
+TENANT_ROLE_CREATOR = MembershipRoles.CREATOR.value
+TENANT_ROLE_ADMIN = MembershipRoles.ADMIN.value
+TENANT_ROLE_MEMBER = MembershipRoles.MEMBER.value
 
-_ROLE_CHOICES = [
-    (TENANT_ROLE_OWNER, "Owner"),
-    (TENANT_ROLE_ADMIN, "Admin"),
-    (TENANT_ROLE_MEMBER, "Member"),
-]
+_ROLE_CHOICES = [(role.value, role.name.title()) for role in MembershipRoles]
 
 
 class TenantModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=200)
     slug = models.CharField(max_length=100, unique=True)
-    vat = models.IntegerField(unique=True, max_length=12)
+    vat = models.IntegerField(unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         AuthUserModel,
@@ -49,7 +45,7 @@ class TenantMembershipModel(models.Model):
     Registra quién invitó a quién, cuándo entró y cuándo salió.
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(
         TenantModel,
         on_delete=models.CASCADE,

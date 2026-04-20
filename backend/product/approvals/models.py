@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 from django.db import models
 
 from infra.authz.models import AuthUserModel
@@ -17,7 +15,7 @@ class ApprovalModel(models.Model):
         (APPROVAL_STATUS_REJECTED, "Rejected"),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     status = models.CharField(

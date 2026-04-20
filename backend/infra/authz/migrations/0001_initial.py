@@ -1,5 +1,3 @@
-import uuid
-
 import django.db.models.deletion
 from django.db import migrations, models
 
@@ -15,12 +13,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.BigAutoField(primary_key=True, serialize=False),
                 ),
                 ("email", models.EmailField(max_length=254, unique=True)),
                 ("full_name", models.CharField(max_length=200)),
@@ -38,12 +31,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.BigAutoField(primary_key=True, serialize=False),
                 ),
                 ("token_hash", models.CharField(max_length=64, unique=True)),
                 ("expires_at", models.DateTimeField()),

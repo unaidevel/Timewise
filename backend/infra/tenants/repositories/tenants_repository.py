@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.db import IntegrityError
 from django.utils import timezone
 
@@ -11,7 +9,7 @@ from infra.tenants.models import TenantMembershipModel, TenantModel
 
 class TenantRepository:
     @staticmethod
-    def create(name: str, slug: str, created_by_id: UUID) -> Tenant:
+    def create(name: str, slug: str, created_by_id: int) -> Tenant:
         try:
             model = TenantModel.objects.create(
                 name=name,
@@ -25,14 +23,14 @@ class TenantRepository:
         return to_tenant(model)
 
     @staticmethod
-    def get_by_id(tenant_id: UUID) -> Tenant | None:
+    def get_by_id(tenant_id: int) -> Tenant | None:
         tenant = TenantModel.objects.filter(id=tenant_id).first()
-        return to_tenant(tenant)
+        return to_tenant(tenant) if tenant else None
 
     @staticmethod
     def find_by_slug(slug: str) -> Tenant | None:
         tenant = TenantModel.objects.filter(slug=slug).first()
-        return to_tenant(tenant)
+        return to_tenant(tenant) if tenant else None
 
     @staticmethod
     def list_all() -> list[Tenant]:
@@ -40,10 +38,10 @@ class TenantRepository:
 
     @staticmethod
     def add_membership(
-        tenant_id: UUID,
-        user_id: UUID,
+        tenant_id: int,
+        user_id: int,
         role: str,
-        invited_by_id: UUID | None,
+        invited_by_id: int | None,
     ) -> TenantMembership:
         try:
             model = TenantMembershipModel.objects.create(
@@ -59,7 +57,7 @@ class TenantRepository:
         return to_tenant_membership(model)
 
     @staticmethod
-    def find_active_membership(tenant_id: UUID, user_id: UUID) -> TenantMembership | None:
+    def find_active_membership(tenant_id: int, user_id: int) -> TenantMembership | None:
         model = TenantMembershipModel.objects.filter(
             tenant_id=tenant_id,
             user_id=user_id,
@@ -68,7 +66,7 @@ class TenantRepository:
         return to_tenant_membership(model) if model else None
 
     @staticmethod
-    def list_memberships(tenant_id: UUID) -> list[TenantMembership]:
+    def list_memberships(tenant_id: int) -> list[TenantMembership]:
         return [
             to_tenant_membership(m)
             for m in TenantMembershipModel.objects.filter(
@@ -77,7 +75,7 @@ class TenantRepository:
         ]
 
     @staticmethod
-    def remove_membership(membership_id: UUID, reason: str) -> TenantMembership:
+    def remove_membership(membership_id: int, reason: str) -> TenantMembership:
         rows = TenantMembershipModel.objects.filter(
             id=membership_id,
             left_at__isnull=True,

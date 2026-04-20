@@ -1,5 +1,4 @@
 from datetime import datetime
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -29,10 +28,10 @@ class UpdateApprovalRequest(BaseModel):
 class ApprovalResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
+    id: int
     title: str
     description: str
     status: str
-    created_by_user_id: UUID
+    created_by_user_id: int
     created_at: datetime
     updated_at: datetime

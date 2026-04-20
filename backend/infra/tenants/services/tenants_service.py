@@ -1,10 +1,8 @@
-from uuid import UUID
-
+from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
-from infra.tenants.entities.tenant_entities import TenantName, TenantSlug
+from infra.tenants.entities.tenant_entities import TenantEntity
 from infra.tenants.exceptions import (
     MemberAlreadyExistsError,
-    MemberNotFoundError,
     TenantAlreadyExistsError,
     TenantNotFoundError,
 )
@@ -15,31 +13,30 @@ from django.db import transaction
 
 class TenantService:
     @staticmethod
-    def create(name: str, slug: str, created_by_id: UUID) -> Tenant:
-        tenant_name = TenantName(name)
-        tenant_slug = TenantSlug(slug)
+    def create(payload: TenantIn, created_by_id: int) -> Tenant:
+        tenant = TenantEntity(**payload.model_dump())
 
-        if TenantRepository.find_by_slug(tenant_slug.value):
+        if TenantRepository.find_by_slug(tenant.slug):
             raise TenantAlreadyExistsError(
-                f"A tenant with slug '{tenant_slug.value}' already exists."
+                f"A tenant with slug '{tenant.slug}' already exists."
             )
 
         with transaction.atomic():
-            tenant = TenantRepository.create(
-                name=tenant_name.value,
-                slug=tenant_slug.value,
+            created_tenant = TenantRepository.create(
+                name=tenant.name,
+                slug=tenant.slug,
                 created_by_id=created_by_id,
             )
             TenantRepository.add_membership(
-                tenant_id=tenant.id,
+                tenant_id=created_tenant.id,
                 user_id=created_by_id,
                 role=TENANT_ROLE_OWNER,
                 invited_by_id=None,
             )
-        return tenant
+        return created_tenant
 
     @staticmethod
-    def get_by_id(tenant_id: UUID) -> Tenant:
+    def get_by_id(tenant_id: int) -> Tenant:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
@@ -51,12 +48,12 @@ class TenantService:
 
     @staticmethod
     def add_member(
-        tenant_id: UUID,
-        user_id: UUID,
+        tenant_id: int,
+        user_id: int,
         role: str,
-        invited_by_id: UUID,
+        invited_by_id: int,
     ) -> TenantMembership:
-        tenant = TenantRepository.find_by_id(tenant_id)
+        tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
 
@@ -72,19 +69,19 @@ class TenantService:
         )
 
     @staticmethod
-    def list_members(tenant_id: UUID) -> list[TenantMembership]:
-        tenant = TenantRepository.find_by_id(tenant_id)
+    def list_members(tenant_id: int) -> list[TenantMembership]:
+        tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
         return TenantRepository.list_memberships(tenant_id)
 
     @staticmethod
     def remove_member(
-        tenant_id: UUID,
-        membership_id: UUID,
+        tenant_id: int,
+        membership_id: int,
         reason: str,
     ) -> TenantMembership:
-        tenant = TenantRepository.find_by_id(tenant_id)
+        tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
         return TenantRepository.remove_membership(membership_id, reason)
