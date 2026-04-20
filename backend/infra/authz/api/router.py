@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from infra.authz.dtos.mappers.auth_mapper import to_login_response, to_user_response
-from backend.infra.authz.dtos.dtos import (
+from infra.authz.dtos.dtos import (
     LoginRequest,
     LoginResponse,
     RegisterRequest,
@@ -14,8 +14,7 @@ from infra.authz.services.auth_service import (
     InvalidCredentialsError,
 )
 
-
-router = APIRouter(prefix=['/api/v1/auth'], tags=['auth'])
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 security = HTTPBearer(auto_error=False)
 
 

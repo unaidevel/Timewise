@@ -4,19 +4,17 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-# Grupos donde viven las apps. El registry los escanea en orden.
 APP_GROUPS = ["product", "infra", "shared"]
 
 
 def register_routers(app: FastAPI) -> None:
     """
-    Escanea cada grupo (product/, platform/, shared/) buscando módulos
-    que tengan api/router.py. Si lo tienen, registra su router automáticamente.
+    Scan product/, infra/ and shared/ modules and register their FastAPI routers.
 
-    Convención que debe seguir cada api/router.py:
-        router: APIRouter
-        PREFIX: str   — e.g. "/api/v1/workforce"
-        TAGS: list[str]
+    Each <group>/<module>/api/router.py must expose:
+    - router: APIRouter
+    - PREFIX: str
+    - TAGS: list[str]
     """
     backend_root = Path(__file__).resolve().parents[1]
 
@@ -29,16 +27,16 @@ def register_routers(app: FastAPI) -> None:
             module_path = f"{group}.{module_info.name}.api.router"
             try:
                 module = importlib.import_module(module_path)
-                app.include_router(
-                    module.router,
-                    prefix=module.PREFIX,
-                    tags=module.TAGS,
-                )
-            except ModuleNotFoundError:
-                # La app no tiene api/router.py todavía — se ignora
-                continue
-            except AttributeError as e:
-                # El router.py existe pero le falta PREFIX o TAGS
+                app.include_router(module.router)
+            except ModuleNotFoundError as exc:
+                # If the router module itself does not exist, skip that app.
+                # If an internal dependency is missing, surface the real error.
+                if exc.name == module_path:
+                    continue
+                raise ModuleNotFoundError(
+                    f"Failed importing {module_path}. Missing dependency: {exc.name}"
+                ) from exc
+            except AttributeError as exc:
                 raise AttributeError(
-                    f"{module_path} must define 'router', 'PREFIX' and 'TAGS'. {e}"
-                )
+                    f"{module_path} must define 'router'. {exc}"
+                ) from exc

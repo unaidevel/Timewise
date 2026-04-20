@@ -1,27 +1,19 @@
 import hashlib
 import hmac
+import os
 import secrets
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from authz.repositories.auth_repository import AuthRepository
-from authz.dtos.dtos import AuthSession
 
-PBKDF2_ALGORITHM = "sha256"
-PBKDF2_ITERATIONS = 600_000
-TOKEN_TTL_HOURS = 8
+from infra.authz.repositories.auth_repository import AuthRepository
+from infra.common.exceptions import AuthError, EmailAlreadyExistsError, InvalidCredentialsError
 
-
-class AuthError(Exception):
-    pass
+from infra.authz.dtos.dtos import AuthSession
+PBKDF2_ALGORITHM = os.getenv("AUTH_PBKDF2_ALGORITHM")
+PBKDF2_ITERATIONS = int(os.getenv("AUTH_PBKDF2_ITERATIONS"))
+TOKEN_TTL_HOURS = int(os.getenv("AUTH_TOKEN_TTL_HOURS"))
 
 
-class InvalidCredentialsError(AuthError):
-    pass
-
-
-class EmailAlreadyExistsError(AuthError):
-    pass
 
 class AuthService:
     @staticmethod
@@ -82,12 +74,6 @@ class AuthService:
     def logout(access_token: str) -> None:
         if access_token:
             AuthRepository.revoke_token(AuthService._hash_token(access_token))
-
-    @staticmethod
-    def _repository():
-        from infra.authz.repositories.auth_repository import AuthRepository
-
-        return AuthRepository
 
     @staticmethod
     def _hash_password(raw_password: str) -> str:

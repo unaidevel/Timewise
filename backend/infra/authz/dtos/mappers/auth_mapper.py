@@ -1,4 +1,4 @@
-from backend.infra.authz.dtos.dtos import LoginResponse, UserResponse
+from infra.authz.dtos.dtos import LoginResponse, UserResponse
 
 
 def to_user_response(user) -> UserResponse:

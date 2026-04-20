@@ -1,6 +1,3 @@
 from fastapi import APIRouter
 
-PREFIX = "/api/v1/workforce"
-TAGS = ["workforce"]
-
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/workforce", tags=["workforce"])

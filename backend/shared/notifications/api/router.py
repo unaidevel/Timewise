@@ -1,6 +1,3 @@
 from fastapi import APIRouter
 
-PREFIX = "/api/v1/notifications"
-TAGS = ["notifications"]
-
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
