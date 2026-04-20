@@ -1,5 +1,4 @@
 from datetime import timedelta
-from uuid import uuid4
 
 import pytest
 from django.utils import timezone
@@ -23,7 +22,7 @@ def make_user(
     is_active: bool = True,
 ) -> AuthUser:
     return AuthUser(
-        id=uuid4(),
+        id=1,
         email=email,
         full_name="Test User",
         password_hash=AuthService._hash_password(password),
@@ -164,7 +163,7 @@ def test_authenticate_returns_none_for_invalid_token(monkeypatch):
 def test_authenticate_returns_user_for_valid_token(monkeypatch):
     user = make_user()
     token = AuthToken(
-        id=uuid4(),
+        id=1,
         user=user,
         token_hash="token-hash",
         expires_at=timezone.now() + timedelta(hours=1),

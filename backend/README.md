@@ -33,8 +33,12 @@ Run development tools:
 ```powershell
 uv run pytest
 uv run python manage.py test
+uv run python manage.py testall
+uv run python manage.py testall --coverage
 uv run ruff check .
 ```
+
+`testall` also supports `--keepdb`, `--dropdb`, and `--coverage`.
 
 ## Notes
 
@@ -43,6 +47,7 @@ uv run ruff check .
 - `core/settings.py` is intentionally minimal because FastAPI is the web layer.
 - Environment variables are loaded from `backend/.env/global.env`, `backend/.env/auth.env`, `backend/.env/.env`, or `backend/.env/.env.local`.
 - Start by copying `backend/.env/.env.example` to `backend/.env/.env` and filling in your PostgreSQL values.
+- Test setup uses `POSTGRES_MAINTENANCE_DB` when present; otherwise it reuses `POSTGRES_DB` to create/drop the test database without requiring a separate `postgres` database.
 - Django tests and `pytest` use PostgreSQL test databases. By default the test DB name is your current `POSTGRES_DB` with `_test` appended, for example `timewise` -> `timewise_test`.
 
 ## Docker workflow

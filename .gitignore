@@ -1,6 +1,6 @@
 ideas.md
 billing-api-project.md
-timeledger-project.md
+timewise.md
 
 # Python
 *.pyc
@@ -51,3 +51,8 @@ lerna-debug.log*
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
+
+#Tests
+coverage/
+.coverage
+coverage.xml

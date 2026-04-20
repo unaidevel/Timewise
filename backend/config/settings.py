@@ -38,6 +38,13 @@ POSTGRES_DB_NAME = os.getenv("POSTGRES_DB", "timewise")
 POSTGRES_TEST_DB_NAME = os.getenv("POSTGRES_TEST_DB", f"{POSTGRES_DB_NAME}_test")
 
 
+def resolve_postgres_engine() -> str:
+    engine = os.getenv("POSTGRES_ENGINE", "config.db.backends.postgresql")
+    if engine == "django.db.backends.postgresql":
+        return "config.db.backends.postgresql"
+    return engine
+
+
 def env_bool(name: str, default: bool = False) -> bool:
     return os.getenv(name, str(default)).lower() in {"1", "true", "yes", "on"}
 
@@ -127,7 +134,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv("POSTGRES_ENGINE", "django.db.backends.postgresql"),
+        "ENGINE": resolve_postgres_engine(),
         "NAME": POSTGRES_DB_NAME,
         "USER": os.getenv("POSTGRES_USER", "postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
@@ -135,6 +142,7 @@ DATABASES = {
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
         "TEST": {
             "NAME": POSTGRES_TEST_DB_NAME,
+            "MAINTENANCE_DB": os.getenv("POSTGRES_MAINTENANCE_DB", POSTGRES_DB_NAME),
         },
     }
 }
