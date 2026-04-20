@@ -1,7 +1,15 @@
 import pytest
 
-from infra.tenants.entities.tenant_entities import TenantEntity
-from infra.tenants.exceptions import InvalidTenantNameError, InvalidTenantSlugError
+from infra.common.classes import MembershipRoles
+from infra.tenants.entities.tenant_entities import (
+    TenantEntity,
+    TenantMembershipEntity,
+)
+from infra.tenants.exceptions import (
+    InvalidMemberRoleError,
+    InvalidTenantNameError,
+    InvalidTenantSlugError,
+)
 
 
 def test_tenant_entity_normalizes_name_and_slug():
@@ -52,7 +60,23 @@ def test_tenant_entity_accepts_single_alnum_slug():
     assert tenant.slug == "a"
 
 
+def test_tenant_entity_rejects_single_non_alnum_slug():
+    with pytest.raises(InvalidTenantSlugError):
+        TenantEntity(name="Acme Corp", slug="-")
+
+
 def test_tenant_entity_accepts_numeric_slug_segments():
     tenant = TenantEntity(name="Acme Corp", slug="acme-123")
 
     assert tenant.slug == "acme-123"
+
+
+def test_tenant_membership_entity_accepts_valid_role():
+    membership = TenantMembershipEntity(role=MembershipRoles.ADMIN.value)
+
+    assert membership.role == MembershipRoles.ADMIN.value
+
+
+def test_tenant_membership_entity_rejects_invalid_role():
+    with pytest.raises(InvalidMemberRoleError, match="Invalid role"):
+        TenantMembershipEntity(role="guest")

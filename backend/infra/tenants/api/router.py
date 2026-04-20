@@ -38,7 +38,7 @@ def create_tenant(payload: TenantIn, current_user: CurrentUser) -> Tenant:
         ) from exc
     except (InvalidTenantNameError, InvalidTenantSlugError) as exc:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
         ) from exc
 
 
@@ -83,7 +83,7 @@ def add_member(
         ) from exc
     except InvalidMemberRoleError as exc:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
         ) from exc
 
 
