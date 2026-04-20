@@ -32,6 +32,7 @@ Run development tools:
 
 ```powershell
 uv run pytest
+uv run python manage.py test
 uv run ruff check .
 ```
 
@@ -40,8 +41,9 @@ uv run ruff check .
 - Prefer `uv run ...` instead of calling `.venv\Scripts\python.exe` directly.
 - `manage.py` still works because Django needs settings for ORM and migrations.
 - `core/settings.py` is intentionally minimal because FastAPI is the web layer.
-- Environment variables are loaded from `backend/.env/.env` or `backend/.env/.env.local`.
+- Environment variables are loaded from `backend/.env/global.env`, `backend/.env/auth.env`, `backend/.env/.env`, or `backend/.env/.env.local`.
 - Start by copying `backend/.env/.env.example` to `backend/.env/.env` and filling in your PostgreSQL values.
+- Django tests and `pytest` use PostgreSQL test databases. By default the test DB name is your current `POSTGRES_DB` with `_test` appended, for example `timewise` -> `timewise_test`.
 
 ## Docker workflow
 

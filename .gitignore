@@ -7,6 +7,7 @@ timeledger-project.md
 __pycache__/
 .venv/
 .env
+.env/
 *.egg-info/
 build/
 dist/
@@ -44,3 +45,9 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+#Cache
+.cache/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/

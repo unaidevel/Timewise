@@ -3,7 +3,7 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-portfolio}
+      POSTGRES_DB: ${POSTGRES_DB:-timewise}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
@@ -18,7 +18,7 @@ services:
     command: >
       sh -c "uv run python manage.py migrate --no-input &&
              uv run python manage.py collectstatic --no-input &&
-             uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+             uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
       - ./backend:/app
     env_file:

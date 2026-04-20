@@ -35,9 +35,7 @@ class Command(BaseCommand):
             "api/__init__.py": "",
             "api/router.py": (
                 "from fastapi import APIRouter\n\n"
-                f'PREFIX = "/api/v1/{app_name}"\n'
-                f'TAGS = ["{app_name}"]\n\n'
-                f"router = APIRouter()\n"
+                f'router = APIRouter(prefix="/api/v1/{app_name}", tags=["{app_name}"])\n'
             ),
             "services/__init__.py": "",
             f"services/{app_name}_service.py": f"class {camel}Service:\n    pass\n",
