@@ -149,8 +149,7 @@ class Command(BaseCommand):
                 continue
 
             has_api_tests = any(
-                test_file.is_file()
-                and "__pycache__" not in test_file.parts
+                test_file.is_file() and "__pycache__" not in test_file.parts
                 for test_file in api_tests_dir.rglob("test*.py")
             )
             if not has_api_tests:
@@ -212,7 +211,9 @@ class Command(BaseCommand):
         module = importlib.import_module(app_label)
         module_file = getattr(module, "__file__", None)
         if module_file is None:
-            raise CommandError(f"Could not resolve filesystem path for app '{app_label}'.")
+            raise CommandError(
+                f"Could not resolve filesystem path for app '{app_label}'."
+            )
         return Path(module_file).resolve().parent
 
     def _run_subprocess(

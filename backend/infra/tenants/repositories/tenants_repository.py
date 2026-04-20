@@ -40,7 +40,9 @@ class TenantRepository:
         invited_by_id: int | None,
     ) -> TenantMembership:
         if not isinstance(entity, TenantMembershipEntity):
-            raise TypeError(f"Expected TenantMembershipEntity, got {type(entity).__name__}")
+            raise TypeError(
+                f"Expected TenantMembershipEntity, got {type(entity).__name__}"
+            )
         model = TenantMembershipModel.objects.create(
             tenant_id=tenant_id,
             user_id=user_id,
@@ -62,9 +64,9 @@ class TenantRepository:
     def list_memberships(tenant_id: int) -> list[TenantMembership]:
         return [
             to_tenant_membership(m)
-            for m in TenantMembershipModel.objects.filter(
-                tenant_id=tenant_id
-            ).order_by("joined_at")
+            for m in TenantMembershipModel.objects.filter(tenant_id=tenant_id).order_by(
+                "joined_at"
+            )
         ]
 
     @staticmethod

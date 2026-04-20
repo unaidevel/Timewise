@@ -15,11 +15,7 @@ class UpdateApprovalRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_has_updates(self) -> "UpdateApprovalRequest":
-        if (
-            self.title is None
-            and self.description is None
-            and self.status is None
-        ):
+        if self.title is None and self.description is None and self.status is None:
             raise ValueError("At least one field must be provided.")
 
         return self

@@ -65,7 +65,9 @@ class TenantServiceTests(TestCase):
         owner = make_user()
 
         with pytest.raises(InvalidTenantNameError):
-            TenantService.create(TenantIn(name="   ", slug="acme"), created_by_id=owner.id)
+            TenantService.create(
+                TenantIn(name="   ", slug="acme"), created_by_id=owner.id
+            )
 
     def test_create_raises_on_invalid_slug(self):
         owner = make_user()
@@ -204,7 +206,10 @@ class TenantServiceTests(TestCase):
         memberships = TenantService.list_members(tenant.id)
 
         assert len(memberships) == 2
-        assert [membership.user_id for membership in memberships] == [owner.id, member.id]
+        assert [membership.user_id for membership in memberships] == [
+            owner.id,
+            member.id,
+        ]
 
     def test_list_members_raises_if_tenant_not_found(self):
         with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):

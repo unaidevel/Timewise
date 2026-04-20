@@ -15,6 +15,8 @@ def unauthorized_exception(detail: str) -> HTTPException:
         detail=detail,
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_security),
 ) -> AuthUser:

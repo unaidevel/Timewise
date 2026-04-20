@@ -26,7 +26,9 @@ def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
 
 
 class ApprovalsApiTests(TestCase):
-    def _authenticate_user(self, *, email: str, full_name: str) -> HTTPAuthorizationCredentials:
+    def _authenticate_user(
+        self, *, email: str, full_name: str
+    ) -> HTTPAuthorizationCredentials:
         auth_router.register(
             RegisterRequest(
                 email=email,

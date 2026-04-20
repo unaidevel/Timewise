@@ -49,9 +49,7 @@ class ApprovalsService:
         status: str | None = None,
     ) -> Approval:
         if title is None and description is None and status is None:
-            raise InvalidApprovalValueError(
-                "At least one field must be provided."
-            )
+            raise InvalidApprovalValueError("At least one field must be provided.")
 
         updated_approval = ApprovalsRepository.update_approval(
             approval_id,
