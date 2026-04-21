@@ -86,6 +86,14 @@ class WorkforceRepository:
         ]
 
     @staticmethod
+    def _create_default_roles(tenant_id: int) -> list[RoleOut]:
+        DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
+        models = RoleModel.objects.bulk_create(
+            [RoleModel(tenant_id=tenant_id, name=name) for name in DEFAULT_ROLE_NAMES]
+        )
+        return [RoleOut.model_validate(m) for m in models]
+
+    @staticmethod
     def deactivate_role(role_id: int) -> RoleOut | None:
         rows = RoleModel.objects.filter(id=role_id, is_active=True).update(
             is_active=False
