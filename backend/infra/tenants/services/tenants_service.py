@@ -1,7 +1,12 @@
 from django.db import transaction
 
 from infra.common.classes import MembershipRoles
-from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn, TenantMemberResponse, TenantOut
+from infra.tenants.dtos.dtos import (
+    AddMemberRequest,
+    TenantIn,
+    TenantMemberResponse,
+    TenantOut,
+)
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.exceptions import (
     MemberAlreadyExistsError,

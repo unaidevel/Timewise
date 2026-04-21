@@ -54,7 +54,9 @@ class TenantRepository:
         return TenantMemberResponse.model_validate(model)
 
     @staticmethod
-    def find_active_membership(tenant_id: int, user_id: int) -> TenantMemberResponse | None:
+    def find_active_membership(
+        tenant_id: int, user_id: int
+    ) -> TenantMemberResponse | None:
         model = TenantMembershipModel.objects.filter(
             tenant_id=tenant_id,
             user_id=user_id,
@@ -72,7 +74,9 @@ class TenantRepository:
         ]
 
     @staticmethod
-    def remove_membership(membership_id: int, reason: str) -> TenantMemberResponse | None:
+    def remove_membership(
+        membership_id: int, reason: str
+    ) -> TenantMemberResponse | None:
         rows = TenantMembershipModel.objects.filter(
             id=membership_id,
             left_at__isnull=True,
