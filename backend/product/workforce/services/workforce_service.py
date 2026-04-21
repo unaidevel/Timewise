@@ -32,7 +32,7 @@ from product.workforce.repositories.workforce_repository import WorkforceReposit
 
 class WorkforceService:
     @staticmethod
-    def _create_default_roles(tenant_id: int) -> None:
+    def create_default_roles(tenant_id: int) -> None:
         WorkforceRepository._create_default_roles(tenant_id)
 
     # --- Departments ---

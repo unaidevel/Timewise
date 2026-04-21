@@ -17,6 +17,7 @@ from infra.tenants.exceptions import (
     TenantAlreadyExistsError,
     TenantNotFoundError,
 )
+from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator
 from infra.tenants.services.tenants_service import TenantService
 
 router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
@@ -30,7 +31,7 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
 )
 def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     try:
-        return TenantService.create(payload=payload, created_by_id=current_user.id)
+        return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
     except TenantAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)

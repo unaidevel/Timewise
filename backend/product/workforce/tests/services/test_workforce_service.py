@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
-from infra.tenants.dtos.dtos import TenantIn
+from infra.tenants.entities.tenant_entities import TenantEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
 from product.workforce.exceptions import (
@@ -18,7 +18,7 @@ from product.workforce.exceptions import (
     RoleAlreadyExistsError,
     RoleNotFoundError,
 )
-from product.workforce.services.workforce_service import WorkforceService
+from product.workforce.services.workforce_service import DEFAULT_ROLE_NAMES, WorkforceService
 
 
 def make_user(email: str = "owner@example.com"):
@@ -31,7 +31,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
     )
 
 
@@ -233,3 +233,30 @@ class EmployeeServiceTests(TestCase):
     def test_deactivate_employee_raises_if_not_found(self):
         with pytest.raises(EmployeeNotFoundError):
             WorkforceService.deactivate_employee(self.tenant.id, 999)
+
+
+class DefaultRolesServiceTests(TestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.tenant = make_tenant(self.user.id)
+
+    def test_create_default_roles_creates_expected_roles(self):
+        WorkforceService.create_default_roles(self.tenant.id)
+
+        roles = WorkforceService.list_roles(self.tenant.id)
+        assert len(roles) == len(DEFAULT_ROLE_NAMES)
+        assert {r.name for r in roles} == set(DEFAULT_ROLE_NAMES)
+
+    def test_create_default_roles_are_all_active(self):
+        WorkforceService.create_default_roles(self.tenant.id)
+
+        roles = WorkforceService.list_roles(self.tenant.id)
+        assert all(r.is_active for r in roles)
+
+    def test_create_default_roles_are_scoped_to_tenant(self):
+        other_user = make_user("other@example.com")
+        other_tenant = make_tenant(other_user.id, slug="other")
+
+        WorkforceService.create_default_roles(self.tenant.id)
+
+        assert WorkforceService.list_roles(other_tenant.id) == []
