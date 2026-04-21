@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class TenantIn(BaseModel):
@@ -15,6 +15,7 @@ class TenantOut(TenantIn):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    created_by_id: int | None
 
 
 class AddMemberRequest(BaseModel):
@@ -33,3 +34,8 @@ class TenantMemberResponse(BaseModel):
     invited_by_id: int | None
     left_at: datetime | None
     left_reason: str | None
+
+    @field_validator("left_reason", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: object) -> object:
+        return None if v == "" else v
