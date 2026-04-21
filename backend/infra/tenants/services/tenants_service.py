@@ -29,7 +29,9 @@ class TenantService:
         entity: TenantMembershipEntity,
         invited_by_id: int | None,
     ) -> TenantMemberResponse:
-        return TenantRepository.add_membership(tenant_id, user_id, entity, invited_by_id)
+        return TenantRepository.add_membership(
+            tenant_id, user_id, entity, invited_by_id
+        )
 
     @staticmethod
     def get_by_id(tenant_id: int) -> TenantOut:

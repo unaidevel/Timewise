@@ -29,7 +29,6 @@ from product.workforce.exceptions import (
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
 
-
 class WorkforceService:
     @staticmethod
     def create_default_roles(tenant_id: int) -> None:

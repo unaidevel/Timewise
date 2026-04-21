@@ -55,7 +55,9 @@ class TenantServiceCreateTests(TestCase):
 
     def test_create_raises_if_slug_already_exists(self):
         owner = make_user()
-        TenantService.create(TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id)
+        TenantService.create(
+            TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id
+        )
 
         with pytest.raises(TenantAlreadyExistsError, match="slug 'acme'"):
             TenantService.create(
@@ -98,8 +100,12 @@ class TenantServiceGetTests(TestCase):
 
     def test_list_all_returns_all_tenants_in_name_order(self):
         owner = make_user()
-        TenantService.create(TenantEntity(name="Zulu", slug="zulu"), created_by_id=owner.id)
-        TenantService.create(TenantEntity(name="Alpha", slug="alpha"), created_by_id=owner.id)
+        TenantService.create(
+            TenantEntity(name="Zulu", slug="zulu"), created_by_id=owner.id
+        )
+        TenantService.create(
+            TenantEntity(name="Alpha", slug="alpha"), created_by_id=owner.id
+        )
 
         tenants = TenantService.list_all()
 
@@ -116,7 +122,9 @@ class TenantServiceMemberTests(TestCase):
 
         membership = TenantService.add_member(
             tenant_id=self.tenant.id,
-            payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.MEMBER.value),
+            payload=AddMemberRequest(
+                user_id=member.id, role=MembershipRoles.MEMBER.value
+            ),
             invited_by_id=self.owner.id,
         )
 
@@ -132,7 +140,9 @@ class TenantServiceMemberTests(TestCase):
         with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):
             TenantService.add_member(
                 tenant_id=999,
-                payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.MEMBER.value),
+                payload=AddMemberRequest(
+                    user_id=member.id, role=MembershipRoles.MEMBER.value
+                ),
                 invited_by_id=self.owner.id,
             )
 
@@ -140,20 +150,26 @@ class TenantServiceMemberTests(TestCase):
         member = make_user("member@example.com")
         TenantService.add_member(
             tenant_id=self.tenant.id,
-            payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.MEMBER.value),
+            payload=AddMemberRequest(
+                user_id=member.id, role=MembershipRoles.MEMBER.value
+            ),
             invited_by_id=self.owner.id,
         )
 
         with pytest.raises(MemberAlreadyExistsError):
             TenantService.add_member(
                 tenant_id=self.tenant.id,
-                payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.ADMIN.value),
+                payload=AddMemberRequest(
+                    user_id=member.id, role=MembershipRoles.ADMIN.value
+                ),
                 invited_by_id=self.owner.id,
             )
 
     def test_add_member_raises_on_invalid_role(self):
         member = make_user("member@example.com")
-        payload = AddMemberRequest.model_construct(user_id=member.id, role="invalid-role")
+        payload = AddMemberRequest.model_construct(
+            user_id=member.id, role="invalid-role"
+        )
 
         with pytest.raises(InvalidMemberRoleError, match="Invalid role"):
             TenantService.add_member(
@@ -172,7 +188,9 @@ class TenantServiceMemberTests(TestCase):
         )
         TenantService.add_member(
             tenant_id=self.tenant.id,
-            payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.MEMBER.value),
+            payload=AddMemberRequest(
+                user_id=member.id, role=MembershipRoles.MEMBER.value
+            ),
             invited_by_id=self.owner.id,
         )
 
@@ -189,7 +207,9 @@ class TenantServiceMemberTests(TestCase):
         member = make_user("member@example.com")
         membership = TenantService.add_member(
             tenant_id=self.tenant.id,
-            payload=AddMemberRequest(user_id=member.id, role=MembershipRoles.MEMBER.value),
+            payload=AddMemberRequest(
+                user_id=member.id, role=MembershipRoles.MEMBER.value
+            ),
             invited_by_id=self.owner.id,
         )
 
@@ -210,7 +230,9 @@ class TenantServiceMemberTests(TestCase):
             TenantService.remove_member(tenant_id=999, membership_id=1, reason="")
 
     def test_remove_member_raises_if_membership_not_found(self):
-        with pytest.raises(MemberNotFoundError, match="Membership not found or already inactive"):
+        with pytest.raises(
+            MemberNotFoundError, match="Membership not found or already inactive"
+        ):
             TenantService.remove_member(
                 tenant_id=self.tenant.id, membership_id=999, reason=""
             )
