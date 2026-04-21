@@ -19,24 +19,8 @@ from infra.tenants.repositories.tenants_repository import TenantRepository
 
 class TenantService:
     @staticmethod
-    def create(payload: TenantIn, created_by_id: int) -> TenantOut:
-        entity = TenantEntity(**payload.model_dump())
-
-        if TenantRepository.find_by_slug(entity.slug):
-            raise TenantAlreadyExistsError(
-                f"A tenant with slug '{entity.slug}' already exists."
-            )
-
-        with transaction.atomic():
-            created_tenant = TenantRepository.create(entity, created_by_id)
-            TenantRepository.add_membership(
-                tenant_id=created_tenant.id,
-                user_id=created_by_id,
-                entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
-                invited_by_id=None,
-            )
-        return created_tenant
-
+    def create(entity: TenantEntity, created_by_id: int) -> TenantOut:
+        return TenantRepository.create(entity, created_by_id)
     @staticmethod
     def get_by_id(tenant_id: int) -> TenantOut:
         tenant = TenantRepository.get_by_id(tenant_id)
@@ -44,6 +28,13 @@ class TenantService:
             raise TenantNotFoundError(f"Tenant {tenant_id} not found.")
         return tenant
 
+    @staticmethod
+    def get_by_slug(slug: str) -> TenantOut:
+        tenant = TenantRepository.find_by_slug(slug)
+        if not tenant:
+            raise TenantNotFoundError(f"Tenant with slug '{slug}' not found.")
+        return tenant
+    
     @staticmethod
     def list_all() -> list[TenantOut]:
         return TenantRepository.list_all()
@@ -90,3 +81,14 @@ class TenantService:
         if not membership:
             raise MemberNotFoundError("Membership not found or already inactive.")
         return membership
+
+    def add_membership(tenant_id=created_tenant.id,
+                user_id=created_by_id,
+                entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+                invited_by_id=None,) -> TenantMemberResponse:
+        return TenantRepository.add_membership(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            entity=entity,
+            invited_by_id=invited_by_id,
+        )
