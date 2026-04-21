@@ -1,5 +1,4 @@
 from datetime import datetime
-from uuid import UUID
 
 from django.db import IntegrityError
 from django.utils import timezone
@@ -38,7 +37,7 @@ class AuthRepository:
         return _to_auth_user(user_model) if user_model else None
 
     @staticmethod
-    def find_user_by_id(user_id: UUID) -> AuthUser | None:
+    def find_user_by_id(user_id: int) -> AuthUser | None:
         user_model = AuthUserModel.objects.filter(id=user_id).first()
         return _to_auth_user(user_model) if user_model else None
 

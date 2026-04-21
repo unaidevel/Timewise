@@ -94,13 +94,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
           DJANGO_SECRET_KEY: ci-secret-key-not-used-in-production
-        run: |
-          uv run pytest \
-            --cov=. \
-            --cov-report=xml \
-            --cov-report=term-missing \
-            -v
-          # --cov-fail-under=80  # uncomment once implementation has 80%+ coverage
+        run: uv run python manage.py testall --coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

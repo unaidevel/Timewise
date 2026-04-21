@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
-from uuid import UUID
 
 
 @dataclass(slots=True, frozen=True)
 class AuthUser:
-    id: UUID
+    id: int
     email: str
     full_name: str
     password_hash: str
@@ -15,7 +14,7 @@ class AuthUser:
 
 @dataclass(slots=True, frozen=True)
 class AuthToken:
-    id: UUID
+    id: int
     user: AuthUser
     token_hash: str
     expires_at: datetime
