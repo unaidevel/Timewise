@@ -13,7 +13,17 @@ from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
 from infra.tenants.api import router as tenants_router
 from infra.tenants.dtos.dtos import TenantIn
 from product.workforce.api import router as workforce_router
-from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
+from product.workforce.dtos.dtos import (
+    AssignDepartmentManagerRequest,
+    DepartmentIn,
+    DepartmentUpdate,
+    EmployeeIn,
+    EmployeeUpdate,
+    RemoveDepartmentManagerRequest,
+    RoleIn,
+    RoleUpdate,
+    SetEmployeeManagerRequest,
+)
 
 
 def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
@@ -190,3 +200,151 @@ class WorkforceApiTests(TestCase):
         )
         result = workforce_router.deactivate_employee(self.tenant.id, emp.id, self.user)
         assert result.is_active is False
+
+    # --- Update endpoints ---
+
+    def test_update_department_changes_name(self):
+        dept = workforce_router.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+        )
+        updated = workforce_router.update_department(
+            self.tenant.id, dept.id, DepartmentUpdate(name="R&D"), self.user
+        )
+        assert updated.name == "R&D"
+
+    def test_update_department_returns_403_for_member(self):
+        dept = workforce_router.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+        )
+        member = self._authenticate_user(email="member@example.com", full_name="Member")
+        with pytest.raises(HTTPException) as exc:
+            workforce_router.update_department(
+                self.tenant.id, dept.id, DepartmentUpdate(name="X"), member
+            )
+        assert exc.value.status_code == 403
+
+    def test_update_role_changes_name(self):
+        role = workforce_router.create_role(
+            self.tenant.id, RoleIn(name="Developer"), self.user
+        )
+        updated = workforce_router.update_role(
+            self.tenant.id, role.id, RoleUpdate(name="Senior Developer"), self.user
+        )
+        assert updated.name == "Senior Developer"
+
+    def test_update_employee_changes_name(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        updated = workforce_router.update_employee(
+            self.tenant.id, emp.id, EmployeeUpdate(full_name="Alice Jones"), self.user
+        )
+        assert updated.full_name == "Alice Jones"
+
+    def test_update_employee_returns_403_for_member(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        member = self._authenticate_user(email="member@example.com", full_name="Member")
+        with pytest.raises(HTTPException) as exc:
+            workforce_router.update_employee(
+                self.tenant.id, emp.id, EmployeeUpdate(full_name="X"), member
+            )
+        assert exc.value.status_code == 403
+
+    # --- Department manager endpoints ---
+
+    def test_assign_department_manager_returns_201(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        assignment = workforce_router.assign_department_manager(
+            self.tenant.id,
+            dept.id,
+            AssignDepartmentManagerRequest(employee_id=emp.id),
+            self.user,
+        )
+        assert assignment.department_id == dept.id
+        assert assignment.employee_id == emp.id
+
+    def test_list_department_managers_returns_active(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        workforce_router.assign_department_manager(
+            self.tenant.id,
+            dept.id,
+            AssignDepartmentManagerRequest(employee_id=emp.id),
+            self.user,
+        )
+        managers = workforce_router.list_department_managers(
+            self.tenant.id, dept.id, self.user
+        )
+        assert len(managers) == 1
+        assert managers[0].employee_id == emp.id
+
+    def test_remove_department_manager_closes_assignment(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        assignment = workforce_router.assign_department_manager(
+            self.tenant.id,
+            dept.id,
+            AssignDepartmentManagerRequest(employee_id=emp.id),
+            self.user,
+        )
+        removed = workforce_router.remove_department_manager(
+            self.tenant.id,
+            dept.id,
+            assignment.id,
+            RemoveDepartmentManagerRequest(reason="Done"),
+            self.user,
+        )
+        assert removed.left_at is not None
+
+    # --- Employee manager endpoints ---
+
+    def test_set_employee_manager(self):
+        dept, role = self._create_dept_and_role()
+        manager_emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id, "manager@example.com"),
+            self.user,
+        )
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        updated = workforce_router.set_employee_manager(
+            self.tenant.id,
+            emp.id,
+            SetEmployeeManagerRequest(manager_id=manager_emp.id),
+            self.user,
+        )
+        assert updated.manager_id == manager_emp.id
+
+    def test_get_direct_reports(self):
+        dept, role = self._create_dept_and_role()
+        manager_emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id, "manager@example.com"),
+            self.user,
+        )
+        emp = workforce_router.create_employee(
+            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+        )
+        workforce_router.set_employee_manager(
+            self.tenant.id,
+            emp.id,
+            SetEmployeeManagerRequest(manager_id=manager_emp.id),
+            self.user,
+        )
+        reports = workforce_router.get_direct_reports(
+            self.tenant.id, manager_emp.id, self.user
+        )
+        assert len(reports) == 1
+        assert reports[0].id == emp.id

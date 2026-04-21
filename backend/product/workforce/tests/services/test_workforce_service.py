@@ -6,18 +6,33 @@ from django.test import TestCase
 
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
-from infra.tenants.entities.tenant_entities import TenantEntity
+from infra.common.classes import MembershipRoles
+from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
+from infra.tenants.exceptions import InsufficientPermissionsError
 from infra.tenants.services.tenants_service import TenantService
-from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
+from product.workforce.dtos.dtos import (
+    AssignDepartmentManagerRequest,
+    DepartmentIn,
+    DepartmentUpdate,
+    EmployeeIn,
+    EmployeeUpdate,
+    RemoveDepartmentManagerRequest,
+    RoleIn,
+    RoleUpdate,
+    SetEmployeeManagerRequest,
+)
 from product.workforce.exceptions import (
     DepartmentAlreadyExistsError,
     DepartmentNotFoundError,
     EmployeeAlreadyExistsError,
     EmployeeNotFoundError,
     InvalidEmployeeDataError,
+    ManagerAlreadyAssignedError,
+    ManagerAssignmentNotFoundError,
     RoleAlreadyExistsError,
     RoleNotFoundError,
 )
+from product.workforce.models import EmployeeDepartmentModel, EmployeeRoleModel
 from product.workforce.services.workforce_service import WorkforceService
 
 EXPECTED_DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
@@ -34,6 +49,15 @@ def make_user(email: str = "owner@example.com"):
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
         TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+    )
+
+
+def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
+    TenantService.add_membership(
+        tenant_id=tenant_id,
+        user_id=user_id,
+        entity=TenantMembershipEntity(role=role.value),
+        invited_by_id=None,
     )
 
 
@@ -262,3 +286,439 @@ class DefaultRolesServiceTests(TestCase):
         WorkforceService.create_default_roles(self.tenant.id)
 
         assert WorkforceService.list_roles(other_tenant.id) == []
+
+
+class UpdateDepartmentServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
+        self.dept = WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering")
+        )
+
+    def test_update_department_renames(self):
+        updated = WorkforceService.update_department(
+            self.tenant.id, self.dept.id, DepartmentUpdate(name="R&D"), user_id=self.owner.id
+        )
+        assert updated.name == "R&D"
+        assert updated.id == self.dept.id
+
+    def test_update_department_normalizes_name(self):
+        updated = WorkforceService.update_department(
+            self.tenant.id, self.dept.id, DepartmentUpdate(name="  R&D  "), user_id=self.owner.id
+        )
+        assert updated.name == "R&D"
+
+    def test_update_department_raises_if_not_found(self):
+        with pytest.raises(DepartmentNotFoundError):
+            WorkforceService.update_department(
+                self.tenant.id, 999, DepartmentUpdate(name="X"), user_id=self.owner.id
+            )
+
+    def test_update_department_raises_if_name_conflicts(self):
+        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="HR"))
+        with pytest.raises(DepartmentAlreadyExistsError):
+            WorkforceService.update_department(
+                self.tenant.id, self.dept.id, DepartmentUpdate(name="HR"), user_id=self.owner.id
+            )
+
+    def test_update_department_allows_rename_to_same_name(self):
+        updated = WorkforceService.update_department(
+            self.tenant.id, self.dept.id, DepartmentUpdate(name="Engineering"), user_id=self.owner.id
+        )
+        assert updated.name == "Engineering"
+
+    def test_update_department_raises_on_insufficient_permissions(self):
+        member = make_user("member@example.com")
+        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        with pytest.raises(InsufficientPermissionsError):
+            WorkforceService.update_department(
+                self.tenant.id, self.dept.id, DepartmentUpdate(name="X"), user_id=member.id
+            )
+
+
+class UpdateRoleServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
+        self.role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+
+    def test_update_role_renames(self):
+        updated = WorkforceService.update_role(
+            self.tenant.id, self.role.id, RoleUpdate(name="Senior Developer"), user_id=self.owner.id
+        )
+        assert updated.name == "Senior Developer"
+
+    def test_update_role_raises_if_not_found(self):
+        with pytest.raises(RoleNotFoundError):
+            WorkforceService.update_role(
+                self.tenant.id, 999, RoleUpdate(name="X"), user_id=self.owner.id
+            )
+
+    def test_update_role_raises_if_name_conflicts(self):
+        WorkforceService.create_role(self.tenant.id, RoleIn(name="QA"))
+        with pytest.raises(RoleAlreadyExistsError):
+            WorkforceService.update_role(
+                self.tenant.id, self.role.id, RoleUpdate(name="QA"), user_id=self.owner.id
+            )
+
+    def test_update_role_raises_on_insufficient_permissions(self):
+        member = make_user("member@example.com")
+        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        with pytest.raises(InsufficientPermissionsError):
+            WorkforceService.update_role(
+                self.tenant.id, self.role.id, RoleUpdate(name="X"), user_id=member.id
+            )
+
+
+class UpdateEmployeeServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
+        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
+        self.emp = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Alice Smith",
+                email="alice@example.com",
+                department_id=dept.id,
+                role_id=role.id,
+                hourly_rate="30.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+
+    def test_update_employee_changes_name(self):
+        updated = WorkforceService.update_employee(
+            self.tenant.id, self.emp.id,
+            EmployeeUpdate(full_name="Alice Jones"),
+            user_id=self.owner.id,
+        )
+        assert updated.full_name == "Alice Jones"
+        assert updated.email == "alice@example.com"
+
+    def test_update_employee_changes_email(self):
+        updated = WorkforceService.update_employee(
+            self.tenant.id, self.emp.id,
+            EmployeeUpdate(email="newalice@example.com"),
+            user_id=self.owner.id,
+        )
+        assert updated.email == "newalice@example.com"
+
+    def test_update_employee_raises_on_duplicate_email(self):
+        dept = WorkforceService.list_departments(self.tenant.id)[0]
+        role = WorkforceService.list_roles(self.tenant.id)[0]
+        WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Bob",
+                email="bob@example.com",
+                department_id=dept.id,
+                role_id=role.id,
+                hourly_rate="20.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+        with pytest.raises(EmployeeAlreadyExistsError):
+            WorkforceService.update_employee(
+                self.tenant.id, self.emp.id,
+                EmployeeUpdate(email="bob@example.com"),
+                user_id=self.owner.id,
+            )
+
+    def test_update_employee_raises_if_not_found(self):
+        with pytest.raises(EmployeeNotFoundError):
+            WorkforceService.update_employee(
+                self.tenant.id, 999,
+                EmployeeUpdate(full_name="X"),
+                user_id=self.owner.id,
+            )
+
+    def test_update_employee_raises_on_insufficient_permissions(self):
+        member = make_user("member@example.com")
+        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        with pytest.raises(InsufficientPermissionsError):
+            WorkforceService.update_employee(
+                self.tenant.id, self.emp.id,
+                EmployeeUpdate(full_name="X"),
+                user_id=member.id,
+            )
+
+
+class DeactivateEmployeeServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
+        self.emp = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Alice Smith",
+                email="alice@example.com",
+                department_id=dept.id,
+                role_id=role.id,
+                hourly_rate="30.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+
+    def test_deactivate_employee_also_closes_department_assignment(self):
+        WorkforceService.deactivate_employee(self.tenant.id, self.emp.id)
+        open_dept = EmployeeDepartmentModel.objects.filter(
+            employee_id=self.emp.id, left_at__isnull=True
+        )
+        assert not open_dept.exists()
+
+    def test_deactivate_employee_also_closes_role_assignment(self):
+        WorkforceService.deactivate_employee(self.tenant.id, self.emp.id)
+        open_role = EmployeeRoleModel.objects.filter(
+            employee_id=self.emp.id, left_at__isnull=True
+        )
+        assert not open_role.exists()
+
+    def test_deactivate_employee_marks_inactive(self):
+        result = WorkforceService.deactivate_employee(self.tenant.id, self.emp.id)
+        assert result.is_active is False
+
+
+class DepartmentManagerServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
+        self.dept = WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering")
+        )
+        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
+        self.emp = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Alice Smith",
+                email="alice@example.com",
+                department_id=self.dept.id,
+                role_id=role.id,
+                hourly_rate="30.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+
+    def test_assign_department_manager_creates_assignment(self):
+        assignment = WorkforceService.assign_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            user_id=self.owner.id,
+        )
+        assert assignment.department_id == self.dept.id
+        assert assignment.employee_id == self.emp.id
+        assert assignment.left_at is None
+
+    def test_assign_department_manager_allows_multiple_active_managers(self):
+        role = WorkforceService.list_roles(self.tenant.id)[0]
+        emp2 = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Bob Jones",
+                email="bob@example.com",
+                department_id=self.dept.id,
+                role_id=role.id,
+                hourly_rate="30.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+        WorkforceService.assign_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            user_id=self.owner.id,
+        )
+        WorkforceService.assign_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            AssignDepartmentManagerRequest(employee_id=emp2.id),
+            user_id=self.owner.id,
+        )
+        managers = WorkforceService.list_department_managers(self.tenant.id, self.dept.id)
+        assert len(managers) == 2
+
+    def test_assign_department_manager_raises_if_already_assigned(self):
+        WorkforceService.assign_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            user_id=self.owner.id,
+        )
+        with pytest.raises(ManagerAlreadyAssignedError):
+            WorkforceService.assign_department_manager(
+                self.tenant.id,
+                self.dept.id,
+                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                user_id=self.owner.id,
+            )
+
+    def test_assign_department_manager_raises_if_department_not_found(self):
+        with pytest.raises(DepartmentNotFoundError):
+            WorkforceService.assign_department_manager(
+                self.tenant.id,
+                999,
+                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                user_id=self.owner.id,
+            )
+
+    def test_assign_department_manager_raises_if_employee_not_found(self):
+        with pytest.raises(EmployeeNotFoundError):
+            WorkforceService.assign_department_manager(
+                self.tenant.id,
+                self.dept.id,
+                AssignDepartmentManagerRequest(employee_id=999),
+                user_id=self.owner.id,
+            )
+
+    def test_assign_department_manager_raises_on_insufficient_permissions(self):
+        member = make_user("member@example.com")
+        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        with pytest.raises(InsufficientPermissionsError):
+            WorkforceService.assign_department_manager(
+                self.tenant.id,
+                self.dept.id,
+                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                user_id=member.id,
+            )
+
+    def test_remove_department_manager_closes_assignment(self):
+        assignment = WorkforceService.assign_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            user_id=self.owner.id,
+        )
+        removed = WorkforceService.remove_department_manager(
+            self.tenant.id,
+            self.dept.id,
+            assignment.id,
+            RemoveDepartmentManagerRequest(reason="Stepping down"),
+            user_id=self.owner.id,
+        )
+        assert removed.left_at is not None
+        assert removed.left_reason == "Stepping down"
+
+    def test_remove_department_manager_raises_if_not_found(self):
+        with pytest.raises(ManagerAssignmentNotFoundError):
+            WorkforceService.remove_department_manager(
+                self.tenant.id,
+                self.dept.id,
+                999,
+                RemoveDepartmentManagerRequest(),
+                user_id=self.owner.id,
+            )
+
+
+class EmployeeManagerServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
+        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
+        self.manager = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Manager Person",
+                email="manager@example.com",
+                department_id=dept.id,
+                role_id=role.id,
+                hourly_rate="50.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 1, 1),
+            ),
+        )
+        self.emp = WorkforceService.create_employee(
+            self.tenant.id,
+            EmployeeIn(
+                full_name="Alice Smith",
+                email="alice@example.com",
+                department_id=dept.id,
+                role_id=role.id,
+                hourly_rate="30.00",
+                contract_hours_per_week=40,
+                hired_at=date(2024, 3, 1),
+            ),
+        )
+
+    def test_set_employee_manager(self):
+        updated = WorkforceService.set_employee_manager(
+            self.tenant.id,
+            self.emp.id,
+            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            user_id=self.owner.id,
+        )
+        assert updated.manager_id == self.manager.id
+
+    def test_set_employee_manager_to_none_removes_manager(self):
+        WorkforceService.set_employee_manager(
+            self.tenant.id,
+            self.emp.id,
+            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            user_id=self.owner.id,
+        )
+        updated = WorkforceService.set_employee_manager(
+            self.tenant.id,
+            self.emp.id,
+            SetEmployeeManagerRequest(manager_id=None),
+            user_id=self.owner.id,
+        )
+        assert updated.manager_id is None
+
+    def test_set_employee_manager_raises_if_manager_not_found(self):
+        with pytest.raises(EmployeeNotFoundError):
+            WorkforceService.set_employee_manager(
+                self.tenant.id,
+                self.emp.id,
+                SetEmployeeManagerRequest(manager_id=999),
+                user_id=self.owner.id,
+            )
+
+    def test_set_employee_manager_raises_if_employee_not_found(self):
+        with pytest.raises(EmployeeNotFoundError):
+            WorkforceService.set_employee_manager(
+                self.tenant.id,
+                999,
+                SetEmployeeManagerRequest(manager_id=self.manager.id),
+                user_id=self.owner.id,
+            )
+
+    def test_set_employee_manager_raises_on_insufficient_permissions(self):
+        member = make_user("member@example.com")
+        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        with pytest.raises(InsufficientPermissionsError):
+            WorkforceService.set_employee_manager(
+                self.tenant.id,
+                self.emp.id,
+                SetEmployeeManagerRequest(manager_id=self.manager.id),
+                user_id=member.id,
+            )
+
+    def test_get_direct_reports(self):
+        WorkforceService.set_employee_manager(
+            self.tenant.id,
+            self.emp.id,
+            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            user_id=self.owner.id,
+        )
+        reports = WorkforceService.get_direct_reports(self.tenant.id, self.manager.id)
+        assert len(reports) == 1
+        assert reports[0].id == self.emp.id
+
+    def test_get_direct_reports_returns_empty_when_none(self):
+        reports = WorkforceService.get_direct_reports(self.tenant.id, self.manager.id)
+        assert reports == []

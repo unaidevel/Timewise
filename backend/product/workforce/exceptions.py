@@ -36,3 +36,11 @@ class EmployeeAlreadyExistsError(WorkforceError):
 
 class InvalidEmployeeDataError(WorkforceError):
     pass
+
+
+class ManagerAlreadyAssignedError(WorkforceError):
+    pass
+
+
+class ManagerAssignmentNotFoundError(WorkforceError):
+    pass

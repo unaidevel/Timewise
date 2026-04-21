@@ -1,6 +1,7 @@
 from django.utils import timezone
 
 from product.workforce.dtos.dtos import (
+    DepartmentManagerOut,
     DepartmentOut,
     EmployeeDepartmentOut,
     EmployeeOut,
@@ -11,9 +12,11 @@ from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     EmployeeEntity,
     EmployeeRoleEntity,
+    EmployeeUpdateEntity,
     RoleEntity,
 )
 from product.workforce.models import (
+    DepartmentManagerModel,
     DepartmentModel,
     EmployeeDepartmentModel,
     EmployeeModel,
@@ -50,6 +53,55 @@ class WorkforceRepository:
                 "name"
             )
         ]
+
+    @staticmethod
+    def update_department(department_id: int, name: str) -> DepartmentOut:
+        DepartmentModel.objects.filter(id=department_id).update(name=name)
+        model = DepartmentModel.objects.get(id=department_id)
+        return DepartmentOut.model_validate(model)
+
+    @staticmethod
+    def assign_department_manager(
+        department_id: int, employee_id: int
+    ) -> DepartmentManagerOut:
+        model = DepartmentManagerModel.objects.create(
+            department_id=department_id, employee_id=employee_id
+        )
+        return DepartmentManagerOut.model_validate(model)
+
+    @staticmethod
+    def get_active_department_managers(
+        department_id: int,
+    ) -> list[DepartmentManagerOut]:
+        return [
+            DepartmentManagerOut.model_validate(m)
+            for m in DepartmentManagerModel.objects.filter(
+                department_id=department_id, left_at__isnull=True
+            ).order_by("assigned_at")
+        ]
+
+    @staticmethod
+    def remove_department_manager(
+        assignment_id: int, reason: str
+    ) -> DepartmentManagerOut | None:
+        rows = DepartmentManagerModel.objects.filter(
+            id=assignment_id, left_at__isnull=True
+        ).update(left_at=timezone.now(), left_reason=reason)
+        if rows == 0:
+            return None
+        model = DepartmentManagerModel.objects.get(id=assignment_id)
+        return DepartmentManagerOut.model_validate(model)
+
+    @staticmethod
+    def find_active_department_manager(
+        department_id: int, employee_id: int
+    ) -> DepartmentManagerOut | None:
+        model = DepartmentManagerModel.objects.filter(
+            department_id=department_id,
+            employee_id=employee_id,
+            left_at__isnull=True,
+        ).first()
+        return DepartmentManagerOut.model_validate(model) if model else None
 
     @staticmethod
     def deactivate_department(department_id: int) -> DepartmentOut | None:
@@ -92,6 +144,12 @@ class WorkforceRepository:
             [RoleModel(tenant_id=tenant_id, name=name) for name in DEFAULT_ROLE_NAMES]
         )
         return [RoleOut.model_validate(m) for m in models]
+
+    @staticmethod
+    def update_role(role_id: int, name: str) -> RoleOut:
+        RoleModel.objects.filter(id=role_id).update(name=name)
+        model = RoleModel.objects.get(id=role_id)
+        return RoleOut.model_validate(model)
 
     @staticmethod
     def deactivate_role(role_id: int) -> RoleOut | None:
@@ -137,6 +195,37 @@ class WorkforceRepository:
             for m in EmployeeModel.objects.filter(tenant_id=tenant_id).order_by(
                 "full_name"
             )
+        ]
+
+    @staticmethod
+    def update_employee(employee_id: int, entity: EmployeeUpdateEntity) -> EmployeeOut:
+        updates = {}
+        if entity.full_name is not None:
+            updates["full_name"] = entity.full_name
+        if entity.email is not None:
+            updates["email"] = entity.email
+        if entity.hired_at is not None:
+            updates["hired_at"] = entity.hired_at
+        if updates:
+            EmployeeModel.objects.filter(id=employee_id).update(**updates)
+        model = EmployeeModel.objects.get(id=employee_id)
+        return EmployeeOut.model_validate(model)
+
+    @staticmethod
+    def set_employee_manager(
+        employee_id: int, manager_id: int | None
+    ) -> EmployeeOut:
+        EmployeeModel.objects.filter(id=employee_id).update(manager_id=manager_id)
+        model = EmployeeModel.objects.get(id=employee_id)
+        return EmployeeOut.model_validate(model)
+
+    @staticmethod
+    def get_direct_reports(employee_id: int) -> list[EmployeeOut]:
+        return [
+            EmployeeOut.model_validate(m)
+            for m in EmployeeModel.objects.filter(
+                manager_id=employee_id
+            ).order_by("full_name")
         ]
 
     @staticmethod
