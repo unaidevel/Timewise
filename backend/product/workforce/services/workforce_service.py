@@ -4,15 +4,13 @@ from product.workforce.dtos.dtos import (
     AssignDepartmentRequest,
     AssignRoleRequest,
     DepartmentIn,
+    DepartmentOut,
+    EmployeeDepartmentOut,
     EmployeeIn,
+    EmployeeOut,
+    EmployeeRoleOut,
     RoleIn,
-)
-from product.workforce.dtos.workforce_dtos import (
-    Department,
-    Employee,
-    EmployeeDepartment,
-    EmployeeRole,
-    Role,
+    RoleOut,
 )
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
@@ -25,7 +23,6 @@ from product.workforce.exceptions import (
     DepartmentNotFoundError,
     EmployeeAlreadyExistsError,
     EmployeeNotFoundError,
-    InvalidEmployeeDataError,
     RoleAlreadyExistsError,
     RoleNotFoundError,
 )
@@ -36,63 +33,69 @@ class WorkforceService:
     # --- Departments ---
 
     @staticmethod
-    def create_department(tenant_id: int, payload: DepartmentIn) -> Department:
+    def create_department(tenant_id: int, payload: DepartmentIn) -> DepartmentOut:
         entity = DepartmentEntity(name=payload.name)
 
-        if WorkforceRepository.find_department_by_name(tenant_id, entity.name):
+        existing_department = WorkforceRepository.find_department_by_name(
+            tenant_id, entity.name
+        )
+        if existing_department:
             raise DepartmentAlreadyExistsError(
-                f"A department named '{entity.name}' already exists in this tenant."
+                f"A department named '{existing_department.name}' already exists in this tenant."
             )
 
         return WorkforceRepository.create_department(entity, tenant_id)
 
     @staticmethod
-    def get_department(tenant_id: int, department_id: int) -> Department:
+    def get_department(tenant_id: int, department_id: int) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
             raise DepartmentNotFoundError(f"Department {department_id} not found.")
         return dept
 
     @staticmethod
-    def list_departments(tenant_id: int) -> list[Department]:
+    def list_departments(tenant_id: int) -> list[DepartmentOut]:
         return WorkforceRepository.list_departments(tenant_id)
 
     @staticmethod
-    def deactivate_department(tenant_id: int, department_id: int) -> Department:
+    def deactivate_department(tenant_id: int, department_id: int) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
             raise DepartmentNotFoundError(f"Department {department_id} not found.")
         result = WorkforceRepository.deactivate_department(department_id)
         if not result:
-            raise DepartmentNotFoundError(f"Department {department_id} is already inactive.")
+            raise DepartmentNotFoundError(
+                f"Department {department_id} is already inactive."
+            )
         return result
 
     # --- Roles ---
 
     @staticmethod
-    def create_role(tenant_id: int, payload: RoleIn) -> Role:
+    def create_role(tenant_id: int, payload: RoleIn) -> RoleOut:
         entity = RoleEntity(name=payload.name)
 
-        if WorkforceRepository.find_role_by_name(tenant_id, entity.name):
+        existing_role = WorkforceRepository.find_role_by_name(tenant_id, entity.name)
+        if existing_role:
             raise RoleAlreadyExistsError(
-                f"A role named '{entity.name}' already exists in this tenant."
+                f"A role named '{existing_role.name}' already exists in this tenant."
             )
 
         return WorkforceRepository.create_role(entity, tenant_id)
 
     @staticmethod
-    def get_role(tenant_id: int, role_id: int) -> Role:
+    def get_role(tenant_id: int, role_id: int) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
             raise RoleNotFoundError(f"Role {role_id} not found.")
         return role
 
     @staticmethod
-    def list_roles(tenant_id: int) -> list[Role]:
+    def list_roles(tenant_id: int) -> list[RoleOut]:
         return WorkforceRepository.list_roles(tenant_id)
 
     @staticmethod
-    def deactivate_role(tenant_id: int, role_id: int) -> Role:
+    def deactivate_role(tenant_id: int, role_id: int) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
             raise RoleNotFoundError(f"Role {role_id} not found.")
@@ -104,7 +107,7 @@ class WorkforceService:
     # --- Employees ---
 
     @staticmethod
-    def create_employee(tenant_id: int, payload: EmployeeIn) -> Employee:
+    def create_employee(tenant_id: int, payload: EmployeeIn) -> EmployeeOut:
         entity = EmployeeEntity(
             full_name=payload.full_name,
             email=payload.email,
@@ -117,7 +120,9 @@ class WorkforceService:
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {payload.department_id} not found.")
+            raise DepartmentNotFoundError(
+                f"Department {payload.department_id} not found."
+            )
 
         role = WorkforceRepository.get_role_by_id(payload.role_id)
         if not role or role.tenant_id != tenant_id:
@@ -141,18 +146,18 @@ class WorkforceService:
         return employee
 
     @staticmethod
-    def get_employee(tenant_id: int, employee_id: int) -> Employee:
+    def get_employee(tenant_id: int, employee_id: int) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
         return emp
 
     @staticmethod
-    def list_employees(tenant_id: int) -> list[Employee]:
+    def list_employees(tenant_id: int) -> list[EmployeeOut]:
         return WorkforceRepository.list_employees(tenant_id)
 
     @staticmethod
-    def deactivate_employee(tenant_id: int, employee_id: int) -> Employee:
+    def deactivate_employee(tenant_id: int, employee_id: int) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
@@ -168,21 +173,27 @@ class WorkforceService:
         tenant_id: int,
         employee_id: int,
         payload: AssignDepartmentRequest,
-    ) -> EmployeeDepartment:
+    ) -> EmployeeDepartmentOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {payload.department_id} not found.")
+            raise DepartmentNotFoundError(
+                f"Department {payload.department_id} not found."
+            )
 
         with transaction.atomic():
             WorkforceRepository.close_active_department(employee_id, payload.reason)
-            return WorkforceRepository.assign_department(employee_id, payload.department_id)
+            return WorkforceRepository.assign_department(
+                employee_id, payload.department_id
+            )
 
     @staticmethod
-    def get_active_department(tenant_id: int, employee_id: int) -> EmployeeDepartment:
+    def get_active_department(
+        tenant_id: int, employee_id: int
+    ) -> EmployeeDepartmentOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
@@ -196,7 +207,7 @@ class WorkforceService:
     @staticmethod
     def list_department_history(
         tenant_id: int, employee_id: int
-    ) -> list[EmployeeDepartment]:
+    ) -> list[EmployeeDepartmentOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
@@ -209,7 +220,7 @@ class WorkforceService:
         tenant_id: int,
         employee_id: int,
         payload: AssignRoleRequest,
-    ) -> EmployeeRole:
+    ) -> EmployeeRoleOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
@@ -225,10 +236,12 @@ class WorkforceService:
 
         with transaction.atomic():
             WorkforceRepository.close_active_role(employee_id, payload.reason)
-            return WorkforceRepository.assign_role(employee_id, payload.role_id, role_entity)
+            return WorkforceRepository.assign_role(
+                employee_id, payload.role_id, role_entity
+            )
 
     @staticmethod
-    def get_active_role(tenant_id: int, employee_id: int) -> EmployeeRole:
+    def get_active_role(tenant_id: int, employee_id: int) -> EmployeeRoleOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
@@ -240,7 +253,7 @@ class WorkforceService:
         return assignment
 
     @staticmethod
-    def list_role_history(tenant_id: int, employee_id: int) -> list[EmployeeRole]:
+    def list_role_history(tenant_id: int, employee_id: int) -> list[EmployeeRoleOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise EmployeeNotFoundError(f"Employee {employee_id} not found.")

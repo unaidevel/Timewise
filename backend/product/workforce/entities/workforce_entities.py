@@ -25,7 +25,9 @@ class DepartmentEntity:
         if not clean:
             raise InvalidDepartmentNameError("Department name cannot be blank.")
         if len(clean) > 200:
-            raise InvalidDepartmentNameError("Department name cannot exceed 200 characters.")
+            raise InvalidDepartmentNameError(
+                "Department name cannot exceed 200 characters."
+            )
         return clean
 
 
@@ -62,7 +64,9 @@ class EmployeeEntity:
         if not clean:
             raise InvalidEmployeeDataError("Employee full name cannot be blank.")
         if len(clean) > 200:
-            raise InvalidEmployeeDataError("Employee full name cannot exceed 200 characters.")
+            raise InvalidEmployeeDataError(
+                "Employee full name cannot exceed 200 characters."
+            )
         return clean
 
     @staticmethod
@@ -79,7 +83,9 @@ class EmployeeRoleEntity:
     contract_hours_per_week: int
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "hourly_rate", self._validate_hourly_rate(self.hourly_rate))
+        object.__setattr__(
+            self, "hourly_rate", self._validate_hourly_rate(self.hourly_rate)
+        )
         object.__setattr__(
             self,
             "contract_hours_per_week",

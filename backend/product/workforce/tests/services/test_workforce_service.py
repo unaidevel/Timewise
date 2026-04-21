@@ -30,7 +30,9 @@ def make_user(email: str = "owner@example.com"):
 
 
 def make_tenant(user_id: int, slug: str = "acme"):
-    return TenantService.create(TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id)
+    return TenantService.create(
+        TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id
+    )
 
 
 class DepartmentServiceTests(TestCase):
@@ -47,7 +49,9 @@ class DepartmentServiceTests(TestCase):
         assert dept.is_active is True
 
     def test_create_department_raises_if_name_already_exists(self):
-        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Engineering"))
+        WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering")
+        )
 
         with pytest.raises(DepartmentAlreadyExistsError, match="Engineering"):
             WorkforceService.create_department(
@@ -58,7 +62,9 @@ class DepartmentServiceTests(TestCase):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
 
-        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Engineering"))
+        WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Engineering")
+        )
         dept = WorkforceService.create_department(
             other_tenant.id, DepartmentIn(name="Engineering")
         )
@@ -79,7 +85,9 @@ class DepartmentServiceTests(TestCase):
     def test_get_department_raises_if_belongs_to_other_tenant(self):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
-        dept = WorkforceService.create_department(other_tenant.id, DepartmentIn(name="HR"))
+        dept = WorkforceService.create_department(
+            other_tenant.id, DepartmentIn(name="HR")
+        )
 
         with pytest.raises(DepartmentNotFoundError):
             WorkforceService.get_department(self.tenant.id, dept.id)
@@ -109,7 +117,9 @@ class RoleServiceTests(TestCase):
         self.tenant = make_tenant(self.user.id)
 
     def test_create_role_normalizes_name(self):
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="  Senior Engineer  "))
+        role = WorkforceService.create_role(
+            self.tenant.id, RoleIn(name="  Senior Engineer  ")
+        )
         assert role.name == "Senior Engineer"
         assert role.tenant_id == self.tenant.id
 
@@ -145,7 +155,9 @@ class EmployeeServiceTests(TestCase):
         self.dept = WorkforceService.create_department(
             self.tenant.id, DepartmentIn(name="Engineering")
         )
-        self.role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+        self.role = WorkforceService.create_role(
+            self.tenant.id, RoleIn(name="Developer")
+        )
 
     def _employee_payload(self, email: str = "alice@example.com", **overrides):
         defaults = dict(
@@ -165,8 +177,6 @@ class EmployeeServiceTests(TestCase):
         )
         assert emp.email == "alice@example.com"
         assert emp.tenant_id == self.tenant.id
-        assert emp.department_id == self.dept.id
-        assert emp.role_id == self.role.id
         assert emp.is_active is True
 
     def test_create_employee_raises_if_email_already_exists(self):

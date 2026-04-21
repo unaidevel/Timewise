@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 
 import pytest
 from django.test import TestCase
@@ -25,7 +24,9 @@ def make_user(email: str = "owner@example.com"):
 
 
 def make_tenant(user_id: int, slug: str = "acme"):
-    return TenantService.create(TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id)
+    return TenantService.create(
+        TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id
+    )
 
 
 class DepartmentRepositoryTests(TestCase):
@@ -53,7 +54,9 @@ class DepartmentRepositoryTests(TestCase):
         entity = DepartmentEntity(name="Engineering")
         WorkforceRepository.create_department(entity, self.tenant.id)
 
-        found = WorkforceRepository.find_department_by_name(self.tenant.id, "ENGINEERING")
+        found = WorkforceRepository.find_department_by_name(
+            self.tenant.id, "ENGINEERING"
+        )
         assert found is not None
         assert found.name == "Engineering"
 
@@ -62,8 +65,12 @@ class DepartmentRepositoryTests(TestCase):
         assert result is None
 
     def test_list_departments_orders_by_name(self):
-        WorkforceRepository.create_department(DepartmentEntity(name="Zulu"), self.tenant.id)
-        WorkforceRepository.create_department(DepartmentEntity(name="Alpha"), self.tenant.id)
+        WorkforceRepository.create_department(
+            DepartmentEntity(name="Zulu"), self.tenant.id
+        )
+        WorkforceRepository.create_department(
+            DepartmentEntity(name="Alpha"), self.tenant.id
+        )
 
         depts = WorkforceRepository.list_departments(self.tenant.id)
         assert [d.name for d in depts] == ["Alpha", "Zulu"]
@@ -114,7 +121,9 @@ class RoleRepositoryTests(TestCase):
         assert found is not None
 
     def test_deactivate_role_sets_inactive(self):
-        role = WorkforceRepository.create_role(RoleEntity(name="Developer"), self.tenant.id)
+        role = WorkforceRepository.create_role(
+            RoleEntity(name="Developer"), self.tenant.id
+        )
         result = WorkforceRepository.deactivate_role(role.id)
         assert result is not None
         assert result.is_active is False
@@ -135,22 +144,16 @@ class EmployeeRepositoryTests(TestCase):
         return EmployeeEntity(
             full_name="Alice Smith",
             email=email,
-            hourly_rate=Decimal("30.00"),
-            contract_hours_per_week=40,
             hired_at=date(2024, 3, 1),
         )
 
     def test_create_and_get_employee(self):
         entity = self._employee_entity()
-        emp = WorkforceRepository.create_employee(
-            entity, self.tenant.id, self.dept.id, self.role.id
-        )
+        emp = WorkforceRepository.create_employee(entity, self.tenant.id)
 
         assert emp.id is not None
         assert emp.email == "alice@example.com"
         assert emp.tenant_id == self.tenant.id
-        assert emp.department_id == self.dept.id
-        assert emp.role_id == self.role.id
         assert emp.is_active is True
         assert emp.user_id is None
 
@@ -159,21 +162,23 @@ class EmployeeRepositoryTests(TestCase):
 
     def test_find_employee_by_email(self):
         entity = self._employee_entity()
-        WorkforceRepository.create_employee(
-            entity, self.tenant.id, self.dept.id, self.role.id
-        )
+        WorkforceRepository.create_employee(entity, self.tenant.id)
 
-        found = WorkforceRepository.find_employee_by_email(self.tenant.id, "alice@example.com")
+        found = WorkforceRepository.find_employee_by_email(
+            self.tenant.id, "alice@example.com"
+        )
         assert found is not None
         assert found.email == "alice@example.com"
 
     def test_find_employee_by_email_returns_none_if_missing(self):
-        result = WorkforceRepository.find_employee_by_email(self.tenant.id, "nobody@example.com")
+        result = WorkforceRepository.find_employee_by_email(
+            self.tenant.id, "nobody@example.com"
+        )
         assert result is None
 
     def test_deactivate_employee_sets_inactive(self):
         emp = WorkforceRepository.create_employee(
-            self._employee_entity(), self.tenant.id, self.dept.id, self.role.id
+            self._employee_entity(), self.tenant.id
         )
         result = WorkforceRepository.deactivate_employee(emp.id)
         assert result is not None
@@ -181,7 +186,7 @@ class EmployeeRepositoryTests(TestCase):
 
     def test_deactivate_employee_returns_none_if_already_inactive(self):
         emp = WorkforceRepository.create_employee(
-            self._employee_entity(), self.tenant.id, self.dept.id, self.role.id
+            self._employee_entity(), self.tenant.id
         )
         WorkforceRepository.deactivate_employee(emp.id)
         result = WorkforceRepository.deactivate_employee(emp.id)

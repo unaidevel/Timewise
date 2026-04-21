@@ -67,11 +67,15 @@ class TestEmployeeEntity:
 
     def test_raises_on_blank_full_name(self):
         with pytest.raises(InvalidEmployeeDataError, match="cannot be blank"):
-            EmployeeEntity(full_name="   ", email="jane@example.com", hired_at=date(2024, 1, 15))
+            EmployeeEntity(
+                full_name="   ", email="jane@example.com", hired_at=date(2024, 1, 15)
+            )
 
     def test_raises_on_invalid_email(self):
         with pytest.raises(InvalidEmployeeDataError, match="Invalid email"):
-            EmployeeEntity(full_name="Jane", email="not-an-email", hired_at=date(2024, 1, 15))
+            EmployeeEntity(
+                full_name="Jane", email="not-an-email", hired_at=date(2024, 1, 15)
+            )
 
 
 class TestEmployeeRoleEntity:
@@ -89,8 +93,12 @@ class TestEmployeeRoleEntity:
 
     def test_raises_on_contract_hours_exceeding_168(self):
         with pytest.raises(InvalidEmployeeDataError, match="between 1 and 168"):
-            EmployeeRoleEntity(hourly_rate=Decimal("25.00"), contract_hours_per_week=169)
+            EmployeeRoleEntity(
+                hourly_rate=Decimal("25.00"), contract_hours_per_week=169
+            )
 
     def test_accepts_max_contract_hours(self):
-        entity = EmployeeRoleEntity(hourly_rate=Decimal("25.00"), contract_hours_per_week=168)
+        entity = EmployeeRoleEntity(
+            hourly_rate=Decimal("25.00"), contract_hours_per_week=168
+        )
         assert entity.contract_hours_per_week == 168

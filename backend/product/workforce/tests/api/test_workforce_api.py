@@ -5,15 +5,15 @@ import pytest
 from django.test import TestCase
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
+from starlette.requests import Request
 
 from infra.authz.api import router as auth_router
 from infra.authz.api.dependencies import get_current_user
 from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
-from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.api import router as tenants_router
+from infra.tenants.dtos.dtos import TenantIn
 from product.workforce.api import router as workforce_router
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
-from starlette.requests import Request
 
 
 def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
@@ -43,7 +43,9 @@ class WorkforceApiTests(TestCase):
         return get_current_user(credentials)
 
     def setUp(self):
-        self.user = self._authenticate_user(email="owner@example.com", full_name="Owner")
+        self.user = self._authenticate_user(
+            email="owner@example.com", full_name="Owner"
+        )
         self.tenant = tenants_router.create_tenant(
             TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
         )
@@ -70,7 +72,9 @@ class WorkforceApiTests(TestCase):
         assert exc.value.status_code == 409
 
     def test_list_departments_returns_all(self):
-        workforce_router.create_department(self.tenant.id, DepartmentIn(name="HR"), self.user)
+        workforce_router.create_department(
+            self.tenant.id, DepartmentIn(name="HR"), self.user
+        )
         workforce_router.create_department(
             self.tenant.id, DepartmentIn(name="Engineering"), self.user
         )
@@ -88,7 +92,9 @@ class WorkforceApiTests(TestCase):
         dept = workforce_router.create_department(
             self.tenant.id, DepartmentIn(name="Engineering"), self.user
         )
-        result = workforce_router.deactivate_department(self.tenant.id, dept.id, self.user)
+        result = workforce_router.deactivate_department(
+            self.tenant.id, dept.id, self.user
+        )
         assert result.is_active is False
 
     # --- Roles ---
@@ -101,10 +107,14 @@ class WorkforceApiTests(TestCase):
         assert role.tenant_id == self.tenant.id
 
     def test_create_role_returns_409_on_duplicate(self):
-        workforce_router.create_role(self.tenant.id, RoleIn(name="Developer"), self.user)
+        workforce_router.create_role(
+            self.tenant.id, RoleIn(name="Developer"), self.user
+        )
 
         with pytest.raises(HTTPException) as exc:
-            workforce_router.create_role(self.tenant.id, RoleIn(name="Developer"), self.user)
+            workforce_router.create_role(
+                self.tenant.id, RoleIn(name="Developer"), self.user
+            )
 
         assert exc.value.status_code == 409
 
@@ -119,10 +129,14 @@ class WorkforceApiTests(TestCase):
         dept = workforce_router.create_department(
             self.tenant.id, DepartmentIn(name="Engineering"), self.user
         )
-        role = workforce_router.create_role(self.tenant.id, RoleIn(name="Developer"), self.user)
+        role = workforce_router.create_role(
+            self.tenant.id, RoleIn(name="Developer"), self.user
+        )
         return dept, role
 
-    def _employee_payload(self, dept_id: int, role_id: int, email: str = "alice@example.com"):
+    def _employee_payload(
+        self, dept_id: int, role_id: int, email: str = "alice@example.com"
+    ):
         return EmployeeIn(
             full_name="Alice Smith",
             email=email,
