@@ -27,14 +27,14 @@ from product.workforce.exceptions import (
 )
 from product.workforce.services.workforce_service import WorkforceService
 
-router = APIRouter(prefix="/api/v1/workforce", tags=["workforce"])
+router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
 
 
 # --- Departments ---
 
 
 @router.post(
-    "/{tenant_id}/departments",
+    "/departments",
     response_model=DepartmentOut,
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
@@ -56,12 +56,12 @@ def create_department(
         ) from exc
 
 
-@router.get("/{tenant_id}/departments", response_model=list[DepartmentOut])
+@router.get("/departments", response_model=list[DepartmentOut])
 def list_departments(tenant_id: int, _: CurrentUser) -> list[DepartmentOut]:
     return WorkforceService.list_departments(tenant_id)
 
 
-@router.get("/{tenant_id}/departments/{department_id}", response_model=DepartmentOut)
+@router.get("/departments/{department_id}", response_model=DepartmentOut)
 def get_department(tenant_id: int, department_id: int, _: CurrentUser) -> DepartmentOut:
     try:
         return WorkforceService.get_department(tenant_id, department_id)
@@ -71,7 +71,7 @@ def get_department(tenant_id: int, department_id: int, _: CurrentUser) -> Depart
         ) from exc
 
 
-@router.delete("/{tenant_id}/departments/{department_id}", response_model=DepartmentOut)
+@router.delete("/departments/{department_id}", response_model=DepartmentOut)
 def deactivate_department(
     tenant_id: int, department_id: int, _: CurrentUser
 ) -> DepartmentOut:
@@ -87,7 +87,7 @@ def deactivate_department(
 
 
 @router.post(
-    "/{tenant_id}/roles",
+    "/roles",
     response_model=RoleOut,
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
@@ -105,12 +105,12 @@ def create_role(tenant_id: int, payload: RoleIn, _: CurrentUser) -> RoleOut:
         ) from exc
 
 
-@router.get("/{tenant_id}/roles", response_model=list[RoleOut])
+@router.get("/roles", response_model=list[RoleOut])
 def list_roles(tenant_id: int, _: CurrentUser) -> list[RoleOut]:
     return WorkforceService.list_roles(tenant_id)
 
 
-@router.get("/{tenant_id}/roles/{role_id}", response_model=RoleOut)
+@router.get("/roles/{role_id}", response_model=RoleOut)
 def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
     try:
         return WorkforceService.get_role(tenant_id, role_id)
@@ -120,7 +120,7 @@ def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
         ) from exc
 
 
-@router.delete("/{tenant_id}/roles/{role_id}", response_model=RoleOut)
+@router.delete("/roles/{role_id}", response_model=RoleOut)
 def deactivate_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
     try:
         return WorkforceService.deactivate_role(tenant_id, role_id)
@@ -134,7 +134,7 @@ def deactivate_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
 
 
 @router.post(
-    "/{tenant_id}/employees",
+    "/employees",
     response_model=EmployeeOut,
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
@@ -156,12 +156,12 @@ def create_employee(tenant_id: int, payload: EmployeeIn, _: CurrentUser) -> Empl
         ) from exc
 
 
-@router.get("/{tenant_id}/employees", response_model=list[EmployeeOut])
+@router.get("/employees", response_model=list[EmployeeOut])
 def list_employees(tenant_id: int, _: CurrentUser) -> list[EmployeeOut]:
     return WorkforceService.list_employees(tenant_id)
 
 
-@router.get("/{tenant_id}/employees/{employee_id}", response_model=EmployeeOut)
+@router.get("/employees/{employee_id}", response_model=EmployeeOut)
 def get_employee(tenant_id: int, employee_id: int, _: CurrentUser) -> EmployeeOut:
     try:
         return WorkforceService.get_employee(tenant_id, employee_id)
@@ -171,7 +171,7 @@ def get_employee(tenant_id: int, employee_id: int, _: CurrentUser) -> EmployeeOu
         ) from exc
 
 
-@router.delete("/{tenant_id}/employees/{employee_id}", response_model=EmployeeOut)
+@router.delete("/employees/{employee_id}", response_model=EmployeeOut)
 def deactivate_employee(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> EmployeeOut:
@@ -187,7 +187,7 @@ def deactivate_employee(
 
 
 @router.post(
-    "/{tenant_id}/employees/{employee_id}/departments",
+    "/employees/{employee_id}/departments",
     response_model=EmployeeDepartmentOut,
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
@@ -211,7 +211,7 @@ def assign_department(
 
 
 @router.get(
-    "/{tenant_id}/employees/{employee_id}/departments/current",
+    "/employees/{employee_id}/departments/current",
     response_model=EmployeeDepartmentOut,
 )
 def get_active_department(
@@ -226,7 +226,7 @@ def get_active_department(
 
 
 @router.get(
-    "/{tenant_id}/employees/{employee_id}/departments",
+    "/employees/{employee_id}/departments",
     response_model=list[EmployeeDepartmentOut],
 )
 def list_department_history(
@@ -244,7 +244,7 @@ def list_department_history(
 
 
 @router.post(
-    "/{tenant_id}/employees/{employee_id}/roles",
+    "/employees/{employee_id}/roles",
     response_model=EmployeeRoleOut,
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
@@ -268,7 +268,7 @@ def assign_role(
 
 
 @router.get(
-    "/{tenant_id}/employees/{employee_id}/roles/current",
+    "/employees/{employee_id}/roles/current",
     response_model=EmployeeRoleOut,
 )
 def get_active_role(
@@ -283,7 +283,7 @@ def get_active_role(
 
 
 @router.get(
-    "/{tenant_id}/employees/{employee_id}/roles",
+    "/employees/{employee_id}/roles",
     response_model=list[EmployeeRoleOut],
 )
 def list_role_history(
