@@ -28,3 +28,7 @@ class MemberNotFoundError(TenantError):
 
 class InvalidMemberRoleError(TenantError):
     pass
+
+
+class InsufficientPermissionsError(TenantError):
+    pass

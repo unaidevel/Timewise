@@ -8,7 +8,6 @@ from infra.tenants.dtos.dtos import (
     TenantMemberResponse,
     TenantOut,
 )
-from infra.tenants.dtos.tenant_dtos import Tenant, TenantMembership
 from infra.tenants.exceptions import (
     InvalidMemberRoleError,
     InvalidTenantNameError,
@@ -18,6 +17,7 @@ from infra.tenants.exceptions import (
     TenantAlreadyExistsError,
     TenantNotFoundError,
 )
+from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator
 from infra.tenants.services.tenants_service import TenantService
 
 router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
@@ -29,9 +29,9 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
 )
-def create_tenant(payload: TenantIn, current_user: CurrentUser) -> Tenant:
+def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     try:
-        return TenantService.create(payload=payload, created_by_id=current_user.id)
+        return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
     except TenantAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
@@ -43,12 +43,12 @@ def create_tenant(payload: TenantIn, current_user: CurrentUser) -> Tenant:
 
 
 @router.get("", response_model=list[TenantOut])
-def list_tenants(_: CurrentUser) -> list[Tenant]:
+def list_tenants(_: CurrentUser) -> list[TenantOut]:
     return TenantService.list_all()
 
 
 @router.get("/{tenant_id}", response_model=TenantOut)
-def get_tenant(tenant_id: int, _: CurrentUser) -> Tenant:
+def get_tenant(tenant_id: int, _: CurrentUser) -> TenantOut:
     try:
         return TenantService.get_by_id(tenant_id)
     except TenantNotFoundError as exc:
@@ -66,7 +66,7 @@ def add_member(
     tenant_id: int,
     payload: AddMemberRequest,
     current_user: CurrentUser,
-) -> TenantMembership:
+) -> TenantMemberResponse:
     try:
         return TenantService.add_member(
             tenant_id=tenant_id,
@@ -88,7 +88,7 @@ def add_member(
 
 
 @router.get("/{tenant_id}/members", response_model=list[TenantMemberResponse])
-def list_members(tenant_id: int, _: CurrentUser) -> list[TenantMembership]:
+def list_members(tenant_id: int, _: CurrentUser) -> list[TenantMemberResponse]:
     try:
         return TenantService.list_members(tenant_id)
     except TenantNotFoundError as exc:
@@ -106,7 +106,7 @@ def remove_member(
     membership_id: int,
     reason: str = "",
     _: CurrentUser = None,
-) -> TenantMembership:
+) -> TenantMemberResponse:
     try:
         return TenantService.remove_member(
             tenant_id=tenant_id,

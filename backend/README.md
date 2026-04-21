@@ -32,6 +32,7 @@ Run development tools:
 
 ```powershell
 uv run pytest
+uv run python manage.py lint
 uv run python manage.py test
 uv run python manage.py testall
 uv run python manage.py testall --coverage
