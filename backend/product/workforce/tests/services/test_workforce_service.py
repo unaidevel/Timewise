@@ -18,7 +18,9 @@ from product.workforce.exceptions import (
     RoleAlreadyExistsError,
     RoleNotFoundError,
 )
-from product.workforce.services.workforce_service import DEFAULT_ROLE_NAMES, WorkforceService
+from product.workforce.services.workforce_service import WorkforceService
+
+EXPECTED_DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
 
 
 def make_user(email: str = "owner@example.com"):
@@ -244,8 +246,8 @@ class DefaultRolesServiceTests(TestCase):
         WorkforceService.create_default_roles(self.tenant.id)
 
         roles = WorkforceService.list_roles(self.tenant.id)
-        assert len(roles) == len(DEFAULT_ROLE_NAMES)
-        assert {r.name for r in roles} == set(DEFAULT_ROLE_NAMES)
+        assert len(roles) == len(EXPECTED_DEFAULT_ROLE_NAMES)
+        assert {r.name for r in roles} == set(EXPECTED_DEFAULT_ROLE_NAMES)
 
     def test_create_default_roles_are_all_active(self):
         WorkforceService.create_default_roles(self.tenant.id)

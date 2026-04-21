@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
-from infra.tenants.dtos.dtos import TenantIn
+from infra.tenants.entities.tenant_entities import TenantEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
@@ -25,7 +25,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantIn(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
     )
 
 

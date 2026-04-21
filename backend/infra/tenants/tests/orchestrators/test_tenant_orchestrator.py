@@ -15,7 +15,8 @@ from infra.tenants.exceptions import (
 from infra.tenants.models import TenantMembershipModel, TenantModel
 from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator
 from product.workforce.models import RoleModel
-from product.workforce.services.workforce_service import DEFAULT_ROLE_NAMES
+
+EXPECTED_DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
 
 
 def make_user(email: str = "owner@example.com"):
@@ -62,8 +63,10 @@ class TenantOrchestratorCreateTests(TestCase):
         )
 
         roles = RoleModel.objects.filter(tenant_id=tenant.id).order_by("name")
-        assert roles.count() == len(DEFAULT_ROLE_NAMES)
-        assert set(roles.values_list("name", flat=True)) == set(DEFAULT_ROLE_NAMES)
+        assert roles.count() == len(EXPECTED_DEFAULT_ROLE_NAMES)
+        assert set(roles.values_list("name", flat=True)) == set(
+            EXPECTED_DEFAULT_ROLE_NAMES
+        )
         assert all(r.is_active for r in roles)
 
     def test_create_raises_if_slug_already_exists(self):
@@ -96,9 +99,8 @@ class TenantOrchestratorCreateTests(TestCase):
     def test_create_rolls_back_if_default_roles_fail(self):
         owner = make_user()
 
-        with patch.object(
-            TenantOrchestrator.__module__,
-            "WorkforceService",
+        with patch(
+            "infra.tenants.orchestrators.tenant_orchestrator.WorkforceService"
         ) as mock_workforce:
             mock_workforce.create_default_roles.side_effect = Exception("DB error")
 
