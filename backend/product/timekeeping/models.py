@@ -3,12 +3,9 @@ from django.db import models
 from infra.authz.models import AuthUserModel
 from infra.tenants.models import TenantModel
 from product.workforce.models import EmployeeModel
-
+from product.common.classes import PeriodStatus, TimeReportStatus
 
 class PeriodModel(models.Model):
-    class Status(models.TextChoices):
-        OPEN = "open", "Open"
-        LOCKED = "locked", "Locked"
 
     id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(
@@ -21,8 +18,8 @@ class PeriodModel(models.Model):
     end_date = models.DateField()
     status = models.CharField(
         max_length=10,
-        choices=Status.choices,
-        default=Status.OPEN,
+        choices=PeriodStatus.choices,
+        default=PeriodStatus.OPEN,
     )
     locked_at = models.DateTimeField(null=True, blank=True)
     locked_by = models.ForeignKey(
@@ -71,13 +68,6 @@ class PeriodModel(models.Model):
 
 
 class TimeReportModel(models.Model):
-    class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        SUBMITTED = "submitted", "Submitted"
-        UNDER_REVIEW = "under_review", "Under Review"
-        APPROVED = "approved", "Approved"
-        REJECTED = "rejected", "Rejected"
-        LOCKED = "locked", "Locked"
 
     id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(
@@ -97,8 +87,8 @@ class TimeReportModel(models.Model):
     )
     status = models.CharField(
         max_length=15,
-        choices=Status.choices,
-        default=Status.DRAFT,
+        choices=TimeReportStatus.choices,
+        default=TimeReportStatus.DRAFT,
     )
     version = models.PositiveIntegerField(default=0)
     rejection_reason = models.TextField(blank=True, default="")
