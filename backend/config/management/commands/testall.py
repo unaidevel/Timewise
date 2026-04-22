@@ -66,7 +66,12 @@ class Command(BaseCommand):
             results.append(
                 self._run_suite(
                     "Architecture",
-                    [sys.executable, "-m", "pytest", "infra/common/test_architecture.py"],
+                    [
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "infra/common/test_architecture.py",
+                    ],
                     backend_root,
                     env,
                 )
