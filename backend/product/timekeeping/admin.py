@@ -1,5 +1,7 @@
 from django.contrib import admin
 
-from .models import TimekeepingModel
+from product.timekeeping.models import PeriodModel, TimeReportModel, TimeEntryModel
 
-admin.site.register(TimekeepingModel)
+admin.site.register(PeriodModel)
+admin.site.register(TimeReportModel)
+admin.site.register(TimeEntryModel)

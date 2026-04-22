@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from infra.authz.models import AuthUserModel
@@ -139,7 +142,14 @@ class TimeEntryModel(models.Model):
         related_name="entries",
     )
     date = models.DateField()
-    hours = models.DecimalField(max_digits=5, decimal_places=2)
+    hours = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal("0.01")),
+            MaxValueValidator(Decimal("24")),
+        ],
+    )
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
     description = models.TextField(blank=True, default="")
@@ -164,6 +174,12 @@ class TimeEntryModel(models.Model):
         db_table = "timekeeping_entries"
         indexes = [
             models.Index(fields=["report", "date"]),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(hours__gte=Decimal("0.01"), hours__lte=Decimal("24")),
+                name="timekeeping_entry_hours_range",
+            ),
         ]
 
     def __str__(self) -> str:
