@@ -425,7 +425,11 @@ class UpdateEmployeeServiceTests(TestCase):
         updated = WorkforceService.update_employee(
             self.tenant.id,
             self.emp.id,
-            EmployeeUpdate(full_name="Alice Jones", email="alice@example.com", hired_at=date(2024, 3, 1)),
+            EmployeeUpdate(
+                full_name="Alice Jones",
+                email="alice@example.com",
+                hired_at=date(2024, 3, 1),
+            ),
             user_id=self.owner.id,
         )
         assert updated.full_name == "Alice Jones"
@@ -435,7 +439,11 @@ class UpdateEmployeeServiceTests(TestCase):
         updated = WorkforceService.update_employee(
             self.tenant.id,
             self.emp.id,
-            EmployeeUpdate(full_name="Alice Smith", email="newalice@example.com", hired_at=date(2024, 3, 1)),
+            EmployeeUpdate(
+                full_name="Alice Smith",
+                email="newalice@example.com",
+                hired_at=date(2024, 3, 1),
+            ),
             user_id=self.owner.id,
         )
         assert updated.email == "newalice@example.com"
@@ -459,7 +467,11 @@ class UpdateEmployeeServiceTests(TestCase):
             WorkforceService.update_employee(
                 self.tenant.id,
                 self.emp.id,
-                EmployeeUpdate(full_name="Alice Smith", email="bob@example.com", hired_at=date(2024, 3, 1)),
+                EmployeeUpdate(
+                    full_name="Alice Smith",
+                    email="bob@example.com",
+                    hired_at=date(2024, 3, 1),
+                ),
                 user_id=self.owner.id,
             )
 
@@ -468,7 +480,9 @@ class UpdateEmployeeServiceTests(TestCase):
             WorkforceService.update_employee(
                 self.tenant.id,
                 999,
-                EmployeeUpdate(full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)),
+                EmployeeUpdate(
+                    full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)
+                ),
                 user_id=self.owner.id,
             )
 
@@ -479,7 +493,9 @@ class UpdateEmployeeServiceTests(TestCase):
             WorkforceService.update_employee(
                 self.tenant.id,
                 self.emp.id,
-                EmployeeUpdate(full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)),
+                EmployeeUpdate(
+                    full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)
+                ),
                 user_id=member.id,
             )
 
