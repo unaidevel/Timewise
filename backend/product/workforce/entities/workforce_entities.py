@@ -78,6 +78,23 @@ class EmployeeEntity:
 
 
 @dataclass(frozen=True, slots=True)
+class EmployeeUpdateEntity:
+    full_name: str | None
+    email: str | None
+    hired_at: date | None
+
+    def __post_init__(self) -> None:
+        if self.full_name is not None:
+            object.__setattr__(
+                self, "full_name", EmployeeEntity._validate_full_name(self.full_name)
+            )
+        if self.email is not None:
+            object.__setattr__(
+                self, "email", EmployeeEntity._validate_email(self.email)
+            )
+
+
+@dataclass(frozen=True, slots=True)
 class EmployeeRoleEntity:
     hourly_rate: Decimal
     contract_hours_per_week: int

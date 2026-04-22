@@ -40,10 +40,34 @@ jobs:
         working-directory: backend
         run: uv run ruff format --check .
 
+  architecture:
+    name: Architecture
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync
+
+      - name: Run architecture tests
+        working-directory: backend
+        run: uv run pytest infra/common/test_architecture.py
+
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: lint
+    needs: architecture
 
     services:
       postgres:
@@ -94,7 +118,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
           DJANGO_SECRET_KEY: ci-secret-key-not-used-in-production
-        run: uv run python manage.py testall --coverage
+        run: uv run python manage.py testall --coverage --skip-architecture
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

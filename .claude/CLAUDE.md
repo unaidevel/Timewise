@@ -52,3 +52,18 @@ For multi-step tasks, state a brief plan:
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
 These guidelines are working if: fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Architecture Rules (backend)
+
+Strict layering — each layer may only depend on the one below it:
+
+    API → Orchestrator (optional) → Service → Repository
+
+| Layer | Directory segment | May import from |
+|---|---|---|
+| API | `*/api/*.py` | orchestrators, services |
+| Orchestrator | `*/orchestrators/*.py` | services only |
+| Service | `*/services/*.py` | repositories only |
+| Repository | `*/repositories/*.py` | nothing in the above layers |
+
+These rules are enforced by `backend/test_architecture.py`. When writing or suggesting new code, respect the hierarchy. Never suggest an import that crosses a layer boundary upward.

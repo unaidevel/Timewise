@@ -19,7 +19,15 @@ class DepartmentOut(BaseModel):
     updated_at: datetime
 
 
+class DepartmentUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+
+
 class RoleIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+
+
+class RoleUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
 
 
@@ -51,12 +59,31 @@ class EmployeeOut(BaseModel):
     id: int
     tenant_id: int
     user_id: int | None
+    manager_id: int | None
     full_name: str
     email: str
     is_active: bool
     hired_at: date
     created_at: datetime
     updated_at: datetime
+
+
+class EmployeeUpdate(BaseModel):
+    full_name: str = Field(min_length=1, max_length=200)
+    email: str = Field(min_length=3, max_length=254)
+    hired_at: date
+
+
+class AssignDepartmentManagerRequest(BaseModel):
+    employee_id: int
+
+
+class RemoveDepartmentManagerRequest(BaseModel):
+    reason: str = ""
+
+
+class SetEmployeeManagerRequest(BaseModel):
+    manager_id: int | None
 
 
 class AssignDepartmentRequest(BaseModel):
@@ -90,6 +117,17 @@ class EmployeeRoleOut(BaseModel):
     role_id: int
     hourly_rate: Decimal
     contract_hours_per_week: int
+    assigned_at: datetime
+    left_at: datetime | None
+    left_reason: str | None
+
+
+class DepartmentManagerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    department_id: int
+    employee_id: int
     assigned_at: datetime
     left_at: datetime | None
     left_reason: str | None

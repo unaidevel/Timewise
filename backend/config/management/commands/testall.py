@@ -2,12 +2,15 @@ import importlib
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from config.testing import drop_postgres_test_database_if_exists
+
+_WIDTH = 60
 
 
 class Command(BaseCommand):
@@ -29,6 +32,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Drop existing test databases before running the suites.",
         )
+        parser.add_argument(
+            "--skip-architecture",
+            action="store_true",
+            help="Skip the architecture tests (useful in CI where they run as a separate job).",
+        )
 
     def handle(self, *args, **options):
         if options["keepdb"] and options["dropdb"]:
@@ -37,10 +45,6 @@ class Command(BaseCommand):
         backend_root = Path(__file__).resolve().parents[3]
         django_targets = self._discover_django_test_targets(backend_root)
         pytest_targets = self._discover_pytest_targets(backend_root)
-
-        if not django_targets and not pytest_targets:
-            self.stdout.write("No tests were discovered.")
-            return
 
         env = os.environ.copy()
         env["DJANGO_SETTINGS_MODULE"] = "config.test_settings"
@@ -55,8 +59,32 @@ class Command(BaseCommand):
         else:
             env.pop("TESTALL_DROPDB", None)
 
+        results: list[tuple[str, bool, float]] = []
+
+        # Architecture tests — always first, no coverage instrumentation
+        if not options["skip_architecture"]:
+            results.append(
+                self._run_suite(
+                    "Architecture",
+                    [
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "infra/common/test_architecture.py",
+                    ],
+                    backend_root,
+                    env,
+                )
+            )
+
+        if not django_targets and not pytest_targets:
+            self.stdout.write("No Django or API tests were discovered.")
+            self._print_summary(results)
+            if any(not passed for _, passed, _ in results):
+                raise CommandError("One or more test suites failed.")
+            return
+
         if options["coverage"]:
-            self.stdout.write("Preparing coverage data...")
             self._run_subprocess(
                 [sys.executable, "-m", "coverage", "erase"],
                 backend_root,
@@ -65,33 +93,29 @@ class Command(BaseCommand):
             )
 
         if django_targets:
-            self.stdout.write("Running Django tests...")
             django_command = self._django_test_command(options["verbosity"], options)
             if options["keepdb"]:
                 django_command.append("--keepdb")
-
-            self._run_subprocess(
-                [*django_command, *django_targets],
-                backend_root,
-                env,
-                "Django tests failed.",
+            results.append(
+                self._run_suite(
+                    "Django",
+                    [*django_command, *django_targets],
+                    backend_root,
+                    env,
+                )
             )
-        else:
-            self.stdout.write("Skipping Django tests because none were discovered.")
 
         if pytest_targets:
-            self.stdout.write("Running API pytest tests...")
-            self._run_subprocess(
-                self._pytest_command(options["verbosity"], options, pytest_targets),
-                backend_root,
-                env,
-                "API pytest tests failed.",
+            results.append(
+                self._run_suite(
+                    "API",
+                    self._pytest_command(options["verbosity"], options, pytest_targets),
+                    backend_root,
+                    env,
+                )
             )
-        else:
-            self.stdout.write("Skipping API pytest tests because none were discovered.")
 
         if options["coverage"]:
-            self.stdout.write("Combining coverage data...")
             self._run_subprocess(
                 [sys.executable, "-m", "coverage", "combine"],
                 backend_root,
@@ -111,7 +135,62 @@ class Command(BaseCommand):
                 "Coverage report generation failed.",
             )
 
-        self.stdout.write(self.style.SUCCESS("All test suites passed."))
+        self._print_summary(results)
+
+        if any(not passed for _, passed, _ in results):
+            raise CommandError("One or more test suites failed.")
+
+    def _run_suite(
+        self,
+        name: str,
+        command: list[str],
+        cwd: Path,
+        env: dict[str, str],
+    ) -> tuple[str, bool, float]:
+        self.stdout.write(f"\n{'─' * _WIDTH}")
+        self.stdout.write(f"  {name.upper()}")
+        self.stdout.write(f"{'─' * _WIDTH}")
+
+        start = time.monotonic()
+        completed = subprocess.run(command, cwd=cwd, env=env, check=False)
+        duration = time.monotonic() - start
+        passed = completed.returncode == 0
+
+        if passed:
+            self.stdout.write(self.style.SUCCESS(f"\n  ✓  {name}  ({duration:.1f}s)"))
+        else:
+            self.stdout.write(
+                self.style.ERROR(f"\n  ✗  {name}  ({duration:.1f}s)  ← FAILED")
+            )
+
+        return (name, passed, duration)
+
+    def _print_summary(self, results: list[tuple[str, bool, float]]) -> None:
+        self.stdout.write(f"\n{'═' * _WIDTH}")
+        self.stdout.write("  RESULTS")
+        self.stdout.write(f"{'═' * _WIDTH}")
+
+        for name, passed, duration in results:
+            if passed:
+                self.stdout.write(
+                    self.style.SUCCESS(f"  ✓  {name:<20} {duration:.1f}s")
+                )
+            else:
+                self.stdout.write(self.style.ERROR(f"  ✗  {name:<20} {duration:.1f}s"))
+
+        passed_count = sum(1 for _, p, _ in results if p)
+        failed_count = len(results) - passed_count
+
+        self.stdout.write("")
+        if failed_count == 0:
+            self.stdout.write(
+                self.style.SUCCESS(f"  All {passed_count} suite(s) passed.")
+            )
+        else:
+            self.stdout.write(
+                self.style.ERROR(f"  {passed_count} passed · {failed_count} failed")
+            )
+        self.stdout.write(f"{'═' * _WIDTH}\n")
 
     def _discover_django_test_targets(self, backend_root: Path) -> list[str]:
         targets: set[str] = set()

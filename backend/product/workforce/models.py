@@ -76,6 +76,13 @@ class EmployeeModel(models.Model):
         blank=True,
         related_name="employee_profiles",
     )
+    manager = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="direct_reports",
+    )
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
     is_active = models.BooleanField(default=True)
@@ -179,3 +186,42 @@ class EmployeeRoleModel(models.Model):
 
     def __str__(self) -> str:
         return f"{self.employee_id} -> {self.role_id}"
+
+
+class DepartmentManagerModel(models.Model):
+    """
+    Active and historical manager assignments for a department.
+    A department can have multiple active managers simultaneously.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    department = models.ForeignKey(
+        DepartmentModel,
+        on_delete=models.CASCADE,
+        related_name="manager_assignments",
+    )
+    employee = models.ForeignKey(
+        EmployeeModel,
+        on_delete=models.PROTECT,
+        related_name="managed_department_assignments",
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    left_at = models.DateTimeField(null=True, blank=True)
+    left_reason = models.TextField(blank=True, default="")
+
+    class Meta:
+        db_table = "workforce_department_managers"
+        indexes = [
+            models.Index(fields=["department", "left_at"]),
+            models.Index(fields=["employee"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["department", "employee"],
+                condition=models.Q(left_at__isnull=True),
+                name="unique_active_manager_per_department",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.employee_id} -> dept {self.department_id}"
