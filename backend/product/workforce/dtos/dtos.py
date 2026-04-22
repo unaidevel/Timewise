@@ -15,6 +15,8 @@ class DepartmentOut(BaseModel):
     tenant_id: int
     name: str
     is_active: bool
+    created_by_id: int | None
+    updated_by_id: int | None
     created_at: datetime
     updated_at: datetime
 
@@ -38,6 +40,8 @@ class RoleOut(BaseModel):
     tenant_id: int
     name: str
     is_active: bool
+    created_by_id: int | None
+    updated_by_id: int | None
     created_at: datetime
     updated_at: datetime
 
@@ -64,6 +68,8 @@ class EmployeeOut(BaseModel):
     email: str
     is_active: bool
     hired_at: date
+    created_by_id: int | None
+    updated_by_id: int | None
     created_at: datetime
     updated_at: datetime
 
@@ -107,6 +113,8 @@ class EmployeeDepartmentOut(BaseModel):
     assigned_at: datetime
     left_at: datetime | None
     left_reason: str | None
+    created_by_id: int | None
+    updated_by_id: int | None
 
 
 class EmployeeRoleOut(BaseModel):
@@ -120,6 +128,8 @@ class EmployeeRoleOut(BaseModel):
     assigned_at: datetime
     left_at: datetime | None
     left_reason: str | None
+    created_by_id: int | None
+    updated_by_id: int | None
 
 
 class DepartmentManagerOut(BaseModel):
@@ -131,3 +141,5 @@ class DepartmentManagerOut(BaseModel):
     assigned_at: datetime
     left_at: datetime | None
     left_reason: str | None
+    created_by_id: int | None
+    updated_by_id: int | None

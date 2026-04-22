@@ -13,6 +13,20 @@ class DepartmentModel(models.Model):
     )
     name = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_departments",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_departments",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +56,20 @@ class RoleModel(models.Model):
     )
     name = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_roles",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_roles",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -87,6 +115,20 @@ class EmployeeModel(models.Model):
     email = models.EmailField()
     is_active = models.BooleanField(default=True)
     hired_at = models.DateField()
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employees",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employees",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -127,6 +169,20 @@ class EmployeeDepartmentModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employee_departments",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employee_departments",
+    )
 
     class Meta:
         db_table = "workforce_employee_departments"
@@ -169,6 +225,20 @@ class EmployeeRoleModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employee_roles",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employee_roles",
+    )
 
     class Meta:
         db_table = "workforce_employee_roles"
@@ -208,6 +278,20 @@ class DepartmentManagerModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_department_managers",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_department_managers",
+    )
 
     class Meta:
         db_table = "workforce_department_managers"

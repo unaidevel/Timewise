@@ -49,10 +49,10 @@ router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
 def create_department(
     tenant_id: int,
     payload: DepartmentIn,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> DepartmentOut:
     try:
-        return WorkforceService.create_department(tenant_id, payload)
+        return WorkforceService.create_department(tenant_id, payload, user_id=current_user.id)
     except DepartmentAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
@@ -80,10 +80,12 @@ def get_department(tenant_id: int, department_id: int, _: CurrentUser) -> Depart
 
 @router.delete("/departments/{department_id}", response_model=DepartmentOut)
 def deactivate_department(
-    tenant_id: int, department_id: int, _: CurrentUser
+    tenant_id: int, department_id: int, current_user: CurrentUser
 ) -> DepartmentOut:
     try:
-        return WorkforceService.deactivate_department(tenant_id, department_id)
+        return WorkforceService.deactivate_department(
+            tenant_id, department_id, user_id=current_user.id
+        )
     except DepartmentNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -197,9 +199,13 @@ def remove_department_manager(
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
 )
-def create_role(tenant_id: int, payload: RoleIn, _: CurrentUser) -> RoleOut:
+def create_role(
+    tenant_id: int,
+    payload: RoleIn,
+    current_user: CurrentUser,
+) -> RoleOut:
     try:
-        return WorkforceService.create_role(tenant_id, payload)
+        return WorkforceService.create_role(tenant_id, payload, user_id=current_user.id)
     except RoleAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
@@ -226,9 +232,13 @@ def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
 
 
 @router.delete("/roles/{role_id}", response_model=RoleOut)
-def deactivate_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
+def deactivate_role(
+    tenant_id: int, role_id: int, current_user: CurrentUser
+) -> RoleOut:
     try:
-        return WorkforceService.deactivate_role(tenant_id, role_id)
+        return WorkforceService.deactivate_role(
+            tenant_id, role_id, user_id=current_user.id
+        )
     except RoleNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -266,9 +276,15 @@ def update_role(
     responses=STATUS_RESPONSES,
     status_code=status.HTTP_201_CREATED,
 )
-def create_employee(tenant_id: int, payload: EmployeeIn, _: CurrentUser) -> EmployeeOut:
+def create_employee(
+    tenant_id: int,
+    payload: EmployeeIn,
+    current_user: CurrentUser,
+) -> EmployeeOut:
     try:
-        return WorkforceService.create_employee(tenant_id, payload)
+        return WorkforceService.create_employee(
+            tenant_id, payload, user_id=current_user.id
+        )
     except EmployeeAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
@@ -300,10 +316,12 @@ def get_employee(tenant_id: int, employee_id: int, _: CurrentUser) -> EmployeeOu
 
 @router.delete("/employees/{employee_id}", response_model=EmployeeOut)
 def deactivate_employee(
-    tenant_id: int, employee_id: int, _: CurrentUser
+    tenant_id: int, employee_id: int, current_user: CurrentUser
 ) -> EmployeeOut:
     try:
-        return WorkforceService.deactivate_employee(tenant_id, employee_id)
+        return WorkforceService.deactivate_employee(
+            tenant_id, employee_id, user_id=current_user.id
+        )
     except EmployeeNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -381,10 +399,12 @@ def assign_department(
     tenant_id: int,
     employee_id: int,
     payload: AssignDepartmentRequest,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> EmployeeDepartmentOut:
     try:
-        return WorkforceService.assign_department(tenant_id, employee_id, payload)
+        return WorkforceService.assign_department(
+            tenant_id, employee_id, payload, user_id=current_user.id
+        )
     except EmployeeNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
@@ -435,10 +455,12 @@ def assign_role(
     tenant_id: int,
     employee_id: int,
     payload: AssignRoleRequest,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> EmployeeRoleOut:
     try:
-        return WorkforceService.assign_role(tenant_id, employee_id, payload)
+        return WorkforceService.assign_role(
+            tenant_id, employee_id, payload, user_id=current_user.id
+        )
     except EmployeeNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
