@@ -40,9 +40,6 @@ from product.workforce.services.workforce_service import WorkforceService
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
 
 
-# --- Departments ---
-
-
 @router.post(
     "/departments",
     response_model=DepartmentOut,
@@ -93,7 +90,7 @@ def deactivate_department(
         ) from exc
 
 
-@router.patch("/departments/{department_id}", response_model=DepartmentOut)
+@router.put("/departments/{department_id}", response_model=DepartmentOut)
 def update_department(
     tenant_id: int,
     department_id: int,
@@ -238,7 +235,7 @@ def deactivate_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
         ) from exc
 
 
-@router.patch("/roles/{role_id}", response_model=RoleOut)
+@router.put("/roles/{role_id}", response_model=RoleOut)
 def update_role(
     tenant_id: int,
     role_id: int,
@@ -261,9 +258,6 @@ def update_role(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
-
-
-# --- Employees ---
 
 
 @router.post(
@@ -316,7 +310,7 @@ def deactivate_employee(
         ) from exc
 
 
-@router.patch("/employees/{employee_id}", response_model=EmployeeOut)
+@router.put("/employees/{employee_id}", response_model=EmployeeOut)
 def update_employee(
     tenant_id: int,
     employee_id: int,
@@ -429,9 +423,6 @@ def list_department_history(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
         ) from exc
-
-
-# --- Role assignments ---
 
 
 @router.post(

@@ -69,9 +69,9 @@ class EmployeeOut(BaseModel):
 
 
 class EmployeeUpdate(BaseModel):
-    full_name: str | None = Field(None, min_length=1, max_length=200)
-    email: str | None = Field(None, min_length=3, max_length=254)
-    hired_at: date | None = None
+    full_name: str = Field(min_length=1, max_length=200)
+    email: str = Field(min_length=3, max_length=254)
+    hired_at: date
 
 
 class AssignDepartmentManagerRequest(BaseModel):

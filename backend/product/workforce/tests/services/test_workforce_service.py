@@ -299,14 +299,20 @@ class UpdateDepartmentServiceTests(TestCase):
 
     def test_update_department_renames(self):
         updated = WorkforceService.update_department(
-            self.tenant.id, self.dept.id, DepartmentUpdate(name="R&D"), user_id=self.owner.id
+            self.tenant.id,
+            self.dept.id,
+            DepartmentUpdate(name="R&D"),
+            user_id=self.owner.id,
         )
         assert updated.name == "R&D"
         assert updated.id == self.dept.id
 
     def test_update_department_normalizes_name(self):
         updated = WorkforceService.update_department(
-            self.tenant.id, self.dept.id, DepartmentUpdate(name="  R&D  "), user_id=self.owner.id
+            self.tenant.id,
+            self.dept.id,
+            DepartmentUpdate(name="  R&D  "),
+            user_id=self.owner.id,
         )
         assert updated.name == "R&D"
 
@@ -320,12 +326,18 @@ class UpdateDepartmentServiceTests(TestCase):
         WorkforceService.create_department(self.tenant.id, DepartmentIn(name="HR"))
         with pytest.raises(DepartmentAlreadyExistsError):
             WorkforceService.update_department(
-                self.tenant.id, self.dept.id, DepartmentUpdate(name="HR"), user_id=self.owner.id
+                self.tenant.id,
+                self.dept.id,
+                DepartmentUpdate(name="HR"),
+                user_id=self.owner.id,
             )
 
     def test_update_department_allows_rename_to_same_name(self):
         updated = WorkforceService.update_department(
-            self.tenant.id, self.dept.id, DepartmentUpdate(name="Engineering"), user_id=self.owner.id
+            self.tenant.id,
+            self.dept.id,
+            DepartmentUpdate(name="Engineering"),
+            user_id=self.owner.id,
         )
         assert updated.name == "Engineering"
 
@@ -334,7 +346,10 @@ class UpdateDepartmentServiceTests(TestCase):
         add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
         with pytest.raises(InsufficientPermissionsError):
             WorkforceService.update_department(
-                self.tenant.id, self.dept.id, DepartmentUpdate(name="X"), user_id=member.id
+                self.tenant.id,
+                self.dept.id,
+                DepartmentUpdate(name="X"),
+                user_id=member.id,
             )
 
 
@@ -343,11 +358,16 @@ class UpdateRoleServiceTests(TestCase):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
-        self.role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+        self.role = WorkforceService.create_role(
+            self.tenant.id, RoleIn(name="Developer")
+        )
 
     def test_update_role_renames(self):
         updated = WorkforceService.update_role(
-            self.tenant.id, self.role.id, RoleUpdate(name="Senior Developer"), user_id=self.owner.id
+            self.tenant.id,
+            self.role.id,
+            RoleUpdate(name="Senior Developer"),
+            user_id=self.owner.id,
         )
         assert updated.name == "Senior Developer"
 
@@ -361,7 +381,10 @@ class UpdateRoleServiceTests(TestCase):
         WorkforceService.create_role(self.tenant.id, RoleIn(name="QA"))
         with pytest.raises(RoleAlreadyExistsError):
             WorkforceService.update_role(
-                self.tenant.id, self.role.id, RoleUpdate(name="QA"), user_id=self.owner.id
+                self.tenant.id,
+                self.role.id,
+                RoleUpdate(name="QA"),
+                user_id=self.owner.id,
             )
 
     def test_update_role_raises_on_insufficient_permissions(self):
@@ -378,7 +401,9 @@ class UpdateEmployeeServiceTests(TestCase):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
-        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        dept = WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Eng")
+        )
         role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
         self.emp = WorkforceService.create_employee(
             self.tenant.id,
@@ -395,8 +420,9 @@ class UpdateEmployeeServiceTests(TestCase):
 
     def test_update_employee_changes_name(self):
         updated = WorkforceService.update_employee(
-            self.tenant.id, self.emp.id,
-            EmployeeUpdate(full_name="Alice Jones"),
+            self.tenant.id,
+            self.emp.id,
+            EmployeeUpdate(full_name="Alice Jones", email="alice@example.com", hired_at=date(2024, 3, 1)),
             user_id=self.owner.id,
         )
         assert updated.full_name == "Alice Jones"
@@ -404,8 +430,9 @@ class UpdateEmployeeServiceTests(TestCase):
 
     def test_update_employee_changes_email(self):
         updated = WorkforceService.update_employee(
-            self.tenant.id, self.emp.id,
-            EmployeeUpdate(email="newalice@example.com"),
+            self.tenant.id,
+            self.emp.id,
+            EmployeeUpdate(full_name="Alice Smith", email="newalice@example.com", hired_at=date(2024, 3, 1)),
             user_id=self.owner.id,
         )
         assert updated.email == "newalice@example.com"
@@ -427,16 +454,18 @@ class UpdateEmployeeServiceTests(TestCase):
         )
         with pytest.raises(EmployeeAlreadyExistsError):
             WorkforceService.update_employee(
-                self.tenant.id, self.emp.id,
-                EmployeeUpdate(email="bob@example.com"),
+                self.tenant.id,
+                self.emp.id,
+                EmployeeUpdate(full_name="Alice Smith", email="bob@example.com", hired_at=date(2024, 3, 1)),
                 user_id=self.owner.id,
             )
 
     def test_update_employee_raises_if_not_found(self):
         with pytest.raises(EmployeeNotFoundError):
             WorkforceService.update_employee(
-                self.tenant.id, 999,
-                EmployeeUpdate(full_name="X"),
+                self.tenant.id,
+                999,
+                EmployeeUpdate(full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)),
                 user_id=self.owner.id,
             )
 
@@ -445,8 +474,9 @@ class UpdateEmployeeServiceTests(TestCase):
         add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
         with pytest.raises(InsufficientPermissionsError):
             WorkforceService.update_employee(
-                self.tenant.id, self.emp.id,
-                EmployeeUpdate(full_name="X"),
+                self.tenant.id,
+                self.emp.id,
+                EmployeeUpdate(full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)),
                 user_id=member.id,
             )
 
@@ -455,7 +485,9 @@ class DeactivateEmployeeServiceTests(TestCase):
     def setUp(self):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
-        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        dept = WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Eng")
+        )
         role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
         self.emp = WorkforceService.create_employee(
             self.tenant.id,
@@ -548,7 +580,9 @@ class DepartmentManagerServiceTests(TestCase):
             AssignDepartmentManagerRequest(employee_id=emp2.id),
             user_id=self.owner.id,
         )
-        managers = WorkforceService.list_department_managers(self.tenant.id, self.dept.id)
+        managers = WorkforceService.list_department_managers(
+            self.tenant.id, self.dept.id
+        )
         assert len(managers) == 2
 
     def test_assign_department_manager_raises_if_already_assigned(self):
@@ -628,7 +662,9 @@ class EmployeeManagerServiceTests(TestCase):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
-        dept = WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Eng"))
+        dept = WorkforceService.create_department(
+            self.tenant.id, DepartmentIn(name="Eng")
+        )
         role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
         self.manager = WorkforceService.create_employee(
             self.tenant.id,

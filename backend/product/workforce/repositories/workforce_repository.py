@@ -212,9 +212,7 @@ class WorkforceRepository:
         return EmployeeOut.model_validate(model)
 
     @staticmethod
-    def set_employee_manager(
-        employee_id: int, manager_id: int | None
-    ) -> EmployeeOut:
+    def set_employee_manager(employee_id: int, manager_id: int | None) -> EmployeeOut:
         EmployeeModel.objects.filter(id=employee_id).update(manager_id=manager_id)
         model = EmployeeModel.objects.get(id=employee_id)
         return EmployeeOut.model_validate(model)
@@ -223,9 +221,9 @@ class WorkforceRepository:
     def get_direct_reports(employee_id: int) -> list[EmployeeOut]:
         return [
             EmployeeOut.model_validate(m)
-            for m in EmployeeModel.objects.filter(
-                manager_id=employee_id
-            ).order_by("full_name")
+            for m in EmployeeModel.objects.filter(manager_id=employee_id).order_by(
+                "full_name"
+            )
         ]
 
     @staticmethod

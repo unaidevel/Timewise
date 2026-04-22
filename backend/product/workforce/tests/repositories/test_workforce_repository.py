@@ -197,9 +197,7 @@ class EmployeeRepositoryTests(TestCase):
         emp = WorkforceRepository.create_employee(
             self._employee_entity(), self.tenant.id
         )
-        entity = EmployeeUpdateEntity(
-            full_name="Bob Jones", email=None, hired_at=None
-        )
+        entity = EmployeeUpdateEntity(full_name="Bob Jones", email=None, hired_at=None)
         updated = WorkforceRepository.update_employee(emp.id, entity)
         assert updated.full_name == "Bob Jones"
         assert updated.email == "alice@example.com"

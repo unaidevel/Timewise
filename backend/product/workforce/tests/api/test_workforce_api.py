@@ -238,7 +238,7 @@ class WorkforceApiTests(TestCase):
             self.tenant.id, self._employee_payload(dept.id, role.id), self.user
         )
         updated = workforce_router.update_employee(
-            self.tenant.id, emp.id, EmployeeUpdate(full_name="Alice Jones"), self.user
+            self.tenant.id, emp.id, EmployeeUpdate(full_name="Alice Jones", email="alice@example.com", hired_at=date(2024, 3, 1)), self.user
         )
         assert updated.full_name == "Alice Jones"
 
@@ -250,7 +250,7 @@ class WorkforceApiTests(TestCase):
         member = self._authenticate_user(email="member@example.com", full_name="Member")
         with pytest.raises(HTTPException) as exc:
             workforce_router.update_employee(
-                self.tenant.id, emp.id, EmployeeUpdate(full_name="X"), member
+                self.tenant.id, emp.id, EmployeeUpdate(full_name="X", email="alice@example.com", hired_at=date(2024, 3, 1)), member
             )
         assert exc.value.status_code == 403
 

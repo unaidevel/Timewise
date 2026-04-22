@@ -1,7 +1,6 @@
 from django.db import transaction
 
 from infra.tenants.decorators import only_admin
-
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,
     AssignDepartmentRequest,
@@ -13,8 +12,8 @@ from product.workforce.dtos.dtos import (
     EmployeeDepartmentOut,
     EmployeeIn,
     EmployeeOut,
-    EmployeeUpdate,
     EmployeeRoleOut,
+    EmployeeUpdate,
     RemoveDepartmentManagerRequest,
     RoleIn,
     RoleOut,
@@ -311,9 +310,7 @@ class WorkforceService:
         if payload.manager_id is not None:
             manager = WorkforceRepository.get_employee_by_id(payload.manager_id)
             if not manager or manager.tenant_id != tenant_id:
-                raise EmployeeNotFoundError(
-                    f"Employee {payload.manager_id} not found."
-                )
+                raise EmployeeNotFoundError(f"Employee {payload.manager_id} not found.")
         return WorkforceRepository.set_employee_manager(employee_id, payload.manager_id)
 
     @staticmethod
