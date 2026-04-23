@@ -1,7 +1,12 @@
 from fastapi import APIRouter, status
 
 from infra.authz.api.dependencies import CurrentUser
-from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity, responses_for
+from infra.common.exceptions import (
+    Conflict,
+    NotFound,
+    UnprocessableEntity,
+    responses_for,
+)
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
     TenantIn,

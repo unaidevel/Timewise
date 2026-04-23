@@ -63,7 +63,7 @@ class TimeEntryIn(BaseModel):
 
 
 class TimeEntryUpdate(BaseModel):
-    date: date | None = None
+    date_: date | None = None
     hours: Decimal
     start_time: time | None = None
     end_time: time | None = None
