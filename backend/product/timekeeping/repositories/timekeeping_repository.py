@@ -1,7 +1,5 @@
 from datetime import date, datetime
 
-from django.utils import timezone
-
 from product.common.classes import PeriodStatus
 from product.timekeeping.dtos.dtos import (
     PeriodOut,

@@ -5,8 +5,8 @@ from django.db import models
 
 from infra.authz.models import AuthUserModel
 from infra.tenants.models import TenantModel
-from product.workforce.models import EmployeeModel
 from product.common.classes import PeriodStatus, TimeReportStatus
+from product.workforce.models import EmployeeModel
 
 
 class PeriodModel(models.Model):

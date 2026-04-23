@@ -1,10 +1,10 @@
+from infra.common.http_exceptions import Conflict, NotFound
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
     TenantMemberResponse,
     TenantOut,
 )
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
-from infra.common.http_exceptions import Conflict, NotFound
 from infra.tenants.repositories.tenants_repository import TenantRepository
 
 

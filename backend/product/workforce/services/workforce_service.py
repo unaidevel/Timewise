@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from infra.common.http_exceptions import Conflict, NotFound
 from infra.tenants.decorators import only_admin
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,
@@ -27,7 +28,6 @@ from product.workforce.entities.workforce_entities import (
     EmployeeUpdateEntity,
     RoleEntity,
 )
-from infra.common.http_exceptions import Conflict, NotFound
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
 
