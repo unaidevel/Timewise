@@ -26,7 +26,8 @@ STALE_LOGIN_ATTEMPT_RETENTION_DAYS = 30
 
 @dataclass(frozen=True, slots=True)
 class AuthSecuritySettings:
-    token_ttl_hours: int
+    access_token_ttl_minutes: int
+    refresh_token_ttl_days: int
     max_failed_attempts_per_account: int
     max_failed_attempts_per_ip: int
     lockout_window_minutes: int
@@ -35,7 +36,8 @@ class AuthSecuritySettings:
 @lru_cache
 def get_auth_security_settings() -> AuthSecuritySettings:
     return AuthSecuritySettings(
-        token_ttl_hours=settings.AUTH_TOKEN_TTL_HOURS,
+        access_token_ttl_minutes=settings.AUTH_ACCESS_TOKEN_TTL_MINUTES,
+        refresh_token_ttl_days=settings.AUTH_REFRESH_TOKEN_TTL_DAYS,
         max_failed_attempts_per_account=settings.AUTH_MAX_FAILED_ATTEMPTS_PER_ACCOUNT,
         max_failed_attempts_per_ip=settings.AUTH_MAX_FAILED_ATTEMPTS_PER_IP,
         lockout_window_minutes=settings.AUTH_LOCKOUT_WINDOW_MINUTES,
@@ -94,19 +96,27 @@ class AuthService:
             raise Unauthorized("Invalid credentials")
 
         access_token = secrets.token_urlsafe(48)
-        expires_at = timezone.now() + timedelta(hours=auth_settings.token_ttl_hours)
+        refresh_token = secrets.token_urlsafe(64)
+        now = timezone.now()
+        expires_at = now + timedelta(minutes=auth_settings.access_token_ttl_minutes)
+        refresh_expires_at = now + timedelta(days=auth_settings.refresh_token_ttl_days)
 
         AuthRepository.clear_failed_logins(email_entity.value)
+        AuthRepository.revoke_all_user_tokens(user.id)
         AuthRepository.create_token(
             user=user,
             token_hash=AuthService._hash_token(access_token),
             expires_at=expires_at,
+            refresh_token_hash=AuthService._hash_token(refresh_token),
+            refresh_expires_at=refresh_expires_at,
         )
 
         return AuthSession(
             access_token=access_token,
+            refresh_token=refresh_token,
             token_type="bearer",
             expires_at=expires_at,
+            refresh_expires_at=refresh_expires_at,
             user=user,
         )
 
@@ -129,6 +139,43 @@ class AuthService:
         clean_token = access_token.strip()
         if clean_token:
             AuthRepository.revoke_token(AuthService._hash_token(clean_token))
+
+    @staticmethod
+    def refresh(refresh_token: str) -> AuthSession:
+        clean_token = refresh_token.strip()
+        if not clean_token:
+            raise Unauthorized("Invalid or expired refresh token")
+
+        token_record = AuthRepository.find_valid_token_by_refresh_hash(
+            AuthService._hash_token(clean_token)
+        )
+        if not token_record or not token_record.user.is_active:
+            raise Unauthorized("Invalid or expired refresh token")
+
+        auth_settings = get_auth_security_settings()
+        new_access_token = secrets.token_urlsafe(48)
+        new_refresh_token = secrets.token_urlsafe(64)
+        now = timezone.now()
+        expires_at = now + timedelta(minutes=auth_settings.access_token_ttl_minutes)
+        refresh_expires_at = now + timedelta(days=auth_settings.refresh_token_ttl_days)
+
+        AuthRepository.revoke_token(token_record.token_hash)
+        AuthRepository.create_token(
+            user=token_record.user,
+            token_hash=AuthService._hash_token(new_access_token),
+            expires_at=expires_at,
+            refresh_token_hash=AuthService._hash_token(new_refresh_token),
+            refresh_expires_at=refresh_expires_at,
+        )
+
+        return AuthSession(
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer",
+            expires_at=expires_at,
+            refresh_expires_at=refresh_expires_at,
+            user=token_record.user,
+        )
 
     @staticmethod
     def _hash_password(raw_password: str) -> str:

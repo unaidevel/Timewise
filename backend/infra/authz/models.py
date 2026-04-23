@@ -38,6 +38,8 @@ class AuthTokenModel(models.Model):
     )
     token_hash = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
+    refresh_token_hash = models.CharField(max_length=64, unique=True)
+    refresh_expires_at = models.DateTimeField()
     revoked_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -45,6 +47,7 @@ class AuthTokenModel(models.Model):
         db_table = "authz_AuthToken"
         indexes = [
             models.Index(fields=["expires_at"]),
+            models.Index(fields=["refresh_expires_at"]),
             models.Index(fields=["revoked_at"]),
         ]
 

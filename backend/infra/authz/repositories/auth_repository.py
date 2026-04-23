@@ -25,6 +25,8 @@ def _to_auth_token(token_model: AuthTokenModel) -> AuthToken:
         user=_to_auth_user(token_model.user),
         token_hash=token_model.token_hash,
         expires_at=token_model.expires_at,
+        refresh_token_hash=token_model.refresh_token_hash,
+        refresh_expires_at=token_model.refresh_expires_at,
         revoked_at=token_model.revoked_at,
         created_at=token_model.created_at,
     )
@@ -55,19 +57,33 @@ class AuthRepository:
         return _to_auth_user(user_model)
 
     @staticmethod
+    def revoke_all_user_tokens(user_id: int) -> None:
+        AuthTokenModel.objects.filter(
+            user_id=user_id, revoked_at__isnull=True
+        ).update(revoked_at=timezone.now())
+
+    @staticmethod
     def create_token(
-        user: AuthUser, token_hash: str, expires_at: datetime
+        user: AuthUser,
+        token_hash: str,
+        expires_at: datetime,
+        refresh_token_hash: str,
+        refresh_expires_at: datetime,
     ) -> AuthToken:
         token_model = AuthTokenModel.objects.create(
             user_id=user.id,
             token_hash=token_hash,
             expires_at=expires_at,
+            refresh_token_hash=refresh_token_hash,
+            refresh_expires_at=refresh_expires_at,
         )
         return AuthToken(
             id=token_model.id,
             user=user,
             token_hash=token_model.token_hash,
             expires_at=token_model.expires_at,
+            refresh_token_hash=token_model.refresh_token_hash,
+            refresh_expires_at=token_model.refresh_expires_at,
             revoked_at=token_model.revoked_at,
             created_at=token_model.created_at,
         )
@@ -80,6 +96,19 @@ class AuthRepository:
                 token_hash=token_hash,
                 revoked_at__isnull=True,
                 expires_at__gt=timezone.now(),
+            )
+            .first()
+        )
+        return _to_auth_token(token_model) if token_model else None
+
+    @staticmethod
+    def find_valid_token_by_refresh_hash(refresh_token_hash: str) -> AuthToken | None:
+        token_model = (
+            AuthTokenModel.objects.select_related("user")
+            .filter(
+                refresh_token_hash=refresh_token_hash,
+                revoked_at__isnull=True,
+                refresh_expires_at__gt=timezone.now(),
             )
             .first()
         )

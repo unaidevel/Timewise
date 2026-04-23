@@ -18,6 +18,8 @@ class AuthToken:
     user: AuthUser
     token_hash: str
     expires_at: datetime
+    refresh_token_hash: str
+    refresh_expires_at: datetime
     revoked_at: datetime | None
     created_at: datetime
 
@@ -25,6 +27,8 @@ class AuthToken:
 @dataclass(slots=True, frozen=True)
 class AuthSession:
     access_token: str
+    refresh_token: str
     token_type: str
     expires_at: datetime
+    refresh_expires_at: datetime
     user: AuthUser
