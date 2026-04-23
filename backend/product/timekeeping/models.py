@@ -50,7 +50,7 @@ class PeriodModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "timekeeping_periods"
+        db_table = "timekeeping_Period"
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["tenant", "start_date", "end_date"]),
@@ -116,7 +116,7 @@ class TimeReportModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "timekeeping_reports"
+        db_table = "timekeeping_TimeReport"
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["employee", "period"]),
@@ -172,7 +172,7 @@ class TimeEntryModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "timekeeping_entries"
+        db_table = "timekeeping_TimeEntry"
         indexes = [
             models.Index(fields=["report", "date"]),
         ]
@@ -212,7 +212,7 @@ class TimeReportStatusHistoryModel(models.Model):
     changed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "timekeeping_report_status_history"
+        db_table = "timekeeping_TimeReportStatusHistory"
         indexes = [
             models.Index(fields=["report", "changed_at"]),
         ]
@@ -244,7 +244,7 @@ class TimeEntryChangeHistoryModel(models.Model):
     changed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "timekeeping_entry_change_history"
+        db_table = "timekeeping_TimeEntryChangeHistory"
         indexes = [
             models.Index(fields=["entry", "changed_at"]),
         ]

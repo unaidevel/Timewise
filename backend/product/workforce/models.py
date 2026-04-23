@@ -31,7 +31,7 @@ class DepartmentModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_departments"
+        db_table = "workforce_Department"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -74,7 +74,7 @@ class RoleModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_roles"
+        db_table = "workforce_Role"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -133,7 +133,7 @@ class EmployeeModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_employees"
+        db_table = "workforce_Employee"
         indexes = [
             models.Index(fields=["tenant", "email"]),
             models.Index(fields=["is_active"]),
@@ -185,7 +185,7 @@ class EmployeeDepartmentModel(models.Model):
     )
 
     class Meta:
-        db_table = "workforce_employee_departments"
+        db_table = "workforce_EmployeeDepartment"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["department"]),
@@ -241,7 +241,7 @@ class EmployeeRoleModel(models.Model):
     )
 
     class Meta:
-        db_table = "workforce_employee_roles"
+        db_table = "workforce_EmployeeRole"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["role"]),
@@ -294,7 +294,7 @@ class DepartmentManagerModel(models.Model):
     )
 
     class Meta:
-        db_table = "workforce_department_managers"
+        db_table = "workforce_DepartmentManager"
         indexes = [
             models.Index(fields=["department", "left_at"]),
             models.Index(fields=["employee"]),

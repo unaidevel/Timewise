@@ -2,4 +2,5 @@ from django.db import models
 
 
 class Notification(models.Model):
-    pass
+    class Meta:
+        db_table = "notifications_Notification"

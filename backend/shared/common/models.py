@@ -2,4 +2,5 @@ from django.db import models
 
 
 class SharedModel(models.Model):
-    pass
+    class Meta:
+        db_table = "common_Shared"
