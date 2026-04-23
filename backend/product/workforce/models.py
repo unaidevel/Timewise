@@ -151,8 +151,8 @@ class EmployeeModel(models.Model):
 
 class EmployeeDepartmentModel(models.Model):
     """
-    Historial de asignaciones de departamento.
-    Solo puede haber un registro activo por empleado (left_at IS NULL).
+    History of department assignments for employees.
+    Only one active record can exist per employee (left_at IS NULL).
     """
 
     id = models.BigAutoField(primary_key=True)
@@ -204,9 +204,9 @@ class EmployeeDepartmentModel(models.Model):
 
 class EmployeeRoleModel(models.Model):
     """
-    Historial de asignaciones de rol.
-    Incluye hourly_rate y contract_hours_per_week porque pueden cambiar al cambiar de rol.
-    Solo puede haber un registro activo por empleado (left_at IS NULL).
+    History of role assignments for employees.
+    Includes hourly_rate and contract_hours_per_week because they can change when switching roles.
+    Only one active record can exist per employee (left_at IS NULL).
     """
 
     id = models.BigAutoField(primary_key=True)
