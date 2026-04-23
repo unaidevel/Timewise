@@ -10,12 +10,12 @@ STATUS_RESPONSES = {
 
 
 def responses_for(*exc_types: type[AppHTTPException]) -> dict[int, dict]:
-    """Build a FastAPI ``responses`` dict from typed HTTP exception classes.
+    """
+    Build FastAPI responses dict from typed HTTP exception classes.
 
-    Usage::
-
+    Always include it in responses parameter:
         @router.get("/foo", responses=responses_for(NotFound, Forbidden))
-        def get_foo(): ...
+        def get_by_id():
     """
     return {
         exc_type.status_code: {"description": exc_type.description}
