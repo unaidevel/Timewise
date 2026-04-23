@@ -59,9 +59,11 @@ class TooManyRequests(AppHTTPException):
     status_code = 429
     description = "Too Many Requests"
 
+
 class InternalServerError(AppHTTPException):
     status_code = 500
     description = "Internal Server Error"
+
 
 class ServiceUnavailable(AppHTTPException):
     status_code = 503
