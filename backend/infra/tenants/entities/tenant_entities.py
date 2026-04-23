@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 
 from infra.common.classes import MembershipRoles
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
 _VALID_ROLES = {role.value for role in MembershipRoles}

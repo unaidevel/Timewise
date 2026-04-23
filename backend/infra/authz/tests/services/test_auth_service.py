@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
-from infra.common.http_exceptions import (
+from infra.common.exceptions import (
     Conflict,
     TooManyRequests,
     Unauthorized,

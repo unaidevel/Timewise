@@ -1,7 +1,7 @@
 import pytest
 
 from infra.common.classes import MembershipRoles
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 from infra.tenants.entities.tenant_entities import (
     TenantEntity,
     TenantMembershipEntity,

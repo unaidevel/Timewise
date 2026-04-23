@@ -1,7 +1,7 @@
 import pytest
 
 from infra.authz.entities.auth_entities import Email, FullName, Password
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 
 
 def test_email_normalizes_and_validates():

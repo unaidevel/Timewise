@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from infra.common.http_exceptions import Conflict, NotFound
+from infra.common.exceptions import Conflict, NotFound
 from infra.tenants.decorators import only_admin
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,

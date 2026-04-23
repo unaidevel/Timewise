@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     EmployeeEntity,

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from decimal import Decimal
 
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,4 +1,4 @@
-from infra.common.http_exceptions import AppHTTPException
+from infra.common.exceptions.http_exceptions import AppHTTPException
 
 STATUS_RESPONSES = {
     401: {"description": "Unauthorized"},

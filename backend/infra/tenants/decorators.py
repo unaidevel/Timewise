@@ -2,7 +2,7 @@ import functools
 import inspect
 
 from infra.common.classes import MembershipRoles
-from infra.common.http_exceptions import Forbidden
+from infra.common.exceptions import Forbidden
 from infra.tenants.models import TenantMembershipModel
 
 

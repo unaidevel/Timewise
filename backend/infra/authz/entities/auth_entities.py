@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 
-from infra.common.http_exceptions import UnprocessableEntity
+from infra.common.exceptions import UnprocessableEntity
 
 
 @dataclass(frozen=True, slots=True)

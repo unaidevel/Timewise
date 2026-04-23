@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from infra.common.http_exceptions import Conflict, NotFound, UnprocessableEntity
+from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.decorators import only_admin
 from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (

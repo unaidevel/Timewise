@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Query, status
 
 from infra.authz.api.dependencies import CurrentUser
-from infra.common.http_exceptions import (
+from infra.common.exceptions import (
     Conflict,
     Forbidden,
     NotFound,
     UnprocessableEntity,
+    responses_for,
 )
-from infra.common.responses import responses_for
 from product.timekeeping.dtos.dtos import (
     PeriodIn,
     PeriodOut,

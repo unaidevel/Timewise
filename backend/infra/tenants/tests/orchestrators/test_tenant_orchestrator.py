@@ -6,7 +6,7 @@ from django.test import TestCase
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
-from infra.common.http_exceptions import Conflict, UnprocessableEntity
+from infra.common.exceptions import Conflict, UnprocessableEntity
 from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.models import TenantMembershipModel, TenantModel
 from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator

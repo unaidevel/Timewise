@@ -6,7 +6,7 @@ from django.utils import timezone
 from infra.authz.models import AuthLoginAttemptModel
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
-from infra.common.http_exceptions import Conflict
+from infra.common.exceptions import Conflict
 
 
 class AuthRepositoryTests(TestCase):

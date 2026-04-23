@@ -1,4 +1,4 @@
-from infra.common.http_exceptions import Conflict, NotFound
+from infra.common.exceptions import Conflict, NotFound
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
     TenantMemberResponse,

@@ -4,7 +4,7 @@ from django.test import TestCase
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
-from infra.common.http_exceptions import Conflict, NotFound, UnprocessableEntity
+from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.dtos.dtos import AddMemberRequest, TenantMemberResponse, TenantOut
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.models import TenantMembershipModel
