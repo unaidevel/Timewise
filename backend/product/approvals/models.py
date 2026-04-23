@@ -32,7 +32,7 @@ class ApprovalModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "product_approvals"
+        db_table = "approvals_Approval"
         indexes = [
             models.Index(fields=["created_by", "created_at"]),
             models.Index(fields=["created_by", "status"]),

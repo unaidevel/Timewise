@@ -70,7 +70,7 @@ class Command(BaseCommand):
                         sys.executable,
                         "-m",
                         "pytest",
-                        "infra/common/test_architecture.py",
+                        "infra/common/testing/test_architecture.py",
                     ],
                     backend_root,
                     env,

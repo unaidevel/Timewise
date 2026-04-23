@@ -27,10 +27,18 @@ from product.workforce.models import (
 
 class WorkforceRepository:
     @staticmethod
-    def create_department(entity: DepartmentEntity, tenant_id: int) -> DepartmentOut:
+    def create_department(
+        entity: DepartmentEntity,
+        tenant_id: int,
+        created_by_id: int | None = None,
+    ) -> DepartmentOut:
         if not isinstance(entity, DepartmentEntity):
             raise TypeError(f"Expected DepartmentEntity, got {type(entity).__name__}")
-        model = DepartmentModel.objects.create(tenant_id=tenant_id, name=entity.name)
+        model = DepartmentModel.objects.create(
+            tenant_id=tenant_id,
+            name=entity.name,
+            created_by_id=created_by_id,
+        )
         return DepartmentOut.model_validate(model)
 
     @staticmethod
@@ -55,17 +63,28 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def update_department(department_id: int, name: str) -> DepartmentOut:
-        DepartmentModel.objects.filter(id=department_id).update(name=name)
+    def update_department(
+        department_id: int,
+        name: str,
+        updated_by_id: int | None = None,
+    ) -> DepartmentOut:
+        DepartmentModel.objects.filter(id=department_id).update(
+            name=name,
+            updated_by_id=updated_by_id,
+        )
         model = DepartmentModel.objects.get(id=department_id)
         return DepartmentOut.model_validate(model)
 
     @staticmethod
     def assign_department_manager(
-        department_id: int, employee_id: int
+        department_id: int,
+        employee_id: int,
+        created_by_id: int | None = None,
     ) -> DepartmentManagerOut:
         model = DepartmentManagerModel.objects.create(
-            department_id=department_id, employee_id=employee_id
+            department_id=department_id,
+            employee_id=employee_id,
+            created_by_id=created_by_id,
         )
         return DepartmentManagerOut.model_validate(model)
 
@@ -82,11 +101,15 @@ class WorkforceRepository:
 
     @staticmethod
     def remove_department_manager(
-        assignment_id: int, reason: str
+        assignment_id: int,
+        reason: str,
+        updated_by_id: int | None = None,
     ) -> DepartmentManagerOut | None:
         rows = DepartmentManagerModel.objects.filter(
             id=assignment_id, left_at__isnull=True
-        ).update(left_at=timezone.now(), left_reason=reason)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = DepartmentManagerModel.objects.get(id=assignment_id)
@@ -104,9 +127,13 @@ class WorkforceRepository:
         return DepartmentManagerOut.model_validate(model) if model else None
 
     @staticmethod
-    def deactivate_department(department_id: int) -> DepartmentOut | None:
+    def deactivate_department(
+        department_id: int,
+        updated_by_id: int | None = None,
+    ) -> DepartmentOut | None:
         rows = DepartmentModel.objects.filter(id=department_id, is_active=True).update(
-            is_active=False
+            is_active=False,
+            updated_by_id=updated_by_id,
         )
         if rows == 0:
             return None
@@ -114,10 +141,18 @@ class WorkforceRepository:
         return DepartmentOut.model_validate(model)
 
     @staticmethod
-    def create_role(entity: RoleEntity, tenant_id: int) -> RoleOut:
+    def create_role(
+        entity: RoleEntity,
+        tenant_id: int,
+        created_by_id: int | None = None,
+    ) -> RoleOut:
         if not isinstance(entity, RoleEntity):
             raise TypeError(f"Expected RoleEntity, got {type(entity).__name__}")
-        model = RoleModel.objects.create(tenant_id=tenant_id, name=entity.name)
+        model = RoleModel.objects.create(
+            tenant_id=tenant_id,
+            name=entity.name,
+            created_by_id=created_by_id,
+        )
         return RoleOut.model_validate(model)
 
     @staticmethod
@@ -146,15 +181,25 @@ class WorkforceRepository:
         return [RoleOut.model_validate(m) for m in models]
 
     @staticmethod
-    def update_role(role_id: int, name: str) -> RoleOut:
-        RoleModel.objects.filter(id=role_id).update(name=name)
+    def update_role(
+        role_id: int,
+        name: str,
+        updated_by_id: int | None = None,
+    ) -> RoleOut:
+        RoleModel.objects.filter(id=role_id).update(
+            name=name, updated_by_id=updated_by_id
+        )
         model = RoleModel.objects.get(id=role_id)
         return RoleOut.model_validate(model)
 
     @staticmethod
-    def deactivate_role(role_id: int) -> RoleOut | None:
+    def deactivate_role(
+        role_id: int,
+        updated_by_id: int | None = None,
+    ) -> RoleOut | None:
         rows = RoleModel.objects.filter(id=role_id, is_active=True).update(
-            is_active=False
+            is_active=False,
+            updated_by_id=updated_by_id,
         )
         if rows == 0:
             return None
@@ -166,6 +211,7 @@ class WorkforceRepository:
         entity: EmployeeEntity,
         tenant_id: int,
         user_id: int | None = None,
+        created_by_id: int | None = None,
     ) -> EmployeeOut:
         if not isinstance(entity, EmployeeEntity):
             raise TypeError(f"Expected EmployeeEntity, got {type(entity).__name__}")
@@ -175,6 +221,7 @@ class WorkforceRepository:
             full_name=entity.full_name,
             email=entity.email,
             hired_at=entity.hired_at,
+            created_by_id=created_by_id,
         )
         return EmployeeOut.model_validate(model)
 
@@ -198,22 +245,32 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def update_employee(employee_id: int, entity: EmployeeUpdateEntity) -> EmployeeOut:
-        updates = {}
+    def update_employee(
+        employee_id: int,
+        entity: EmployeeUpdateEntity,
+        updated_by_id: int | None = None,
+    ) -> EmployeeOut:
+        updates: dict = {"updated_by_id": updated_by_id}
         if entity.full_name is not None:
             updates["full_name"] = entity.full_name
         if entity.email is not None:
             updates["email"] = entity.email
         if entity.hired_at is not None:
             updates["hired_at"] = entity.hired_at
-        if updates:
-            EmployeeModel.objects.filter(id=employee_id).update(**updates)
+        EmployeeModel.objects.filter(id=employee_id).update(**updates)
         model = EmployeeModel.objects.get(id=employee_id)
         return EmployeeOut.model_validate(model)
 
     @staticmethod
-    def set_employee_manager(employee_id: int, manager_id: int | None) -> EmployeeOut:
-        EmployeeModel.objects.filter(id=employee_id).update(manager_id=manager_id)
+    def set_employee_manager(
+        employee_id: int,
+        manager_id: int | None,
+        updated_by_id: int | None = None,
+    ) -> EmployeeOut:
+        EmployeeModel.objects.filter(id=employee_id).update(
+            manager_id=manager_id,
+            updated_by_id=updated_by_id,
+        )
         model = EmployeeModel.objects.get(id=employee_id)
         return EmployeeOut.model_validate(model)
 
@@ -227,9 +284,13 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def deactivate_employee(employee_id: int) -> EmployeeOut | None:
+    def deactivate_employee(
+        employee_id: int,
+        updated_by_id: int | None = None,
+    ) -> EmployeeOut | None:
         rows = EmployeeModel.objects.filter(id=employee_id, is_active=True).update(
-            is_active=False
+            is_active=False,
+            updated_by_id=updated_by_id,
         )
         if rows == 0:
             return None
@@ -238,11 +299,14 @@ class WorkforceRepository:
 
     @staticmethod
     def assign_department(
-        employee_id: int, department_id: int
+        employee_id: int,
+        department_id: int,
+        created_by_id: int | None = None,
     ) -> EmployeeDepartmentOut:
         model = EmployeeDepartmentModel.objects.create(
             employee_id=employee_id,
             department_id=department_id,
+            created_by_id=created_by_id,
         )
         return EmployeeDepartmentOut.model_validate(model)
 
@@ -265,12 +329,16 @@ class WorkforceRepository:
 
     @staticmethod
     def close_active_department(
-        employee_id: int, reason: str
+        employee_id: int,
+        reason: str,
+        updated_by_id: int | None = None,
     ) -> EmployeeDepartmentOut | None:
         rows = EmployeeDepartmentModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(left_at=timezone.now(), left_reason=reason)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = (
@@ -285,6 +353,7 @@ class WorkforceRepository:
         employee_id: int,
         role_id: int,
         entity: EmployeeRoleEntity,
+        created_by_id: int | None = None,
     ) -> EmployeeRoleOut:
         if not isinstance(entity, EmployeeRoleEntity):
             raise TypeError(f"Expected EmployeeRoleEntity, got {type(entity).__name__}")
@@ -293,6 +362,7 @@ class WorkforceRepository:
             role_id=role_id,
             hourly_rate=entity.hourly_rate,
             contract_hours_per_week=entity.contract_hours_per_week,
+            created_by_id=created_by_id,
         )
         return EmployeeRoleOut.model_validate(model)
 
@@ -314,11 +384,17 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def close_active_role(employee_id: int, reason: str) -> EmployeeRoleOut | None:
+    def close_active_role(
+        employee_id: int,
+        reason: str,
+        updated_by_id: int | None = None,
+    ) -> EmployeeRoleOut | None:
         rows = EmployeeRoleModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(left_at=timezone.now(), left_reason=reason)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = (

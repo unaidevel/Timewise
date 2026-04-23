@@ -6,13 +6,10 @@ from django.utils import timezone
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 from infra.common.exceptions import (
-    EmailAlreadyExistsError,
-    InvalidCredentialsError,
-    InvalidEmailError,
-    InvalidFullNameError,
-    InvalidPasswordError,
-    TooManyLoginAttemptsError,
-    WeakPasswordError,
+    Conflict,
+    TooManyRequests,
+    Unauthorized,
+    UnprocessableEntity,
 )
 
 
@@ -37,27 +34,27 @@ def test_register_user_raises_if_email_exists(monkeypatch):
         lambda email: make_user(),
     )
 
-    with pytest.raises(EmailAlreadyExistsError):
+    with pytest.raises(Conflict):
         AuthService.register_user("user@example.com", "Test User", "SecurePass123!")
 
 
 def test_register_user_rejects_weak_password():
-    with pytest.raises(WeakPasswordError):
+    with pytest.raises(UnprocessableEntity):
         AuthService.register_user("user@example.com", "Test User", "password")
 
 
 def test_register_user_rejects_invalid_email():
-    with pytest.raises(InvalidEmailError):
+    with pytest.raises(UnprocessableEntity):
         AuthService.register_user("not-an-email", "Test User", "SecurePass123!")
 
 
 def test_register_user_rejects_blank_full_name():
-    with pytest.raises(InvalidFullNameError):
+    with pytest.raises(UnprocessableEntity):
         AuthService.register_user("user@example.com", "   ", "SecurePass123!")
 
 
 def test_login_rejects_blank_password():
-    with pytest.raises(InvalidPasswordError):
+    with pytest.raises(UnprocessableEntity):
         AuthService.login("user@example.com", "   ", "127.0.0.1")
 
 
@@ -125,7 +122,7 @@ def test_login_records_failed_attempt_when_invalid_credentials(monkeypatch):
         lambda email, ip: recorded_attempts.append((email, ip)),
     )
 
-    with pytest.raises(InvalidCredentialsError):
+    with pytest.raises(Unauthorized):
         AuthService.login("user@example.com", "wrong-password", "127.0.0.1")
 
     assert recorded_attempts == [("user@example.com", "127.0.0.1")]
@@ -147,7 +144,7 @@ def test_login_rejects_rate_limited_requests(monkeypatch):
         lambda ip, since: 0,
     )
 
-    with pytest.raises(TooManyLoginAttemptsError):
+    with pytest.raises(TooManyRequests):
         AuthService.login("user@example.com", "SecurePass123!", "127.0.0.1")
 
 

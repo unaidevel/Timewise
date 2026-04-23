@@ -13,7 +13,7 @@ class AuthUserModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "authz_users"
+        db_table = "authz_AuthUser"
         indexes = [
             models.Index(fields=["email"]),
             models.Index(fields=["is_active"]),
@@ -42,7 +42,7 @@ class AuthTokenModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "authz_tokens"
+        db_table = "authz_AuthToken"
         indexes = [
             models.Index(fields=["expires_at"]),
             models.Index(fields=["revoked_at"]),
@@ -60,7 +60,7 @@ class AuthLoginAttemptModel(models.Model):
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "authz_login_attempts"
+        db_table = "authz_AuthLoginAttempt"
         indexes = [
             models.Index(fields=["email", "attempted_at"]),
             models.Index(fields=["ip_address", "attempted_at"]),

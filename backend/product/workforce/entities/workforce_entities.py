@@ -3,11 +3,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
-from product.workforce.exceptions import (
-    InvalidDepartmentNameError,
-    InvalidEmployeeDataError,
-    InvalidRoleNameError,
-)
+from infra.common.exceptions import UnprocessableEntity
 
 _EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 
@@ -23,11 +19,9 @@ class DepartmentEntity:
     def _validate_name(value: str) -> str:
         clean = value.strip()
         if not clean:
-            raise InvalidDepartmentNameError("Department name cannot be blank.")
+            raise UnprocessableEntity("Department name cannot be blank.")
         if len(clean) > 200:
-            raise InvalidDepartmentNameError(
-                "Department name cannot exceed 200 characters."
-            )
+            raise UnprocessableEntity("Department name cannot exceed 200 characters.")
         return clean
 
 
@@ -42,9 +36,9 @@ class RoleEntity:
     def _validate_name(value: str) -> str:
         clean = value.strip()
         if not clean:
-            raise InvalidRoleNameError("Role name cannot be blank.")
+            raise UnprocessableEntity("Role name cannot be blank.")
         if len(clean) > 200:
-            raise InvalidRoleNameError("Role name cannot exceed 200 characters.")
+            raise UnprocessableEntity("Role name cannot exceed 200 characters.")
         return clean
 
 
@@ -62,9 +56,9 @@ class EmployeeEntity:
     def _validate_full_name(value: str) -> str:
         clean = value.strip()
         if not clean:
-            raise InvalidEmployeeDataError("Employee full name cannot be blank.")
+            raise UnprocessableEntity("Employee full name cannot be blank.")
         if len(clean) > 200:
-            raise InvalidEmployeeDataError(
+            raise UnprocessableEntity(
                 "Employee full name cannot exceed 200 characters."
             )
         return clean
@@ -73,7 +67,7 @@ class EmployeeEntity:
     def _validate_email(value: str) -> str:
         clean = value.strip().lower()
         if not _EMAIL_RE.match(clean):
-            raise InvalidEmployeeDataError(f"Invalid email address: '{value}'.")
+            raise UnprocessableEntity(f"Invalid email address: '{value}'.")
         return clean
 
 
@@ -112,13 +106,13 @@ class EmployeeRoleEntity:
     @staticmethod
     def _validate_hourly_rate(value: Decimal) -> Decimal:
         if value <= Decimal("0"):
-            raise InvalidEmployeeDataError("Hourly rate must be greater than zero.")
+            raise UnprocessableEntity("Hourly rate must be greater than zero.")
         return value
 
     @staticmethod
     def _validate_contract_hours(value: int) -> int:
         if value <= 0 or value > 168:
-            raise InvalidEmployeeDataError(
+            raise UnprocessableEntity(
                 "Contract hours per week must be between 1 and 168."
             )
         return value

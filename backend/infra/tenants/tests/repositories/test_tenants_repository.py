@@ -98,7 +98,7 @@ class TenantRepositoryTests(TestCase):
         created = TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
         found = TenantRepository.find_active_membership(tenant.id, member.id)
@@ -133,7 +133,7 @@ class TenantRepositoryTests(TestCase):
         TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
 
@@ -155,7 +155,7 @@ class TenantRepositoryTests(TestCase):
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
         TenantRepository.remove_membership(membership.id, "Removed")
@@ -180,7 +180,7 @@ class TenantRepositoryTests(TestCase):
         second = TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=second_member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
 
@@ -204,7 +204,7 @@ class TenantRepositoryTests(TestCase):
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
 
@@ -224,7 +224,7 @@ class TenantRepositoryTests(TestCase):
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,
             user_id=member.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.MEMBER.value),
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
         TenantRepository.remove_membership(membership.id, "Resigned")

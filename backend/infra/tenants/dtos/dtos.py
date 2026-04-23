@@ -20,7 +20,7 @@ class TenantOut(TenantIn):
 
 class AddMemberRequest(BaseModel):
     user_id: int
-    role: str = Field(pattern=r"^(owner|creator|admin|member)$")
+    role: str = Field(pattern=r"^(owner|admin|manager|employee|freelance)$")
 
 
 class TenantMemberResponse(BaseModel):

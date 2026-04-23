@@ -6,7 +6,7 @@ from django.utils import timezone
 from infra.authz.models import AuthLoginAttemptModel
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
-from infra.common.exceptions import EmailAlreadyExistsError
+from infra.common.exceptions import Conflict
 
 
 class AuthRepositoryTests(TestCase):
@@ -30,7 +30,7 @@ class AuthRepositoryTests(TestCase):
             password_hash=AuthService._hash_password("SecurePass123!"),
         )
 
-        with self.assertRaises(EmailAlreadyExistsError):
+        with self.assertRaises(Conflict):
             AuthRepository.create_user(
                 email="USER@example.com",
                 full_name="Test User",

@@ -21,7 +21,7 @@ class TenantModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "tenants"
+        db_table = "tenants_Tenant"
         indexes = [
             models.Index(fields=["slug"]),
             models.Index(fields=["is_active"]),
@@ -62,7 +62,7 @@ class TenantMembershipModel(models.Model):
     left_reason = models.TextField(blank=True, default="")
 
     class Meta:
-        db_table = "tenant_memberships"
+        db_table = "tenants_TenantMembership"
         indexes = [
             models.Index(fields=["tenant", "user"]),
             models.Index(fields=["tenant", "role"]),

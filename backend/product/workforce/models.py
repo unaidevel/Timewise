@@ -13,11 +13,25 @@ class DepartmentModel(models.Model):
     )
     name = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_departments",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_departments",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_departments"
+        db_table = "workforce_Department"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -42,11 +56,25 @@ class RoleModel(models.Model):
     )
     name = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_roles",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_roles",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_roles"
+        db_table = "workforce_Role"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -87,11 +115,25 @@ class EmployeeModel(models.Model):
     email = models.EmailField()
     is_active = models.BooleanField(default=True)
     hired_at = models.DateField()
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employees",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employees",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "workforce_employees"
+        db_table = "workforce_Employee"
         indexes = [
             models.Index(fields=["tenant", "email"]),
             models.Index(fields=["is_active"]),
@@ -109,8 +151,8 @@ class EmployeeModel(models.Model):
 
 class EmployeeDepartmentModel(models.Model):
     """
-    Historial de asignaciones de departamento.
-    Solo puede haber un registro activo por empleado (left_at IS NULL).
+    History of department assignments for employees.
+    Only one active record can exist per employee (left_at IS NULL).
     """
 
     id = models.BigAutoField(primary_key=True)
@@ -127,9 +169,23 @@ class EmployeeDepartmentModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employee_departments",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employee_departments",
+    )
 
     class Meta:
-        db_table = "workforce_employee_departments"
+        db_table = "workforce_EmployeeDepartment"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["department"]),
@@ -148,9 +204,9 @@ class EmployeeDepartmentModel(models.Model):
 
 class EmployeeRoleModel(models.Model):
     """
-    Historial de asignaciones de rol.
-    Incluye hourly_rate y contract_hours_per_week porque pueden cambiar al cambiar de rol.
-    Solo puede haber un registro activo por empleado (left_at IS NULL).
+    History of role assignments for employees.
+    Includes hourly_rate and contract_hours_per_week because they can change when switching roles.
+    Only one active record can exist per employee (left_at IS NULL).
     """
 
     id = models.BigAutoField(primary_key=True)
@@ -169,9 +225,23 @@ class EmployeeRoleModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_employee_roles",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_employee_roles",
+    )
 
     class Meta:
-        db_table = "workforce_employee_roles"
+        db_table = "workforce_EmployeeRole"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["role"]),
@@ -208,9 +278,23 @@ class DepartmentManagerModel(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     left_at = models.DateTimeField(null=True, blank=True)
     left_reason = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_department_managers",
+    )
+    updated_by = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_department_managers",
+    )
 
     class Meta:
-        db_table = "workforce_department_managers"
+        db_table = "workforce_DepartmentManager"
         indexes = [
             models.Index(fields=["department", "left_at"]),
             models.Index(fields=["employee"]),

@@ -1,8 +1,13 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from infra.authz.api.dependencies import CurrentUser
-from infra.common.responses import STATUS_RESPONSES
-from infra.tenants.exceptions import InsufficientPermissionsError
+from infra.common.exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+    responses_for,
+)
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,
     AssignDepartmentRequest,
@@ -22,19 +27,6 @@ from product.workforce.dtos.dtos import (
     RoleUpdate,
     SetEmployeeManagerRequest,
 )
-from product.workforce.exceptions import (
-    DepartmentAlreadyExistsError,
-    DepartmentNotFoundError,
-    EmployeeAlreadyExistsError,
-    EmployeeNotFoundError,
-    InvalidDepartmentNameError,
-    InvalidEmployeeDataError,
-    InvalidRoleNameError,
-    ManagerAlreadyAssignedError,
-    ManagerAssignmentNotFoundError,
-    RoleAlreadyExistsError,
-    RoleNotFoundError,
-)
 from product.workforce.services.workforce_service import WorkforceService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
@@ -43,24 +35,17 @@ router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
 @router.post(
     "/departments",
     response_model=DepartmentOut,
-    responses=STATUS_RESPONSES,
+    responses=responses_for(Conflict, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
 def create_department(
     tenant_id: int,
     payload: DepartmentIn,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> DepartmentOut:
-    try:
-        return WorkforceService.create_department(tenant_id, payload)
-    except DepartmentAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
-    except InvalidDepartmentNameError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
-        ) from exc
+    return WorkforceService.create_department(
+        tenant_id, payload, user_id=current_user.id
+    )
 
 
 @router.get("/departments", response_model=list[DepartmentOut])
@@ -68,56 +53,48 @@ def list_departments(tenant_id: int, _: CurrentUser) -> list[DepartmentOut]:
     return WorkforceService.list_departments(tenant_id)
 
 
-@router.get("/departments/{department_id}", response_model=DepartmentOut)
+@router.get(
+    "/departments/{department_id}",
+    response_model=DepartmentOut,
+    responses=responses_for(NotFound),
+)
 def get_department(tenant_id: int, department_id: int, _: CurrentUser) -> DepartmentOut:
-    try:
-        return WorkforceService.get_department(tenant_id, department_id)
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_department(tenant_id, department_id)
 
 
-@router.delete("/departments/{department_id}", response_model=DepartmentOut)
+@router.delete(
+    "/departments/{department_id}",
+    response_model=DepartmentOut,
+    responses=responses_for(NotFound),
+)
 def deactivate_department(
-    tenant_id: int, department_id: int, _: CurrentUser
+    tenant_id: int, department_id: int, current_user: CurrentUser
 ) -> DepartmentOut:
-    try:
-        return WorkforceService.deactivate_department(tenant_id, department_id)
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.deactivate_department(
+        tenant_id, department_id, user_id=current_user.id
+    )
 
 
-@router.put("/departments/{department_id}", response_model=DepartmentOut)
+@router.put(
+    "/departments/{department_id}",
+    response_model=DepartmentOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
+)
 def update_department(
     tenant_id: int,
     department_id: int,
     payload: DepartmentUpdate,
     current_user: CurrentUser,
 ) -> DepartmentOut:
-    try:
-        return WorkforceService.update_department(
-            tenant_id, department_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except (DepartmentAlreadyExistsError, InvalidDepartmentNameError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+    return WorkforceService.update_department(
+        tenant_id, department_id, payload, user_id=current_user.id
+    )
 
 
 @router.post(
     "/departments/{department_id}/managers",
     response_model=DepartmentManagerOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
     status_code=status.HTTP_201_CREATED,
 )
 def assign_department_manager(
@@ -126,42 +103,26 @@ def assign_department_manager(
     payload: AssignDepartmentManagerRequest,
     current_user: CurrentUser,
 ) -> DepartmentManagerOut:
-    try:
-        return WorkforceService.assign_department_manager(
-            tenant_id, department_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except (DepartmentNotFoundError, EmployeeNotFoundError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except ManagerAlreadyAssignedError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+    return WorkforceService.assign_department_manager(
+        tenant_id, department_id, payload, user_id=current_user.id
+    )
 
 
 @router.get(
     "/departments/{department_id}/managers",
     response_model=list[DepartmentManagerOut],
+    responses=responses_for(NotFound),
 )
 def list_department_managers(
     tenant_id: int, department_id: int, _: CurrentUser
 ) -> list[DepartmentManagerOut]:
-    try:
-        return WorkforceService.list_department_managers(tenant_id, department_id)
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.list_department_managers(tenant_id, department_id)
 
 
 @router.delete(
     "/departments/{department_id}/managers/{assignment_id}",
     response_model=DepartmentManagerOut,
+    responses=responses_for(Forbidden, NotFound),
 )
 def remove_department_manager(
     tenant_id: int,
@@ -170,22 +131,9 @@ def remove_department_manager(
     payload: RemoveDepartmentManagerRequest,
     current_user: CurrentUser,
 ) -> DepartmentManagerOut:
-    try:
-        return WorkforceService.remove_department_manager(
-            tenant_id, department_id, assignment_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except ManagerAssignmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.remove_department_manager(
+        tenant_id, department_id, assignment_id, payload, user_id=current_user.id
+    )
 
 
 # --- Roles ---
@@ -194,20 +142,15 @@ def remove_department_manager(
 @router.post(
     "/roles",
     response_model=RoleOut,
-    responses=STATUS_RESPONSES,
+    responses=responses_for(Conflict, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
-def create_role(tenant_id: int, payload: RoleIn, _: CurrentUser) -> RoleOut:
-    try:
-        return WorkforceService.create_role(tenant_id, payload)
-    except RoleAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
-    except InvalidRoleNameError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
-        ) from exc
+def create_role(
+    tenant_id: int,
+    payload: RoleIn,
+    current_user: CurrentUser,
+) -> RoleOut:
+    return WorkforceService.create_role(tenant_id, payload, user_id=current_user.id)
 
 
 @router.get("/roles", response_model=list[RoleOut])
@@ -215,72 +158,50 @@ def list_roles(tenant_id: int, _: CurrentUser) -> list[RoleOut]:
     return WorkforceService.list_roles(tenant_id)
 
 
-@router.get("/roles/{role_id}", response_model=RoleOut)
+@router.get(
+    "/roles/{role_id}", response_model=RoleOut, responses=responses_for(NotFound)
+)
 def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
-    try:
-        return WorkforceService.get_role(tenant_id, role_id)
-    except RoleNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_role(tenant_id, role_id)
 
 
-@router.delete("/roles/{role_id}", response_model=RoleOut)
-def deactivate_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
-    try:
-        return WorkforceService.deactivate_role(tenant_id, role_id)
-    except RoleNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+@router.delete(
+    "/roles/{role_id}",
+    response_model=RoleOut,
+    responses=responses_for(NotFound),
+)
+def deactivate_role(tenant_id: int, role_id: int, current_user: CurrentUser) -> RoleOut:
+    return WorkforceService.deactivate_role(tenant_id, role_id, user_id=current_user.id)
 
 
-@router.put("/roles/{role_id}", response_model=RoleOut)
+@router.put(
+    "/roles/{role_id}",
+    response_model=RoleOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
+)
 def update_role(
     tenant_id: int,
     role_id: int,
     payload: RoleUpdate,
     current_user: CurrentUser,
 ) -> RoleOut:
-    try:
-        return WorkforceService.update_role(
-            tenant_id, role_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except RoleNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except (RoleAlreadyExistsError, InvalidRoleNameError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+    return WorkforceService.update_role(
+        tenant_id, role_id, payload, user_id=current_user.id
+    )
 
 
 @router.post(
     "/employees",
     response_model=EmployeeOut,
-    responses=STATUS_RESPONSES,
+    responses=responses_for(NotFound, Conflict, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
-def create_employee(tenant_id: int, payload: EmployeeIn, _: CurrentUser) -> EmployeeOut:
-    try:
-        return WorkforceService.create_employee(tenant_id, payload)
-    except EmployeeAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
-    except InvalidEmployeeDataError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
-        ) from exc
-    except (DepartmentNotFoundError, RoleNotFoundError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+def create_employee(
+    tenant_id: int,
+    payload: EmployeeIn,
+    current_user: CurrentUser,
+) -> EmployeeOut:
+    return WorkforceService.create_employee(tenant_id, payload, user_id=current_user.id)
 
 
 @router.get("/employees", response_model=list[EmployeeOut])
@@ -288,84 +209,69 @@ def list_employees(tenant_id: int, _: CurrentUser) -> list[EmployeeOut]:
     return WorkforceService.list_employees(tenant_id)
 
 
-@router.get("/employees/{employee_id}", response_model=EmployeeOut)
+@router.get(
+    "/employees/{employee_id}",
+    response_model=EmployeeOut,
+    responses=responses_for(NotFound),
+)
 def get_employee(tenant_id: int, employee_id: int, _: CurrentUser) -> EmployeeOut:
-    try:
-        return WorkforceService.get_employee(tenant_id, employee_id)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_employee(tenant_id, employee_id)
 
 
-@router.delete("/employees/{employee_id}", response_model=EmployeeOut)
+@router.delete(
+    "/employees/{employee_id}",
+    response_model=EmployeeOut,
+    responses=responses_for(NotFound),
+)
 def deactivate_employee(
-    tenant_id: int, employee_id: int, _: CurrentUser
+    tenant_id: int, employee_id: int, current_user: CurrentUser
 ) -> EmployeeOut:
-    try:
-        return WorkforceService.deactivate_employee(tenant_id, employee_id)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.deactivate_employee(
+        tenant_id, employee_id, user_id=current_user.id
+    )
 
 
-@router.put("/employees/{employee_id}", response_model=EmployeeOut)
+@router.put(
+    "/employees/{employee_id}",
+    response_model=EmployeeOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, UnprocessableEntity),
+)
 def update_employee(
     tenant_id: int,
     employee_id: int,
     payload: EmployeeUpdate,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    try:
-        return WorkforceService.update_employee(
-            tenant_id, employee_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except (EmployeeAlreadyExistsError, InvalidEmployeeDataError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+    return WorkforceService.update_employee(
+        tenant_id, employee_id, payload, user_id=current_user.id
+    )
 
 
-@router.put("/employees/{employee_id}/manager", response_model=EmployeeOut)
+@router.put(
+    "/employees/{employee_id}/manager",
+    response_model=EmployeeOut,
+    responses=responses_for(Forbidden, NotFound),
+)
 def set_employee_manager(
     tenant_id: int,
     employee_id: int,
     payload: SetEmployeeManagerRequest,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    try:
-        return WorkforceService.set_employee_manager(
-            tenant_id, employee_id, payload, user_id=current_user.id
-        )
-    except InsufficientPermissionsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
-        ) from exc
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.set_employee_manager(
+        tenant_id, employee_id, payload, user_id=current_user.id
+    )
 
 
-@router.get("/employees/{employee_id}/reports", response_model=list[EmployeeOut])
+@router.get(
+    "/employees/{employee_id}/reports",
+    response_model=list[EmployeeOut],
+    responses=responses_for(NotFound),
+)
 def get_direct_reports(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> list[EmployeeOut]:
-    try:
-        return WorkforceService.get_direct_reports(tenant_id, employee_id)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_direct_reports(tenant_id, employee_id)
 
 
 # --- Department assignments ---
@@ -374,106 +280,76 @@ def get_direct_reports(
 @router.post(
     "/employees/{employee_id}/departments",
     response_model=EmployeeDepartmentOut,
-    responses=STATUS_RESPONSES,
+    responses=responses_for(NotFound),
     status_code=status.HTTP_201_CREATED,
 )
 def assign_department(
     tenant_id: int,
     employee_id: int,
     payload: AssignDepartmentRequest,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> EmployeeDepartmentOut:
-    try:
-        return WorkforceService.assign_department(tenant_id, employee_id, payload)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except DepartmentNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.assign_department(
+        tenant_id, employee_id, payload, user_id=current_user.id
+    )
 
 
 @router.get(
     "/employees/{employee_id}/departments/current",
     response_model=EmployeeDepartmentOut,
+    responses=responses_for(NotFound),
 )
 def get_active_department(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> EmployeeDepartmentOut:
-    try:
-        return WorkforceService.get_active_department(tenant_id, employee_id)
-    except (EmployeeNotFoundError, DepartmentNotFoundError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_active_department(tenant_id, employee_id)
 
 
 @router.get(
     "/employees/{employee_id}/departments",
     response_model=list[EmployeeDepartmentOut],
+    responses=responses_for(NotFound),
 )
 def list_department_history(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> list[EmployeeDepartmentOut]:
-    try:
-        return WorkforceService.list_department_history(tenant_id, employee_id)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.list_department_history(tenant_id, employee_id)
 
 
 @router.post(
     "/employees/{employee_id}/roles",
     response_model=EmployeeRoleOut,
-    responses=STATUS_RESPONSES,
+    responses=responses_for(NotFound, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
 def assign_role(
     tenant_id: int,
     employee_id: int,
     payload: AssignRoleRequest,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> EmployeeRoleOut:
-    try:
-        return WorkforceService.assign_role(tenant_id, employee_id, payload)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
-    except (RoleNotFoundError, InvalidEmployeeDataError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.assign_role(
+        tenant_id, employee_id, payload, user_id=current_user.id
+    )
 
 
 @router.get(
     "/employees/{employee_id}/roles/current",
     response_model=EmployeeRoleOut,
+    responses=responses_for(NotFound),
 )
 def get_active_role(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> EmployeeRoleOut:
-    try:
-        return WorkforceService.get_active_role(tenant_id, employee_id)
-    except (EmployeeNotFoundError, RoleNotFoundError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.get_active_role(tenant_id, employee_id)
 
 
 @router.get(
     "/employees/{employee_id}/roles",
     response_model=list[EmployeeRoleOut],
+    responses=responses_for(NotFound),
 )
 def list_role_history(
     tenant_id: int, employee_id: int, _: CurrentUser
 ) -> list[EmployeeRoleOut]:
-    try:
-        return WorkforceService.list_role_history(tenant_id, employee_id)
-    except EmployeeNotFoundError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        ) from exc
+    return WorkforceService.list_role_history(tenant_id, employee_id)

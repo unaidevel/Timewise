@@ -2,4 +2,5 @@ from django.db import models
 
 
 class LicensisngModel(models.Model):
-    pass
+    class Meta:
+        db_table = "licensing_Licensisng"

@@ -7,8 +7,13 @@ from django.test import TestCase
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
+from infra.common.exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+)
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
-from infra.tenants.exceptions import InsufficientPermissionsError
 from infra.tenants.services.tenants_service import TenantService
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,
@@ -22,17 +27,6 @@ from product.workforce.dtos.dtos import (
     RoleIn,
     RoleUpdate,
     SetEmployeeManagerRequest,
-)
-from product.workforce.exceptions import (
-    DepartmentAlreadyExistsError,
-    DepartmentNotFoundError,
-    EmployeeAlreadyExistsError,
-    EmployeeNotFoundError,
-    InvalidEmployeeDataError,
-    ManagerAlreadyAssignedError,
-    ManagerAssignmentNotFoundError,
-    RoleAlreadyExistsError,
-    RoleNotFoundError,
 )
 from product.workforce.models import EmployeeDepartmentModel, EmployeeRoleModel
 from product.workforce.repositories.workforce_repository import WorkforceRepository
@@ -82,7 +76,7 @@ class DepartmentServiceTests(TestCase):
             self.tenant.id, DepartmentIn(name="Engineering")
         )
 
-        with pytest.raises(DepartmentAlreadyExistsError, match="Engineering"):
+        with pytest.raises(Conflict, match="Engineering"):
             WorkforceService.create_department(
                 self.tenant.id, DepartmentIn(name="  ENGINEERING  ")
             )
@@ -108,7 +102,7 @@ class DepartmentServiceTests(TestCase):
         assert found == created
 
     def test_get_department_raises_if_not_found(self):
-        with pytest.raises(DepartmentNotFoundError, match="Department 999 not found"):
+        with pytest.raises(NotFound, match="Department 999 not found"):
             WorkforceService.get_department(self.tenant.id, 999)
 
     def test_get_department_raises_if_belongs_to_other_tenant(self):
@@ -118,7 +112,7 @@ class DepartmentServiceTests(TestCase):
             other_tenant.id, DepartmentIn(name="HR")
         )
 
-        with pytest.raises(DepartmentNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.get_department(self.tenant.id, dept.id)
 
     def test_list_departments_returns_sorted_by_name(self):
@@ -136,7 +130,7 @@ class DepartmentServiceTests(TestCase):
         assert result.is_active is False
 
     def test_deactivate_department_raises_if_not_found(self):
-        with pytest.raises(DepartmentNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.deactivate_department(self.tenant.id, 999)
 
 
@@ -155,7 +149,7 @@ class RoleServiceTests(TestCase):
     def test_create_role_raises_if_name_already_exists(self):
         WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
 
-        with pytest.raises(RoleAlreadyExistsError, match="Developer"):
+        with pytest.raises(Conflict, match="Developer"):
             WorkforceService.create_role(self.tenant.id, RoleIn(name="  DEVELOPER  "))
 
     def test_get_role_returns_role(self):
@@ -164,7 +158,7 @@ class RoleServiceTests(TestCase):
         assert found == created
 
     def test_get_role_raises_if_not_found(self):
-        with pytest.raises(RoleNotFoundError, match="Role 999 not found"):
+        with pytest.raises(NotFound, match="Role 999 not found"):
             WorkforceService.get_role(self.tenant.id, 999)
 
     def test_deactivate_role_marks_inactive(self):
@@ -173,7 +167,7 @@ class RoleServiceTests(TestCase):
         assert result.is_active is False
 
     def test_deactivate_role_raises_if_not_found(self):
-        with pytest.raises(RoleNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.deactivate_role(self.tenant.id, 999)
 
 
@@ -211,23 +205,23 @@ class EmployeeServiceTests(TestCase):
     def test_create_employee_raises_if_email_already_exists(self):
         WorkforceService.create_employee(self.tenant.id, self._employee_payload())
 
-        with pytest.raises(EmployeeAlreadyExistsError, match="alice@example.com"):
+        with pytest.raises(Conflict, match="alice@example.com"):
             WorkforceService.create_employee(self.tenant.id, self._employee_payload())
 
     def test_create_employee_raises_if_department_not_found(self):
-        with pytest.raises(DepartmentNotFoundError, match="Department 999"):
+        with pytest.raises(NotFound, match="Department 999"):
             WorkforceService.create_employee(
                 self.tenant.id, self._employee_payload(department_id=999)
             )
 
     def test_create_employee_raises_if_role_not_found(self):
-        with pytest.raises(RoleNotFoundError, match="Role 999"):
+        with pytest.raises(NotFound, match="Role 999"):
             WorkforceService.create_employee(
                 self.tenant.id, self._employee_payload(role_id=999)
             )
 
     def test_create_employee_raises_on_invalid_email(self):
-        with pytest.raises(InvalidEmployeeDataError, match="Invalid email"):
+        with pytest.raises(UnprocessableEntity, match="Invalid email"):
             WorkforceService.create_employee(
                 self.tenant.id, self._employee_payload(email="bad-email")
             )
@@ -238,7 +232,7 @@ class EmployeeServiceTests(TestCase):
         assert found == emp
 
     def test_get_employee_raises_if_not_found(self):
-        with pytest.raises(EmployeeNotFoundError, match="Employee 999 not found"):
+        with pytest.raises(NotFound, match="Employee 999 not found"):
             WorkforceService.get_employee(self.tenant.id, 999)
 
     def test_list_employees_returns_sorted_by_name(self):
@@ -260,7 +254,7 @@ class EmployeeServiceTests(TestCase):
         assert result.is_active is False
 
     def test_deactivate_employee_raises_if_not_found(self):
-        with pytest.raises(EmployeeNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.deactivate_employee(self.tenant.id, 999)
 
 
@@ -320,14 +314,14 @@ class UpdateDepartmentServiceTests(TestCase):
         assert updated.name == "R&D"
 
     def test_update_department_raises_if_not_found(self):
-        with pytest.raises(DepartmentNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.update_department(
                 self.tenant.id, 999, DepartmentUpdate(name="X"), user_id=self.owner.id
             )
 
     def test_update_department_raises_if_name_conflicts(self):
         WorkforceService.create_department(self.tenant.id, DepartmentIn(name="HR"))
-        with pytest.raises(DepartmentAlreadyExistsError):
+        with pytest.raises(Conflict):
             WorkforceService.update_department(
                 self.tenant.id,
                 self.dept.id,
@@ -346,8 +340,8 @@ class UpdateDepartmentServiceTests(TestCase):
 
     def test_update_department_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
-        with pytest.raises(InsufficientPermissionsError):
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
+        with pytest.raises(Forbidden):
             WorkforceService.update_department(
                 self.tenant.id,
                 self.dept.id,
@@ -375,14 +369,14 @@ class UpdateRoleServiceTests(TestCase):
         assert updated.name == "Senior Developer"
 
     def test_update_role_raises_if_not_found(self):
-        with pytest.raises(RoleNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.update_role(
                 self.tenant.id, 999, RoleUpdate(name="X"), user_id=self.owner.id
             )
 
     def test_update_role_raises_if_name_conflicts(self):
         WorkforceService.create_role(self.tenant.id, RoleIn(name="QA"))
-        with pytest.raises(RoleAlreadyExistsError):
+        with pytest.raises(Conflict):
             WorkforceService.update_role(
                 self.tenant.id,
                 self.role.id,
@@ -392,8 +386,8 @@ class UpdateRoleServiceTests(TestCase):
 
     def test_update_role_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
-        with pytest.raises(InsufficientPermissionsError):
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
+        with pytest.raises(Forbidden):
             WorkforceService.update_role(
                 self.tenant.id, self.role.id, RoleUpdate(name="X"), user_id=member.id
             )
@@ -463,7 +457,7 @@ class UpdateEmployeeServiceTests(TestCase):
                 hired_at=date(2024, 3, 1),
             ),
         )
-        with pytest.raises(EmployeeAlreadyExistsError):
+        with pytest.raises(Conflict):
             WorkforceService.update_employee(
                 self.tenant.id,
                 self.emp.id,
@@ -476,7 +470,7 @@ class UpdateEmployeeServiceTests(TestCase):
             )
 
     def test_update_employee_raises_if_not_found(self):
-        with pytest.raises(EmployeeNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.update_employee(
                 self.tenant.id,
                 999,
@@ -488,8 +482,8 @@ class UpdateEmployeeServiceTests(TestCase):
 
     def test_update_employee_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
-        with pytest.raises(InsufficientPermissionsError):
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
+        with pytest.raises(Forbidden):
             WorkforceService.update_employee(
                 self.tenant.id,
                 self.emp.id,
@@ -611,7 +605,7 @@ class DepartmentManagerServiceTests(TestCase):
             AssignDepartmentManagerRequest(employee_id=self.emp.id),
             user_id=self.owner.id,
         )
-        with pytest.raises(ManagerAlreadyAssignedError):
+        with pytest.raises(Conflict):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
@@ -620,7 +614,7 @@ class DepartmentManagerServiceTests(TestCase):
             )
 
     def test_assign_department_manager_raises_if_department_not_found(self):
-        with pytest.raises(DepartmentNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 999,
@@ -629,7 +623,7 @@ class DepartmentManagerServiceTests(TestCase):
             )
 
     def test_assign_department_manager_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
@@ -639,8 +633,8 @@ class DepartmentManagerServiceTests(TestCase):
 
     def test_assign_department_manager_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
-        with pytest.raises(InsufficientPermissionsError):
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
+        with pytest.raises(Forbidden):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
@@ -666,7 +660,7 @@ class DepartmentManagerServiceTests(TestCase):
         assert removed.left_reason == "Stepping down"
 
     def test_remove_department_manager_raises_if_not_found(self):
-        with pytest.raises(ManagerAssignmentNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.remove_department_manager(
                 self.tenant.id,
                 self.dept.id,
@@ -735,7 +729,7 @@ class EmployeeManagerServiceTests(TestCase):
         assert updated.manager_id is None
 
     def test_set_employee_manager_raises_if_manager_not_found(self):
-        with pytest.raises(EmployeeNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
                 self.emp.id,
@@ -744,7 +738,7 @@ class EmployeeManagerServiceTests(TestCase):
             )
 
     def test_set_employee_manager_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError):
+        with pytest.raises(NotFound):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
                 999,
@@ -754,8 +748,8 @@ class EmployeeManagerServiceTests(TestCase):
 
     def test_set_employee_manager_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
-        with pytest.raises(InsufficientPermissionsError):
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
+        with pytest.raises(Forbidden):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
                 self.emp.id,
@@ -876,7 +870,7 @@ class DepartmentAssignmentServiceTests(TestCase):
         assert history[1].left_at is None
 
     def test_assign_department_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError, match="Employee 999 not found"):
+        with pytest.raises(NotFound, match="Employee 999 not found"):
             WorkforceService.assign_department(
                 self.tenant.id,
                 999,
@@ -884,7 +878,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             )
 
     def test_assign_department_raises_if_department_not_found(self):
-        with pytest.raises(DepartmentNotFoundError, match="Department 999 not found"):
+        with pytest.raises(NotFound, match="Department 999 not found"):
             WorkforceService.assign_department(
                 self.tenant.id,
                 self.employee.id,
@@ -915,9 +909,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             ),
         )
 
-        with pytest.raises(
-            EmployeeNotFoundError, match=f"Employee {other_employee.id} not found"
-        ):
+        with pytest.raises(NotFound, match=f"Employee {other_employee.id} not found"):
             WorkforceService.assign_department(
                 self.tenant.id,
                 other_employee.id,
@@ -933,7 +925,7 @@ class DepartmentAssignmentServiceTests(TestCase):
         )
 
         with pytest.raises(
-            DepartmentNotFoundError,
+            NotFound,
             match=f"Department {other_department.id} not found",
         ):
             WorkforceService.assign_department(
@@ -946,13 +938,13 @@ class DepartmentAssignmentServiceTests(TestCase):
         WorkforceRepository.close_active_department(self.employee.id, "Left")
 
         with pytest.raises(
-            DepartmentNotFoundError,
+            NotFound,
             match=f"Employee {self.employee.id} has no active department assignment",
         ):
             WorkforceService.get_active_department(self.tenant.id, self.employee.id)
 
     def test_list_department_history_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError, match="Employee 999 not found"):
+        with pytest.raises(NotFound, match="Employee 999 not found"):
             WorkforceService.list_department_history(self.tenant.id, 999)
 
 
@@ -1017,7 +1009,7 @@ class RoleAssignmentServiceTests(TestCase):
         assert history[1].contract_hours_per_week == 35
 
     def test_assign_role_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError, match="Employee 999 not found"):
+        with pytest.raises(NotFound, match="Employee 999 not found"):
             WorkforceService.assign_role(
                 self.tenant.id,
                 999,
@@ -1029,7 +1021,7 @@ class RoleAssignmentServiceTests(TestCase):
             )
 
     def test_assign_role_raises_if_role_not_found(self):
-        with pytest.raises(RoleNotFoundError, match="Role 999 not found"):
+        with pytest.raises(NotFound, match="Role 999 not found"):
             WorkforceService.assign_role(
                 self.tenant.id,
                 self.employee.id,
@@ -1048,7 +1040,7 @@ class RoleAssignmentServiceTests(TestCase):
             RoleIn(name="Other Manager"),
         )
 
-        with pytest.raises(RoleNotFoundError, match=f"Role {other_role.id} not found"):
+        with pytest.raises(NotFound, match=f"Role {other_role.id} not found"):
             WorkforceService.assign_role(
                 self.tenant.id,
                 self.employee.id,
@@ -1068,7 +1060,7 @@ class RoleAssignmentServiceTests(TestCase):
         )
 
         with pytest.raises(
-            InvalidEmployeeDataError,
+            UnprocessableEntity,
             match="Hourly rate must be greater than zero",
         ):
             WorkforceService.assign_role(
@@ -1081,11 +1073,11 @@ class RoleAssignmentServiceTests(TestCase):
         WorkforceRepository.close_active_role(self.employee.id, "Left")
 
         with pytest.raises(
-            RoleNotFoundError,
+            NotFound,
             match=f"Employee {self.employee.id} has no active role assignment",
         ):
             WorkforceService.get_active_role(self.tenant.id, self.employee.id)
 
     def test_list_role_history_raises_if_employee_not_found(self):
-        with pytest.raises(EmployeeNotFoundError, match="Employee 999 not found"):
+        with pytest.raises(NotFound, match="Employee 999 not found"):
             WorkforceService.list_role_history(self.tenant.id, 999)
