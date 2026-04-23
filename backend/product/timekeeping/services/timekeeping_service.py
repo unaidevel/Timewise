@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
-from infra.tenants.decorators import only_admin
+from infra.tenants.decorators import only_admin, only_manager, any_employee
 from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
     PeriodIn,
@@ -53,15 +53,17 @@ class TimekeepingService:
             entity, tenant_id, created_by_id=user_id
         )
 
+    @any_employee
     @staticmethod
-    def get_period(tenant_id: int, period_id: int) -> PeriodOut:
+    def get_period(tenant_id: int, period_id: int, user_id: int) -> PeriodOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
         if not period or period.tenant_id != tenant_id:
             raise NotFound(f"Period {period_id} not found.")
         return period
 
+    @any_employee
     @staticmethod
-    def list_periods(tenant_id: int, status: str | None = None) -> list[PeriodOut]:
+    def list_periods(tenant_id: int, user_id: int, status: str | None = None) -> list[PeriodOut]:
             return TimekeepingRepository.list_periods(tenant_id, status=status)
 
     @only_admin
@@ -80,12 +82,13 @@ class TimekeepingService:
         return result
 
 
+    @any_employee
     @staticmethod
     def create_time_report(
         tenant_id: int,
         period_id: int,
         payload: TimeReportIn,
-        user_id: int | None = None,
+        user_id: int,
     ) -> TimeReportOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
         if not period or period.tenant_id != tenant_id:
@@ -106,16 +109,19 @@ class TimekeepingService:
             created_by_id=user_id,
         )
 
+    @any_employee
     @staticmethod
-    def get_time_report(tenant_id: int, report_id: int) -> TimeReportOut:
+    def get_time_report(tenant_id: int, report_id: int, user_id: int) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")
         return report
 
+    @any_employee
     @staticmethod
     def list_time_reports(
         tenant_id: int,
+        user_id: int,
         period_id: int | None = None,
         employee_id: int | None = None,
     ) -> list[TimeReportOut]:
@@ -123,9 +129,10 @@ class TimekeepingService:
             tenant_id, period_id=period_id, employee_id=employee_id
         )
 
+    @any_employee
     @staticmethod
     def submit_time_report(
-        tenant_id: int, report_id: int, user_id: int | None = None
+        tenant_id: int, report_id: int, user_id: int
     ) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
@@ -150,7 +157,7 @@ class TimekeepingService:
             )
         return result
 
-    @only_admin
+    @only_manager
     @staticmethod
     def approve_time_report(
         tenant_id: int, report_id: int, user_id: int
@@ -177,7 +184,7 @@ class TimekeepingService:
         )
         return result
 
-    @only_admin
+    @only_manager
     @staticmethod
     def reject_time_report(
         tenant_id: int,
@@ -209,9 +216,10 @@ class TimekeepingService:
         )
         return result
 
+    @any_employee
     @staticmethod
     def list_report_history(
-        tenant_id: int, report_id: int
+        tenant_id: int, report_id: int, user_id: int
     ) -> list[TimeReportStatusHistoryOut]:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
@@ -219,12 +227,13 @@ class TimekeepingService:
         return TimekeepingRepository.list_status_history(report_id)
 
 
+    @any_employee
     @staticmethod
     def create_time_entry(
         tenant_id: int,
         report_id: int,
         payload: TimeEntryIn,
-        user_id: int | None = None,
+        user_id: int,
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
@@ -244,20 +253,22 @@ class TimekeepingService:
             report_id, entity, created_by_id=user_id
         )
 
+    @any_employee
     @staticmethod
-    def list_time_entries(tenant_id: int, report_id: int) -> list[TimeEntryOut]:
+    def list_time_entries(tenant_id: int, report_id: int, user_id: int) -> list[TimeEntryOut]:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")
         return TimekeepingRepository.list_time_entries(report_id)
 
+    @any_employee
     @staticmethod
     def update_time_entry(
         tenant_id: int,
         report_id: int,
         entry_id: int,
         payload: TimeEntryUpdate,
-        user_id: int | None = None,
+        user_id: int,
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
@@ -300,12 +311,13 @@ class TimekeepingService:
             entry_id, new_entity, updated_by_id=user_id
         )
 
+    @any_employee
     @staticmethod
     def delete_time_entry(
         tenant_id: int,
         report_id: int,
         entry_id: int,
-        user_id: int | None = None,
+        user_id: int,
     ) -> None:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
