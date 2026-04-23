@@ -22,7 +22,12 @@ from product.workforce.dtos.dtos import (
     RoleUpdate,
     SetEmployeeManagerRequest,
 )
-from infra.common.http_exceptions import Conflict, Forbidden, NotFound, UnprocessableEntity
+from infra.common.http_exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+)
 from product.workforce.models import EmployeeDepartmentModel, EmployeeRoleModel
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 from product.workforce.services.workforce_service import WorkforceService
@@ -904,9 +909,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             ),
         )
 
-        with pytest.raises(
-            NotFound, match=f"Employee {other_employee.id} not found"
-        ):
+        with pytest.raises(NotFound, match=f"Employee {other_employee.id} not found"):
             WorkforceService.assign_department(
                 self.tenant.id,
                 other_employee.id,

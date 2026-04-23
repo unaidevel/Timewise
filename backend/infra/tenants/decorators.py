@@ -39,9 +39,7 @@ def require_membership_role(*roles: MembershipRoles):
                     left_at__isnull=True,
                 ).first()
                 if not membership or membership.role not in {r.value for r in roles}:
-                    raise Forbidden(
-                        "Insufficient permissions for this tenant."
-                    )
+                    raise Forbidden("Insufficient permissions for this tenant.")
 
             return func(*args, **kwargs)
 

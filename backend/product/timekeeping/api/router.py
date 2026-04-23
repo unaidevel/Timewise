@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Query, status
 
 from infra.authz.api.dependencies import CurrentUser
-from infra.common.http_exceptions import Conflict, Forbidden, NotFound, UnprocessableEntity
+from infra.common.http_exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+)
 from infra.common.responses import responses_for
 from product.timekeeping.dtos.dtos import (
     PeriodIn,
@@ -42,7 +47,9 @@ def list_periods(
     return TimekeepingService.list_periods(tenant_id, status=status)
 
 
-@router.get("/periods/{period_id}", response_model=PeriodOut, responses=responses_for(NotFound))
+@router.get(
+    "/periods/{period_id}", response_model=PeriodOut, responses=responses_for(NotFound)
+)
 def get_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> PeriodOut:
     return TimekeepingService.get_period(tenant_id, period_id)
 

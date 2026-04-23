@@ -107,7 +107,9 @@ class WorkforceRepository:
     ) -> DepartmentManagerOut | None:
         rows = DepartmentManagerModel.objects.filter(
             id=assignment_id, left_at__isnull=True
-        ).update(left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = DepartmentManagerModel.objects.get(id=assignment_id)
@@ -184,7 +186,9 @@ class WorkforceRepository:
         name: str,
         updated_by_id: int | None = None,
     ) -> RoleOut:
-        RoleModel.objects.filter(id=role_id).update(name=name, updated_by_id=updated_by_id)
+        RoleModel.objects.filter(id=role_id).update(
+            name=name, updated_by_id=updated_by_id
+        )
         model = RoleModel.objects.get(id=role_id)
         return RoleOut.model_validate(model)
 
@@ -332,7 +336,9 @@ class WorkforceRepository:
         rows = EmployeeDepartmentModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = (
@@ -386,7 +392,9 @@ class WorkforceRepository:
         rows = EmployeeRoleModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id)
+        ).update(
+            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
+        )
         if rows == 0:
             return None
         model = (

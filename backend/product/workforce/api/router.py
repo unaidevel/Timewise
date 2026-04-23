@@ -1,7 +1,12 @@
 from fastapi import APIRouter, status
 
 from infra.authz.api.dependencies import CurrentUser
-from infra.common.http_exceptions import Conflict, Forbidden, NotFound, UnprocessableEntity
+from infra.common.http_exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+)
 from infra.common.responses import responses_for
 from product.workforce.dtos.dtos import (
     AssignDepartmentManagerRequest,
@@ -38,7 +43,9 @@ def create_department(
     payload: DepartmentIn,
     current_user: CurrentUser,
 ) -> DepartmentOut:
-    return WorkforceService.create_department(tenant_id, payload, user_id=current_user.id)
+    return WorkforceService.create_department(
+        tenant_id, payload, user_id=current_user.id
+    )
 
 
 @router.get("/departments", response_model=list[DepartmentOut])
@@ -151,7 +158,9 @@ def list_roles(tenant_id: int, _: CurrentUser) -> list[RoleOut]:
     return WorkforceService.list_roles(tenant_id)
 
 
-@router.get("/roles/{role_id}", response_model=RoleOut, responses=responses_for(NotFound))
+@router.get(
+    "/roles/{role_id}", response_model=RoleOut, responses=responses_for(NotFound)
+)
 def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
     return WorkforceService.get_role(tenant_id, role_id)
 
@@ -161,12 +170,8 @@ def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
     response_model=RoleOut,
     responses=responses_for(NotFound),
 )
-def deactivate_role(
-    tenant_id: int, role_id: int, current_user: CurrentUser
-) -> RoleOut:
-    return WorkforceService.deactivate_role(
-        tenant_id, role_id, user_id=current_user.id
-    )
+def deactivate_role(tenant_id: int, role_id: int, current_user: CurrentUser) -> RoleOut:
+    return WorkforceService.deactivate_role(tenant_id, role_id, user_id=current_user.id)
 
 
 @router.put(
@@ -196,9 +201,7 @@ def create_employee(
     payload: EmployeeIn,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    return WorkforceService.create_employee(
-        tenant_id, payload, user_id=current_user.id
-    )
+    return WorkforceService.create_employee(tenant_id, payload, user_id=current_user.id)
 
 
 @router.get("/employees", response_model=list[EmployeeOut])

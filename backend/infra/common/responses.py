@@ -17,4 +17,7 @@ def responses_for(*exc_types: type[AppHTTPException]) -> dict[int, dict]:
         @router.get("/foo", responses=responses_for(NotFound, Forbidden))
         def get_foo(): ...
     """
-    return {exc_type.status_code: {"description": exc_type.description} for exc_type in exc_types}
+    return {
+        exc_type.status_code: {"description": exc_type.description}
+        for exc_type in exc_types
+    }

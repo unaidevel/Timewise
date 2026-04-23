@@ -14,7 +14,12 @@ from infra.authz.dtos.dtos import (
 )
 from infra.authz.dtos.mappers.auth_mapper import to_login_response, to_user_response
 from infra.authz.services.auth_service import AuthService
-from infra.common.http_exceptions import Conflict, TooManyRequests, Unauthorized, UnprocessableEntity
+from infra.common.http_exceptions import (
+    Conflict,
+    TooManyRequests,
+    Unauthorized,
+    UnprocessableEntity,
+)
 from infra.common.responses import responses_for
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])

@@ -21,9 +21,7 @@ class DepartmentEntity:
         if not clean:
             raise UnprocessableEntity("Department name cannot be blank.")
         if len(clean) > 200:
-            raise UnprocessableEntity(
-                "Department name cannot exceed 200 characters."
-            )
+            raise UnprocessableEntity("Department name cannot exceed 200 characters.")
         return clean
 
 

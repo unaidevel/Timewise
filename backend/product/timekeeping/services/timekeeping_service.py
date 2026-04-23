@@ -18,7 +18,9 @@ from product.timekeeping.entities.timekeeping_entities import (
     TimeEntryEntity,
 )
 from infra.common.http_exceptions import Conflict, NotFound, UnprocessableEntity
-from product.timekeeping.repositories.timekeeping_repository import TimekeepingRepository
+from product.timekeeping.repositories.timekeeping_repository import (
+    TimekeepingRepository,
+)
 
 
 class TimekeepingService:
@@ -48,7 +50,9 @@ class TimekeepingService:
             raise Conflict(
                 f"Period '{overlapping.name}' overlaps with the requested dates."
             )
-        return TimekeepingRepository.create_period(entity, tenant_id, created_by_id=user_id)
+        return TimekeepingRepository.create_period(
+            entity, tenant_id, created_by_id=user_id
+        )
 
     @staticmethod
     def get_period(tenant_id: int, period_id: int) -> PeriodOut:
@@ -89,9 +93,7 @@ class TimekeepingService:
         if not period or period.tenant_id != tenant_id:
             raise NotFound(f"Period {period_id} not found.")
         if period.status == PeriodStatus.LOCKED:
-            raise Conflict(
-                f"Period {period_id} is locked. Cannot create reports."
-            )
+            raise Conflict(f"Period {period_id} is locked. Cannot create reports.")
         existing = TimekeepingRepository.find_report_by_employee_and_period(
             payload.employee_id, period_id
         )
@@ -131,9 +133,7 @@ class TimekeepingService:
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")
         if report.status != TimeReportStatus.DRAFT:
-            raise Conflict(
-                f"Cannot submit report in status '{report.status}'."
-            )
+            raise Conflict(f"Cannot submit report in status '{report.status}'.")
         entries = TimekeepingRepository.list_time_entries(report_id)
         if not entries:
             raise UnprocessableEntity("Cannot submit an empty report.")
@@ -160,10 +160,11 @@ class TimekeepingService:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")
-        if report.status not in (TimeReportStatus.SUBMITTED, TimeReportStatus.UNDER_REVIEW):
-            raise Conflict(
-                f"Cannot approve report in status '{report.status}'."
-            )
+        if report.status not in (
+            TimeReportStatus.SUBMITTED,
+            TimeReportStatus.UNDER_REVIEW,
+        ):
+            raise Conflict(f"Cannot approve report in status '{report.status}'.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
             new_status=TimeReportStatus.APPROVED,
@@ -189,10 +190,11 @@ class TimekeepingService:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")
-        if report.status not in (TimeReportStatus.SUBMITTED, TimeReportStatus.UNDER_REVIEW):
-            raise Conflict(
-                f"Cannot reject report in status '{report.status}'."
-            )
+        if report.status not in (
+            TimeReportStatus.SUBMITTED,
+            TimeReportStatus.UNDER_REVIEW,
+        ):
+            raise Conflict(f"Cannot reject report in status '{report.status}'.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
             new_status=TimeReportStatus.REJECTED,
@@ -241,7 +243,9 @@ class TimekeepingService:
             end_time=payload.end_time,
             description=payload.description,
         )
-        return TimekeepingRepository.create_time_entry(report_id, entity, created_by_id=user_id)
+        return TimekeepingRepository.create_time_entry(
+            report_id, entity, created_by_id=user_id
+        )
 
     @staticmethod
     def list_time_entries(tenant_id: int, report_id: int) -> list[TimeEntryOut]:
@@ -295,7 +299,9 @@ class TimekeepingService:
                     TimekeepingRepository.create_entry_change_history(
                         entry_id, field_name, old_val, new_val, user_id
                     )
-        return TimekeepingRepository.update_time_entry(entry_id, new_entity, updated_by_id=user_id)
+        return TimekeepingRepository.update_time_entry(
+            entry_id, new_entity, updated_by_id=user_id
+        )
 
     @staticmethod
     def delete_time_entry(

@@ -12,9 +12,7 @@ class TenantService:
     @staticmethod
     def create(entity: TenantEntity, created_by_id: int) -> TenantOut:
         if TenantRepository.find_by_slug(entity.slug):
-            raise Conflict(
-                f"A tenant with slug '{entity.slug}' already exists."
-            )
+            raise Conflict(f"A tenant with slug '{entity.slug}' already exists.")
         return TenantRepository.create(entity, created_by_id)
 
     @staticmethod

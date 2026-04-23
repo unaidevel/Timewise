@@ -8,8 +8,8 @@ from infra.tenants.models import TenantModel
 from product.workforce.models import EmployeeModel
 from product.common.classes import PeriodStatus, TimeReportStatus
 
-class PeriodModel(models.Model):
 
+class PeriodModel(models.Model):
     id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(
         TenantModel,
@@ -71,7 +71,6 @@ class PeriodModel(models.Model):
 
 
 class TimeReportModel(models.Model):
-
     id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(
         TenantModel,
@@ -131,7 +130,9 @@ class TimeReportModel(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"Report {self.id} — {self.employee_id} / {self.period_id} ({self.status})"
+        return (
+            f"Report {self.id} — {self.employee_id} / {self.period_id} ({self.status})"
+        )
 
 
 class TimeEntryModel(models.Model):
@@ -177,7 +178,9 @@ class TimeEntryModel(models.Model):
         ]
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(hours__gte=Decimal("0.01"), hours__lte=Decimal("24")),
+                condition=models.Q(
+                    hours__gte=Decimal("0.01"), hours__lte=Decimal("24")
+                ),
                 name="timekeeping_entry_hours_range",
             ),
         ]

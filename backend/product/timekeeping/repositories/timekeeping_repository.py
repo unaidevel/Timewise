@@ -24,7 +24,6 @@ from product.timekeeping.models import (
 
 
 class TimekeepingRepository:
-
     @staticmethod
     def create_period(
         entity: PeriodEntity,
@@ -96,7 +95,6 @@ class TimekeepingRepository:
             return None
         model = PeriodModel.objects.get(id=period_id)
         return PeriodOut.model_validate(model)
-
 
     @staticmethod
     def create_time_report(
@@ -170,7 +168,6 @@ class TimekeepingRepository:
         model = TimeReportModel.objects.get(id=report_id)
         return TimeReportOut.model_validate(model)
 
-
     @staticmethod
     def create_time_entry(
         report_id: int,
@@ -226,7 +223,6 @@ class TimekeepingRepository:
         rows, _ = TimeEntryModel.objects.filter(id=entry_id).delete()
         return rows > 0
 
-
     @staticmethod
     def create_status_history(
         report_id: int,
@@ -252,7 +248,6 @@ class TimekeepingRepository:
                 report_id=report_id
             ).order_by("changed_at")
         ]
-
 
     @staticmethod
     def create_entry_change_history(

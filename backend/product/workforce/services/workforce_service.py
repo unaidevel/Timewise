@@ -54,7 +54,9 @@ class WorkforceService:
                 f"A department named '{existing_department.name}' already exists in this tenant."
             )
 
-        return WorkforceRepository.create_department(entity, tenant_id, created_by_id=user_id)
+        return WorkforceRepository.create_department(
+            entity, tenant_id, created_by_id=user_id
+        )
 
     @staticmethod
     def get_department(tenant_id: int, department_id: int) -> DepartmentOut:
@@ -76,11 +78,11 @@ class WorkforceService:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
             raise NotFound(f"Department {department_id} not found.")
-        result = WorkforceRepository.deactivate_department(department_id, updated_by_id=user_id)
+        result = WorkforceRepository.deactivate_department(
+            department_id, updated_by_id=user_id
+        )
         if not result:
-            raise NotFound(
-                f"Department {department_id} is already inactive."
-            )
+            raise NotFound(f"Department {department_id} is already inactive.")
         return result
 
     @only_admin
@@ -97,7 +99,9 @@ class WorkforceService:
             raise Conflict(
                 f"A department named '{entity.name}' already exists in this tenant."
             )
-        return WorkforceRepository.update_department(department_id, entity.name, updated_by_id=user_id)
+        return WorkforceRepository.update_department(
+            department_id, entity.name, updated_by_id=user_id
+        )
 
     @only_admin
     @staticmethod
@@ -211,7 +215,9 @@ class WorkforceService:
             raise Conflict(
                 f"A role named '{entity.name}' already exists in this tenant."
             )
-        return WorkforceRepository.update_role(role_id, entity.name, updated_by_id=user_id)
+        return WorkforceRepository.update_role(
+            role_id, entity.name, updated_by_id=user_id
+        )
 
     # --- Employees ---
 
@@ -233,9 +239,7 @@ class WorkforceService:
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise NotFound(
-                f"Department {payload.department_id} not found."
-            )
+            raise NotFound(f"Department {payload.department_id} not found.")
 
         role = WorkforceRepository.get_role_by_id(payload.role_id)
         if not role or role.tenant_id != tenant_id:
@@ -290,7 +294,9 @@ class WorkforceService:
             WorkforceRepository.close_active_role(
                 employee_id, "Employee deactivated", updated_by_id=user_id
             )
-            result = WorkforceRepository.deactivate_employee(employee_id, updated_by_id=user_id)
+            result = WorkforceRepository.deactivate_employee(
+                employee_id, updated_by_id=user_id
+            )
         if not result:
             raise NotFound(f"Employee {employee_id} is already inactive.")
         return result
@@ -316,7 +322,9 @@ class WorkforceService:
                 raise Conflict(
                     f"An employee with email '{entity.email}' already exists in this tenant."
                 )
-        return WorkforceRepository.update_employee(employee_id, entity, updated_by_id=user_id)
+        return WorkforceRepository.update_employee(
+            employee_id, entity, updated_by_id=user_id
+        )
 
     @only_admin
     @staticmethod
@@ -359,9 +367,7 @@ class WorkforceService:
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise NotFound(
-                f"Department {payload.department_id} not found."
-            )
+            raise NotFound(f"Department {payload.department_id} not found.")
 
         with transaction.atomic():
             WorkforceRepository.close_active_department(
@@ -431,9 +437,7 @@ class WorkforceService:
             raise NotFound(f"Employee {employee_id} not found.")
         assignment = WorkforceRepository.get_active_role(employee_id)
         if not assignment:
-            raise NotFound(
-                f"Employee {employee_id} has no active role assignment."
-            )
+            raise NotFound(f"Employee {employee_id} has no active role assignment.")
         return assignment
 
     @staticmethod

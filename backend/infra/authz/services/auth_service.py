@@ -14,7 +14,12 @@ from django.utils import timezone
 from infra.authz.dtos.auth_dtos import AuthSession, AuthUser
 from infra.authz.entities.auth_entities import Email, FullName, Password
 from infra.authz.repositories.auth_repository import AuthRepository
-from infra.common.http_exceptions import Conflict, TooManyRequests, Unauthorized, UnprocessableEntity
+from infra.common.http_exceptions import (
+    Conflict,
+    TooManyRequests,
+    Unauthorized,
+    UnprocessableEntity,
+)
 
 STALE_LOGIN_ATTEMPT_RETENTION_DAYS = 30
 

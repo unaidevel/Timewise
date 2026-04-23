@@ -224,9 +224,7 @@ class TenantServiceMemberTests(TestCase):
             TenantService.remove_member(tenant_id=999, membership_id=1, reason="")
 
     def test_remove_member_raises_if_membership_not_found(self):
-        with pytest.raises(
-            NotFound, match="Membership not found or already inactive"
-        ):
+        with pytest.raises(NotFound, match="Membership not found or already inactive"):
             TenantService.remove_member(
                 tenant_id=self.tenant.id, membership_id=999, reason=""
             )

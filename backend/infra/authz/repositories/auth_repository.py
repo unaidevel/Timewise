@@ -50,9 +50,7 @@ class AuthRepository:
                 password_hash=password_hash,
             )
         except IntegrityError as exc:
-            raise Conflict(
-                "A user with this email already exists"
-            ) from exc
+            raise Conflict("A user with this email already exists") from exc
 
         return _to_auth_user(user_model)
 
