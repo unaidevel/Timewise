@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from infra.authz.api.dependencies import (
     CurrentUser,
     bearer_security,
     get_current_user,
-    unauthorized_exception,
 )
 from infra.authz.dtos.dtos import (
     LoginRequest,
@@ -15,13 +14,8 @@ from infra.authz.dtos.dtos import (
 )
 from infra.authz.dtos.mappers.auth_mapper import to_login_response, to_user_response
 from infra.authz.services.auth_service import AuthService
-from infra.common.exceptions import (
-    EmailAlreadyExistsError,
-    InvalidAuthValueError,
-    InvalidCredentialsError,
-    TooManyLoginAttemptsError,
-    WeakPasswordError,
-)
+from infra.common.http_exceptions import Conflict, TooManyRequests, Unauthorized, UnprocessableEntity
+from infra.common.responses import responses_for
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 __all__ = ["router", "get_current_user"]
@@ -34,53 +28,31 @@ def _get_client_ip(request: Request) -> str:
 
 
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/register",
+    response_model=UserResponse,
+    responses=responses_for(Conflict, UnprocessableEntity),
+    status_code=status.HTTP_201_CREATED,
 )
 def register(payload: RegisterRequest) -> UserResponse:
-    try:
-        user = AuthService.register_user(
-            email=payload.email,
-            full_name=payload.full_name,
-            password=payload.password,
-        )
-    except EmailAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
-    except InvalidAuthValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
-    except WeakPasswordError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=exc.messages,
-        ) from exc
-
+    user = AuthService.register_user(
+        email=payload.email,
+        full_name=payload.full_name,
+        password=payload.password,
+    )
     return to_user_response(user)
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    responses=responses_for(Unauthorized, UnprocessableEntity, TooManyRequests),
+)
 def login_user(payload: LoginRequest, request: Request) -> LoginResponse:
-    try:
-        session = AuthService.login(
-            email=payload.email,
-            password=payload.password,
-            client_ip=_get_client_ip(request),
-        )
-    except InvalidAuthValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
-    except InvalidCredentialsError as exc:
-        raise unauthorized_exception(str(exc)) from exc
-    except TooManyLoginAttemptsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)
-        ) from exc
-
+    session = AuthService.login(
+        email=payload.email,
+        password=payload.password,
+        client_ip=_get_client_ip(request),
+    )
     return to_login_response(session)
 
 

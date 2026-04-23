@@ -4,15 +4,9 @@ from django.test import TestCase
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
+from infra.common.http_exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.dtos.dtos import AddMemberRequest, TenantMemberResponse, TenantOut
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
-from infra.tenants.exceptions import (
-    InvalidMemberRoleError,
-    MemberAlreadyExistsError,
-    MemberNotFoundError,
-    TenantAlreadyExistsError,
-    TenantNotFoundError,
-)
 from infra.tenants.models import TenantMembershipModel
 from infra.tenants.services.tenants_service import TenantService
 
@@ -59,7 +53,7 @@ class TenantServiceCreateTests(TestCase):
             TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id
         )
 
-        with pytest.raises(TenantAlreadyExistsError, match="slug 'acme'"):
+        with pytest.raises(Conflict, match="slug 'acme'"):
             TenantService.create(
                 TenantEntity(name="Another Acme", slug="acme"), created_by_id=owner.id
             )
@@ -95,7 +89,7 @@ class TenantServiceGetTests(TestCase):
         assert found == created
 
     def test_get_by_id_raises_if_not_found(self):
-        with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):
+        with pytest.raises(NotFound, match="Tenant 999 not found"):
             TenantService.get_by_id(999)
 
     def test_list_all_returns_all_tenants_in_name_order(self):
@@ -137,7 +131,7 @@ class TenantServiceMemberTests(TestCase):
     def test_add_member_raises_if_tenant_not_found(self):
         member = make_user("member@example.com")
 
-        with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):
+        with pytest.raises(NotFound, match="Tenant 999 not found"):
             TenantService.add_member(
                 tenant_id=999,
                 payload=AddMemberRequest(
@@ -156,7 +150,7 @@ class TenantServiceMemberTests(TestCase):
             invited_by_id=self.owner.id,
         )
 
-        with pytest.raises(MemberAlreadyExistsError):
+        with pytest.raises(Conflict):
             TenantService.add_member(
                 tenant_id=self.tenant.id,
                 payload=AddMemberRequest(
@@ -171,7 +165,7 @@ class TenantServiceMemberTests(TestCase):
             user_id=member.id, role="invalid-role"
         )
 
-        with pytest.raises(InvalidMemberRoleError, match="Invalid role"):
+        with pytest.raises(UnprocessableEntity, match="Invalid role"):
             TenantService.add_member(
                 tenant_id=self.tenant.id,
                 payload=payload,
@@ -200,7 +194,7 @@ class TenantServiceMemberTests(TestCase):
         assert [m.user_id for m in memberships] == [self.owner.id, member.id]
 
     def test_list_members_raises_if_tenant_not_found(self):
-        with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):
+        with pytest.raises(NotFound, match="Tenant 999 not found"):
             TenantService.list_members(999)
 
     def test_remove_member_marks_membership_inactive(self):
@@ -226,12 +220,12 @@ class TenantServiceMemberTests(TestCase):
         assert stored.left_at is not None
 
     def test_remove_member_raises_if_tenant_not_found(self):
-        with pytest.raises(TenantNotFoundError, match="Tenant 999 not found"):
+        with pytest.raises(NotFound, match="Tenant 999 not found"):
             TenantService.remove_member(tenant_id=999, membership_id=1, reason="")
 
     def test_remove_member_raises_if_membership_not_found(self):
         with pytest.raises(
-            MemberNotFoundError, match="Membership not found or already inactive"
+            NotFound, match="Membership not found or already inactive"
         ):
             TenantService.remove_member(
                 tenant_id=self.tenant.id, membership_id=999, reason=""

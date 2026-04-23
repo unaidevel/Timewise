@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
 from infra.authz.models import AuthLoginAttemptModel, AuthTokenModel, AuthUserModel
-from infra.common.exceptions import EmailAlreadyExistsError
+from infra.common.http_exceptions import Conflict
 
 
 def _to_auth_user(user_model: AuthUserModel) -> AuthUser:
@@ -50,7 +50,7 @@ class AuthRepository:
                 password_hash=password_hash,
             )
         except IntegrityError as exc:
-            raise EmailAlreadyExistsError(
+            raise Conflict(
                 "A user with this email already exists"
             ) from exc
 

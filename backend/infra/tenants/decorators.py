@@ -2,7 +2,7 @@ import functools
 import inspect
 
 from infra.common.classes import MembershipRoles
-from infra.tenants.exceptions import InsufficientPermissionsError
+from infra.common.http_exceptions import Forbidden
 from infra.tenants.models import TenantMembershipModel
 
 
@@ -16,7 +16,7 @@ def require_membership_role(*roles: MembershipRoles):
     Supports both ``@require_membership_role(...) @staticmethod`` and
     ``@staticmethod @require_membership_role(...)`` ordering.
 
-    Raises InsufficientPermissionsError if the user is not an active
+    Raises Forbidden if the user is not an active
     member of the tenant with one of the required roles.
     """
 
@@ -39,7 +39,7 @@ def require_membership_role(*roles: MembershipRoles):
                     left_at__isnull=True,
                 ).first()
                 if not membership or membership.role not in {r.value for r in roles}:
-                    raise InsufficientPermissionsError(
+                    raise Forbidden(
                         "Insufficient permissions for this tenant."
                     )
 

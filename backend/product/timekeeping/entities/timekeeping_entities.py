@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from decimal import Decimal
 
-from product.timekeeping.exceptions import InvalidPeriodDatesError, InvalidTimeEntryError
+from infra.common.http_exceptions import UnprocessableEntity
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,15 +19,15 @@ class PeriodEntity:
     def _validate_name(value: str) -> str:
         clean = value.strip()
         if not clean:
-            raise InvalidPeriodDatesError("Period name cannot be blank.")
+            raise UnprocessableEntity("Period name cannot be blank.")
         if len(clean) > 100:
-            raise InvalidPeriodDatesError("Period name cannot exceed 100 characters.")
+            raise UnprocessableEntity("Period name cannot exceed 100 characters.")
         return clean
 
     @staticmethod
     def _validate_dates(start_date: date, end_date: date) -> None:
         if end_date <= start_date:
-            raise InvalidPeriodDatesError(
+            raise UnprocessableEntity(
                 f"End date ({end_date}) must be after start date ({start_date})."
             )
 
@@ -48,16 +48,16 @@ class TimeEntryEntity:
     @staticmethod
     def _validate_hours(value: Decimal) -> Decimal:
         if value <= Decimal("0"):
-            raise InvalidTimeEntryError("Hours must be greater than zero.")
+            raise UnprocessableEntity("Hours must be greater than zero.")
         if value > Decimal("24"):
-            raise InvalidTimeEntryError("Hours cannot exceed 24 per day.")
+            raise UnprocessableEntity("Hours cannot exceed 24 per day.")
         if abs(value.as_tuple().exponent) > 2:
-            raise InvalidTimeEntryError("Hours cannot have more than 2 decimal places.")
+            raise UnprocessableEntity("Hours cannot have more than 2 decimal places.")
         return value
 
     @staticmethod
     def _validate_time_range(start_time: time, end_time: time) -> None:
         if end_time <= start_time:
-            raise InvalidTimeEntryError(
+            raise UnprocessableEntity(
                 f"End time ({end_time}) must be after start time ({start_time})."
             )

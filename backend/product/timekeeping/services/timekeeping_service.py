@@ -17,18 +17,7 @@ from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
     TimeEntryEntity,
 )
-from product.timekeeping.exceptions import (
-    InvalidPeriodDatesError,
-    InvalidTimeEntryError,
-    PeriodAlreadyExistsError,
-    PeriodAlreadyLockedError,
-    PeriodNotFoundError,
-    TimeEntryNotFoundError,
-    TimeReportAlreadyExistsError,
-    InvalidTimeReportStatusTransitionError,
-    TimeReportNotEditableError,
-    TimeReportNotFoundError,
-)
+from infra.common.http_exceptions import Conflict, NotFound, UnprocessableEntity
 from product.timekeeping.repositories.timekeeping_repository import TimekeepingRepository
 
 
@@ -49,14 +38,14 @@ class TimekeepingService:
         )
         existing = TimekeepingRepository.find_period_by_name(tenant_id, entity.name)
         if existing:
-            raise PeriodAlreadyExistsError(
+            raise Conflict(
                 f"A period named '{existing.name}' already exists in this tenant."
             )
         overlapping = TimekeepingRepository.find_overlapping_period(
             tenant_id, entity.start_date, entity.end_date
         )
         if overlapping:
-            raise PeriodAlreadyExistsError(
+            raise Conflict(
                 f"Period '{overlapping.name}' overlaps with the requested dates."
             )
         return TimekeepingRepository.create_period(entity, tenant_id, created_by_id=user_id)
@@ -65,7 +54,7 @@ class TimekeepingService:
     def get_period(tenant_id: int, period_id: int) -> PeriodOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
         if not period or period.tenant_id != tenant_id:
-            raise PeriodNotFoundError(f"Period {period_id} not found.")
+            raise NotFound(f"Period {period_id} not found.")
         return period
 
     @staticmethod
@@ -77,14 +66,14 @@ class TimekeepingService:
     def lock_period(tenant_id: int, period_id: int, user_id: int) -> PeriodOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
         if not period or period.tenant_id != tenant_id:
-            raise PeriodNotFoundError(f"Period {period_id} not found.")
+            raise NotFound(f"Period {period_id} not found.")
         if period.status == PeriodStatus.LOCKED:
-            raise PeriodAlreadyLockedError(f"Period {period_id} is already locked.")
+            raise Conflict(f"Period {period_id} is already locked.")
         result = TimekeepingRepository.lock_period(
             period_id, locked_by_id=user_id, locked_at=timezone.now()
         )
         if not result:
-            raise PeriodAlreadyLockedError(f"Period {period_id} could not be locked.")
+            raise Conflict(f"Period {period_id} could not be locked.")
         return result
 
     # --- Time Reports ---
@@ -98,16 +87,16 @@ class TimekeepingService:
     ) -> TimeReportOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
         if not period or period.tenant_id != tenant_id:
-            raise PeriodNotFoundError(f"Period {period_id} not found.")
+            raise NotFound(f"Period {period_id} not found.")
         if period.status == PeriodStatus.LOCKED:
-            raise PeriodAlreadyLockedError(
+            raise Conflict(
                 f"Period {period_id} is locked. Cannot create reports."
             )
         existing = TimekeepingRepository.find_report_by_employee_and_period(
             payload.employee_id, period_id
         )
         if existing:
-            raise TimeReportAlreadyExistsError(
+            raise Conflict(
                 f"Employee {payload.employee_id} already has a report for period {period_id}."
             )
         return TimekeepingRepository.create_time_report(
@@ -121,7 +110,7 @@ class TimekeepingService:
     def get_time_report(tenant_id: int, report_id: int) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         return report
 
     @staticmethod
@@ -140,14 +129,14 @@ class TimekeepingService:
     ) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status != TimeReportStatus.DRAFT:
-            raise InvalidTimeReportStatusTransitionError(
+            raise Conflict(
                 f"Cannot submit report in status '{report.status}'."
             )
         entries = TimekeepingRepository.list_time_entries(report_id)
         if not entries:
-            raise TimeReportNotEditableError("Cannot submit an empty report.")
+            raise UnprocessableEntity("Cannot submit an empty report.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
             new_status=TimeReportStatus.SUBMITTED,
@@ -170,9 +159,9 @@ class TimekeepingService:
     ) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status not in (TimeReportStatus.SUBMITTED, TimeReportStatus.UNDER_REVIEW):
-            raise InvalidTimeReportStatusTransitionError(
+            raise Conflict(
                 f"Cannot approve report in status '{report.status}'."
             )
         result = TimekeepingRepository.update_time_report_status(
@@ -199,9 +188,9 @@ class TimekeepingService:
     ) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status not in (TimeReportStatus.SUBMITTED, TimeReportStatus.UNDER_REVIEW):
-            raise InvalidTimeReportStatusTransitionError(
+            raise Conflict(
                 f"Cannot reject report in status '{report.status}'."
             )
         result = TimekeepingRepository.update_time_report_status(
@@ -226,7 +215,7 @@ class TimekeepingService:
     ) -> list[TimeReportStatusHistoryOut]:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         return TimekeepingRepository.list_status_history(report_id)
 
     # --- Time Entries ---
@@ -240,9 +229,9 @@ class TimekeepingService:
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status != TimeReportStatus.DRAFT:
-            raise TimeReportNotEditableError(
+            raise UnprocessableEntity(
                 f"Cannot add entries to report in status '{report.status}'."
             )
         entity = TimeEntryEntity(
@@ -258,7 +247,7 @@ class TimekeepingService:
     def list_time_entries(tenant_id: int, report_id: int) -> list[TimeEntryOut]:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         return TimekeepingRepository.list_time_entries(report_id)
 
     @staticmethod
@@ -271,14 +260,14 @@ class TimekeepingService:
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status != TimeReportStatus.DRAFT:
-            raise TimeReportNotEditableError(
+            raise UnprocessableEntity(
                 f"Cannot edit entries in report with status '{report.status}'."
             )
         entry = TimekeepingRepository.get_time_entry_by_id(entry_id)
         if not entry or entry.report_id != report_id:
-            raise TimeEntryNotFoundError(f"Time entry {entry_id} not found.")
+            raise NotFound(f"Time entry {entry_id} not found.")
         new_entity = TimeEntryEntity(
             date=payload.date,
             hours=payload.hours,
@@ -317,12 +306,12 @@ class TimekeepingService:
     ) -> None:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
-            raise TimeReportNotFoundError(f"Time report {report_id} not found.")
+            raise NotFound(f"Time report {report_id} not found.")
         if report.status != TimeReportStatus.DRAFT:
-            raise TimeReportNotEditableError(
+            raise UnprocessableEntity(
                 f"Cannot delete entries in report with status '{report.status}'."
             )
         entry = TimekeepingRepository.get_time_entry_by_id(entry_id)
         if not entry or entry.report_id != report_id:
-            raise TimeEntryNotFoundError(f"Time entry {entry_id} not found.")
+            raise NotFound(f"Time entry {entry_id} not found.")
         TimekeepingRepository.delete_time_entry(entry_id)

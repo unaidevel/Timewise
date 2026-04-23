@@ -731,7 +731,7 @@ class WorkforceApiAdditionalTests(TestCase):
         assert exc.value.status_code == 404
         assert exc.value.detail == "Role 999 not found."
 
-    def test_assign_role_returns_404_for_invalid_assignment_data(self):
+    def test_assign_role_returns_422_for_invalid_assignment_data(self):
         employee = self._create_employee()
         role = self._create_role("Director")
         invalid_payload = AssignRoleRequest.model_construct(
@@ -749,7 +749,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 self.user,
             )
 
-        assert exc.value.status_code == 404
+        assert exc.value.status_code == 422
         assert exc.value.detail == "Hourly rate must be greater than zero."
 
     def test_get_active_role_returns_current_assignment(self):

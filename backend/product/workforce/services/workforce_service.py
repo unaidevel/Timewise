@@ -27,16 +27,7 @@ from product.workforce.entities.workforce_entities import (
     EmployeeUpdateEntity,
     RoleEntity,
 )
-from product.workforce.exceptions import (
-    DepartmentAlreadyExistsError,
-    DepartmentNotFoundError,
-    EmployeeAlreadyExistsError,
-    EmployeeNotFoundError,
-    ManagerAlreadyAssignedError,
-    ManagerAssignmentNotFoundError,
-    RoleAlreadyExistsError,
-    RoleNotFoundError,
-)
+from infra.common.http_exceptions import Conflict, NotFound
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
 
@@ -59,7 +50,7 @@ class WorkforceService:
             tenant_id, entity.name
         )
         if existing_department:
-            raise DepartmentAlreadyExistsError(
+            raise Conflict(
                 f"A department named '{existing_department.name}' already exists in this tenant."
             )
 
@@ -69,7 +60,7 @@ class WorkforceService:
     def get_department(tenant_id: int, department_id: int) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         return dept
 
     @staticmethod
@@ -84,10 +75,10 @@ class WorkforceService:
     ) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         result = WorkforceRepository.deactivate_department(department_id, updated_by_id=user_id)
         if not result:
-            raise DepartmentNotFoundError(
+            raise NotFound(
                 f"Department {department_id} is already inactive."
             )
         return result
@@ -99,11 +90,11 @@ class WorkforceService:
     ) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         entity = DepartmentEntity(name=payload.name)
         existing = WorkforceRepository.find_department_by_name(tenant_id, entity.name)
         if existing and existing.id != department_id:
-            raise DepartmentAlreadyExistsError(
+            raise Conflict(
                 f"A department named '{entity.name}' already exists in this tenant."
             )
         return WorkforceRepository.update_department(department_id, entity.name, updated_by_id=user_id)
@@ -118,15 +109,15 @@ class WorkforceService:
     ) -> DepartmentManagerOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         employee = WorkforceRepository.get_employee_by_id(payload.employee_id)
         if not employee or employee.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {payload.employee_id} not found.")
+            raise NotFound(f"Employee {payload.employee_id} not found.")
         existing = WorkforceRepository.find_active_department_manager(
             department_id, payload.employee_id
         )
         if existing:
-            raise ManagerAlreadyAssignedError(
+            raise Conflict(
                 f"Employee {payload.employee_id} is already an active manager of department {department_id}."
             )
         return WorkforceRepository.assign_department_manager(
@@ -139,7 +130,7 @@ class WorkforceService:
     ) -> list[DepartmentManagerOut]:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         return WorkforceRepository.get_active_department_managers(department_id)
 
     @only_admin
@@ -153,12 +144,12 @@ class WorkforceService:
     ) -> DepartmentManagerOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(f"Department {department_id} not found.")
+            raise NotFound(f"Department {department_id} not found.")
         result = WorkforceRepository.remove_department_manager(
             assignment_id, payload.reason, updated_by_id=user_id
         )
         if not result:
-            raise ManagerAssignmentNotFoundError(
+            raise NotFound(
                 f"Manager assignment {assignment_id} not found or already removed."
             )
         return result
@@ -175,7 +166,7 @@ class WorkforceService:
 
         existing_role = WorkforceRepository.find_role_by_name(tenant_id, entity.name)
         if existing_role:
-            raise RoleAlreadyExistsError(
+            raise Conflict(
                 f"A role named '{existing_role.name}' already exists in this tenant."
             )
 
@@ -185,7 +176,7 @@ class WorkforceService:
     def get_role(tenant_id: int, role_id: int) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
-            raise RoleNotFoundError(f"Role {role_id} not found.")
+            raise NotFound(f"Role {role_id} not found.")
         return role
 
     @staticmethod
@@ -200,10 +191,10 @@ class WorkforceService:
     ) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
-            raise RoleNotFoundError(f"Role {role_id} not found.")
+            raise NotFound(f"Role {role_id} not found.")
         result = WorkforceRepository.deactivate_role(role_id, updated_by_id=user_id)
         if not result:
-            raise RoleNotFoundError(f"Role {role_id} is already inactive.")
+            raise NotFound(f"Role {role_id} is already inactive.")
         return result
 
     @only_admin
@@ -213,11 +204,11 @@ class WorkforceService:
     ) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
-            raise RoleNotFoundError(f"Role {role_id} not found.")
+            raise NotFound(f"Role {role_id} not found.")
         entity = RoleEntity(name=payload.name)
         existing = WorkforceRepository.find_role_by_name(tenant_id, entity.name)
         if existing and existing.id != role_id:
-            raise RoleAlreadyExistsError(
+            raise Conflict(
                 f"A role named '{entity.name}' already exists in this tenant."
             )
         return WorkforceRepository.update_role(role_id, entity.name, updated_by_id=user_id)
@@ -242,17 +233,17 @@ class WorkforceService:
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(
+            raise NotFound(
                 f"Department {payload.department_id} not found."
             )
 
         role = WorkforceRepository.get_role_by_id(payload.role_id)
         if not role or role.tenant_id != tenant_id:
-            raise RoleNotFoundError(f"Role {payload.role_id} not found.")
+            raise NotFound(f"Role {payload.role_id} not found.")
 
         existing = WorkforceRepository.find_employee_by_email(tenant_id, entity.email)
         if existing:
-            raise EmployeeAlreadyExistsError(
+            raise Conflict(
                 f"An employee with email '{entity.email}' already exists in this tenant."
             )
 
@@ -276,7 +267,7 @@ class WorkforceService:
     def get_employee(tenant_id: int, employee_id: int) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         return emp
 
     @staticmethod
@@ -291,7 +282,7 @@ class WorkforceService:
     ) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         with transaction.atomic():
             WorkforceRepository.close_active_department(
                 employee_id, "Employee deactivated", updated_by_id=user_id
@@ -301,7 +292,7 @@ class WorkforceService:
             )
             result = WorkforceRepository.deactivate_employee(employee_id, updated_by_id=user_id)
         if not result:
-            raise EmployeeNotFoundError(f"Employee {employee_id} is already inactive.")
+            raise NotFound(f"Employee {employee_id} is already inactive.")
         return result
 
     @only_admin
@@ -311,7 +302,7 @@ class WorkforceService:
     ) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         entity = EmployeeUpdateEntity(
             full_name=payload.full_name,
             email=payload.email,
@@ -322,7 +313,7 @@ class WorkforceService:
                 tenant_id, entity.email
             )
             if existing and existing.id != employee_id:
-                raise EmployeeAlreadyExistsError(
+                raise Conflict(
                     f"An employee with email '{entity.email}' already exists in this tenant."
                 )
         return WorkforceRepository.update_employee(employee_id, entity, updated_by_id=user_id)
@@ -337,11 +328,11 @@ class WorkforceService:
     ) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         if payload.manager_id is not None:
             manager = WorkforceRepository.get_employee_by_id(payload.manager_id)
             if not manager or manager.tenant_id != tenant_id:
-                raise EmployeeNotFoundError(f"Employee {payload.manager_id} not found.")
+                raise NotFound(f"Employee {payload.manager_id} not found.")
         return WorkforceRepository.set_employee_manager(
             employee_id, payload.manager_id, updated_by_id=user_id
         )
@@ -350,7 +341,7 @@ class WorkforceService:
     def get_direct_reports(tenant_id: int, employee_id: int) -> list[EmployeeOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         return WorkforceRepository.get_direct_reports(employee_id)
 
     # --- Department assignments ---
@@ -364,11 +355,11 @@ class WorkforceService:
     ) -> EmployeeDepartmentOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
 
         dept = WorkforceRepository.get_department_by_id(payload.department_id)
         if not dept or dept.tenant_id != tenant_id:
-            raise DepartmentNotFoundError(
+            raise NotFound(
                 f"Department {payload.department_id} not found."
             )
 
@@ -386,10 +377,10 @@ class WorkforceService:
     ) -> EmployeeDepartmentOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         assignment = WorkforceRepository.get_active_department(employee_id)
         if not assignment:
-            raise DepartmentNotFoundError(
+            raise NotFound(
                 f"Employee {employee_id} has no active department assignment."
             )
         return assignment
@@ -400,7 +391,7 @@ class WorkforceService:
     ) -> list[EmployeeDepartmentOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         return WorkforceRepository.list_department_assignments(employee_id)
 
     # --- Role assignments ---
@@ -414,11 +405,11 @@ class WorkforceService:
     ) -> EmployeeRoleOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
 
         role = WorkforceRepository.get_role_by_id(payload.role_id)
         if not role or role.tenant_id != tenant_id:
-            raise RoleNotFoundError(f"Role {payload.role_id} not found.")
+            raise NotFound(f"Role {payload.role_id} not found.")
 
         role_entity = EmployeeRoleEntity(
             hourly_rate=payload.hourly_rate,
@@ -437,10 +428,10 @@ class WorkforceService:
     def get_active_role(tenant_id: int, employee_id: int) -> EmployeeRoleOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         assignment = WorkforceRepository.get_active_role(employee_id)
         if not assignment:
-            raise RoleNotFoundError(
+            raise NotFound(
                 f"Employee {employee_id} has no active role assignment."
             )
         return assignment
@@ -449,5 +440,5 @@ class WorkforceService:
     def list_role_history(tenant_id: int, employee_id: int) -> list[EmployeeRoleOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
-            raise EmployeeNotFoundError(f"Employee {employee_id} not found.")
+            raise NotFound(f"Employee {employee_id} not found.")
         return WorkforceRepository.list_role_assignments(employee_id)

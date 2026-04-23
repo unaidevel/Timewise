@@ -14,12 +14,7 @@ from django.utils import timezone
 from infra.authz.dtos.auth_dtos import AuthSession, AuthUser
 from infra.authz.entities.auth_entities import Email, FullName, Password
 from infra.authz.repositories.auth_repository import AuthRepository
-from infra.common.exceptions import (
-    EmailAlreadyExistsError,
-    InvalidCredentialsError,
-    TooManyLoginAttemptsError,
-    WeakPasswordError,
-)
+from infra.common.http_exceptions import Conflict, TooManyRequests, Unauthorized, UnprocessableEntity
 
 STALE_LOGIN_ATTEMPT_RETENTION_DAYS = 30
 
@@ -51,7 +46,7 @@ class AuthService:
 
         existing_user = AuthRepository.find_user_by_email(email_entity.value)
         if existing_user:
-            raise EmailAlreadyExistsError("A user with this email already exists")
+            raise Conflict("A user with this email already exists")
 
         AuthService._validate_password(
             password_entity,
@@ -78,7 +73,7 @@ class AuthService:
             normalized_ip,
             auth_settings,
         ):
-            raise TooManyLoginAttemptsError("Too many login attempts. Try again later.")
+            raise TooManyRequests("Too many login attempts. Try again later.")
 
         user = AuthRepository.find_user_by_email(email_entity.value)
         password_hash = (
@@ -91,7 +86,7 @@ class AuthService:
 
         if not user or not user.is_active or not password_matches:
             AuthRepository.record_failed_login(email_entity.value, normalized_ip)
-            raise InvalidCredentialsError("Invalid credentials")
+            raise Unauthorized("Invalid credentials")
 
         access_token = secrets.token_urlsafe(48)
         expires_at = timezone.now() + timedelta(hours=auth_settings.token_ttl_hours)
@@ -167,7 +162,7 @@ class AuthService:
         try:
             validate_password(password.value, user=validation_user)
         except DjangoValidationError as exc:
-            raise WeakPasswordError(list(exc.messages)) from exc
+            raise UnprocessableEntity(list(exc.messages)) from exc
 
     @staticmethod
     def _is_login_rate_limited(
