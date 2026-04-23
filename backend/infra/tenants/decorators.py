@@ -50,10 +50,11 @@ def require_membership_role(*roles: MembershipRoles):
 
 only_owner = require_membership_role(MembershipRoles.OWNER)
 only_admin = require_membership_role(MembershipRoles.OWNER, MembershipRoles.ADMIN)
-only_manager = require_membership_role(MembershipRoles.OWNER, MembershipRoles.ADMIN)
-only_member = require_membership_role(
+only_manager = require_membership_role(MembershipRoles.OWNER, MembershipRoles.ADMIN, MembershipRoles.MANAGER)
+any_employee = require_membership_role(
     MembershipRoles.OWNER,
-    MembershipRoles.CREATOR,
     MembershipRoles.ADMIN,
-    MembershipRoles.MEMBER,
+    MembershipRoles.MANAGER,
+    MembershipRoles.EMPLOYEE,
+    MembershipRoles.FREELANCE,
 )
