@@ -24,7 +24,6 @@ from product.timekeeping.repositories.timekeeping_repository import (
 
 
 class TimekeepingService:
-    # --- Periods ---
 
     @only_admin
     @staticmethod
@@ -63,7 +62,7 @@ class TimekeepingService:
 
     @staticmethod
     def list_periods(tenant_id: int, status: str | None = None) -> list[PeriodOut]:
-        return TimekeepingRepository.list_periods(tenant_id, status=status)
+            return TimekeepingRepository.list_periods(tenant_id, status=status)
 
     @only_admin
     @staticmethod
@@ -80,7 +79,6 @@ class TimekeepingService:
             raise Conflict(f"Period {period_id} could not be locked.")
         return result
 
-    # --- Time Reports ---
 
     @staticmethod
     def create_time_report(
@@ -220,7 +218,6 @@ class TimekeepingService:
             raise NotFound(f"Time report {report_id} not found.")
         return TimekeepingRepository.list_status_history(report_id)
 
-    # --- Time Entries ---
 
     @staticmethod
     def create_time_entry(

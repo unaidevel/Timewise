@@ -44,7 +44,7 @@ def list_periods(
     current_user: CurrentUser,
     status: str | None = Query(default=None),
 ) -> list[PeriodOut]:
-    return TimekeepingService.list_periods(tenant_id, status=status)
+    return TimekeepingService.list_periods(tenant_id, status)
 
 
 @router.get(
@@ -60,7 +60,7 @@ def get_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> Per
     responses=responses_for(Forbidden, NotFound, Conflict),
 )
 def lock_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> PeriodOut:
-    return TimekeepingService.lock_period(tenant_id, period_id, user_id=current_user.id)
+    return TimekeepingService.lock_period(tenant_id, period_id, current_user.id)
 
 
 @router.post(
