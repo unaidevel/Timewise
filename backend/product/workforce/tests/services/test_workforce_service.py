@@ -340,7 +340,7 @@ class UpdateDepartmentServiceTests(TestCase):
 
     def test_update_department_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.update_department(
                 self.tenant.id,
@@ -386,7 +386,7 @@ class UpdateRoleServiceTests(TestCase):
 
     def test_update_role_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.update_role(
                 self.tenant.id, self.role.id, RoleUpdate(name="X"), user_id=member.id
@@ -482,7 +482,7 @@ class UpdateEmployeeServiceTests(TestCase):
 
     def test_update_employee_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.update_employee(
                 self.tenant.id,
@@ -633,7 +633,7 @@ class DepartmentManagerServiceTests(TestCase):
 
     def test_assign_department_manager_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
@@ -748,7 +748,7 @@ class EmployeeManagerServiceTests(TestCase):
 
     def test_set_employee_manager_raises_on_insufficient_permissions(self):
         member = make_user("member@example.com")
-        add_member(self.tenant.id, member.id, MembershipRoles.MEMBER)
+        add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.set_employee_manager(
                 self.tenant.id,

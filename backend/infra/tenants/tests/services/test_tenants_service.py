@@ -117,14 +117,14 @@ class TenantServiceMemberTests(TestCase):
         membership = TenantService.add_member(
             tenant_id=self.tenant.id,
             payload=AddMemberRequest(
-                user_id=member.id, role=MembershipRoles.MEMBER.value
+                user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
             invited_by_id=self.owner.id,
         )
 
         assert membership.tenant_id == self.tenant.id
         assert membership.user_id == member.id
-        assert membership.role == MembershipRoles.MEMBER.value
+        assert membership.role == MembershipRoles.EMPLOYEE.value
         assert membership.invited_by_id == self.owner.id
         assert membership.left_at is None
 
@@ -135,7 +135,7 @@ class TenantServiceMemberTests(TestCase):
             TenantService.add_member(
                 tenant_id=999,
                 payload=AddMemberRequest(
-                    user_id=member.id, role=MembershipRoles.MEMBER.value
+                    user_id=member.id, role=MembershipRoles.EMPLOYEE.value
                 ),
                 invited_by_id=self.owner.id,
             )
@@ -145,7 +145,7 @@ class TenantServiceMemberTests(TestCase):
         TenantService.add_member(
             tenant_id=self.tenant.id,
             payload=AddMemberRequest(
-                user_id=member.id, role=MembershipRoles.MEMBER.value
+                user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
             invited_by_id=self.owner.id,
         )
@@ -183,7 +183,7 @@ class TenantServiceMemberTests(TestCase):
         TenantService.add_member(
             tenant_id=self.tenant.id,
             payload=AddMemberRequest(
-                user_id=member.id, role=MembershipRoles.MEMBER.value
+                user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
             invited_by_id=self.owner.id,
         )
@@ -202,7 +202,7 @@ class TenantServiceMemberTests(TestCase):
         membership = TenantService.add_member(
             tenant_id=self.tenant.id,
             payload=AddMemberRequest(
-                user_id=member.id, role=MembershipRoles.MEMBER.value
+                user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
             invited_by_id=self.owner.id,
         )

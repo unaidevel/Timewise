@@ -155,14 +155,14 @@ class TenantsApiTests(TestCase):
             tenant_id=tenant.id,
             payload=AddMemberRequest(
                 user_id=member_user.id,
-                role=MembershipRoles.MEMBER.value,
+                role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
         )
 
         assert membership.tenant_id == tenant.id
         assert membership.user_id == member_user.id
-        assert membership.role == MembershipRoles.MEMBER.value
+        assert membership.role == MembershipRoles.EMPLOYEE.value
         assert membership.invited_by_id == owner_user.id
 
     def test_add_member_returns_404_when_tenant_is_missing(self):
@@ -180,7 +180,7 @@ class TenantsApiTests(TestCase):
                 tenant_id=999,
                 payload=AddMemberRequest(
                     user_id=member_user.id,
-                    role=MembershipRoles.MEMBER.value,
+                    role=MembershipRoles.EMPLOYEE.value,
                 ),
                 current_user=owner_user,
             )
@@ -205,7 +205,7 @@ class TenantsApiTests(TestCase):
             tenant_id=tenant.id,
             payload=AddMemberRequest(
                 user_id=member_user.id,
-                role=MembershipRoles.MEMBER.value,
+                role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
         )
@@ -268,7 +268,7 @@ class TenantsApiTests(TestCase):
             tenant_id=tenant.id,
             payload=AddMemberRequest(
                 user_id=member_user.id,
-                role=MembershipRoles.MEMBER.value,
+                role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
         )
@@ -310,7 +310,7 @@ class TenantsApiTests(TestCase):
             tenant_id=tenant.id,
             payload=AddMemberRequest(
                 user_id=member_user.id,
-                role=MembershipRoles.MEMBER.value,
+                role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
         )
