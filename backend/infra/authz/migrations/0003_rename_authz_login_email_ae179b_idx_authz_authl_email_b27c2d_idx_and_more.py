@@ -4,52 +4,51 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('authz', '0002_authloginattemptmodel_and_more'),
+        ("authz", "0002_authloginattemptmodel_and_more"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='authloginattemptmodel',
-            new_name='authz_AuthL_email_b27c2d_idx',
-            old_name='authz_login_email_ae179b_idx',
+            model_name="authloginattemptmodel",
+            new_name="authz_AuthL_email_b27c2d_idx",
+            old_name="authz_login_email_ae179b_idx",
         ),
         migrations.RenameIndex(
-            model_name='authloginattemptmodel',
-            new_name='authz_AuthL_ip_addr_95c7f3_idx',
-            old_name='authz_login_ip_addr_dab25c_idx',
+            model_name="authloginattemptmodel",
+            new_name="authz_AuthL_ip_addr_95c7f3_idx",
+            old_name="authz_login_ip_addr_dab25c_idx",
         ),
         migrations.RenameIndex(
-            model_name='authtokenmodel',
-            new_name='authz_AuthT_expires_8e3192_idx',
-            old_name='authz_token_expires_bc05cf_idx',
+            model_name="authtokenmodel",
+            new_name="authz_AuthT_expires_8e3192_idx",
+            old_name="authz_token_expires_bc05cf_idx",
         ),
         migrations.RenameIndex(
-            model_name='authtokenmodel',
-            new_name='authz_AuthT_revoked_57ec8c_idx',
-            old_name='authz_token_revoked_be88c3_idx',
+            model_name="authtokenmodel",
+            new_name="authz_AuthT_revoked_57ec8c_idx",
+            old_name="authz_token_revoked_be88c3_idx",
         ),
         migrations.RenameIndex(
-            model_name='authusermodel',
-            new_name='authz_AuthU_email_9c0515_idx',
-            old_name='authz_users_email_81ee10_idx',
+            model_name="authusermodel",
+            new_name="authz_AuthU_email_9c0515_idx",
+            old_name="authz_users_email_81ee10_idx",
         ),
         migrations.RenameIndex(
-            model_name='authusermodel',
-            new_name='authz_AuthU_is_acti_845d80_idx',
-            old_name='authz_users_is_acti_f34988_idx',
+            model_name="authusermodel",
+            new_name="authz_AuthU_is_acti_845d80_idx",
+            old_name="authz_users_is_acti_f34988_idx",
         ),
         migrations.AlterModelTable(
-            name='authloginattemptmodel',
-            table='authz_AuthLoginAttempt',
+            name="authloginattemptmodel",
+            table="authz_AuthLoginAttempt",
         ),
         migrations.AlterModelTable(
-            name='authtokenmodel',
-            table='authz_AuthToken',
+            name="authtokenmodel",
+            table="authz_AuthToken",
         ),
         migrations.AlterModelTable(
-            name='authusermodel',
-            table='authz_AuthUser',
+            name="authusermodel",
+            table="authz_AuthUser",
         ),
     ]

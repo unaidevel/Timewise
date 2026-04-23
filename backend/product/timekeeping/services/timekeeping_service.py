@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
-from infra.tenants.decorators import only_admin, only_manager, any_employee
+from infra.tenants.decorators import any_employee, only_admin, only_manager
 from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
     PeriodIn,
@@ -24,7 +24,6 @@ from product.timekeeping.repositories.timekeeping_repository import (
 
 
 class TimekeepingService:
-
     @only_admin
     @staticmethod
     def create_period(
@@ -63,8 +62,10 @@ class TimekeepingService:
 
     @any_employee
     @staticmethod
-    def list_periods(tenant_id: int, user_id: int, status: str | None = None) -> list[PeriodOut]:
-            return TimekeepingRepository.list_periods(tenant_id, status=status)
+    def list_periods(
+        tenant_id: int, user_id: int, status: str | None = None
+    ) -> list[PeriodOut]:
+        return TimekeepingRepository.list_periods(tenant_id, status=status)
 
     @only_admin
     @staticmethod
@@ -80,7 +81,6 @@ class TimekeepingService:
         if not result:
             raise Conflict(f"Period {period_id} could not be locked.")
         return result
-
 
     @any_employee
     @staticmethod
@@ -226,7 +226,6 @@ class TimekeepingService:
             raise NotFound(f"Time report {report_id} not found.")
         return TimekeepingRepository.list_status_history(report_id)
 
-
     @any_employee
     @staticmethod
     def create_time_entry(
@@ -255,7 +254,9 @@ class TimekeepingService:
 
     @any_employee
     @staticmethod
-    def list_time_entries(tenant_id: int, report_id: int, user_id: int) -> list[TimeEntryOut]:
+    def list_time_entries(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> list[TimeEntryOut]:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
         if not report or report.tenant_id != tenant_id:
             raise NotFound(f"Time report {report_id} not found.")

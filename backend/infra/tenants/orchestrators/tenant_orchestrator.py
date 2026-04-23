@@ -1,11 +1,12 @@
 from django.db import transaction
 
 from infra.common.classes import MembershipRoles
+from infra.tenants.decorators import only_owner
 from infra.tenants.dtos.dtos import TenantIn, TenantOut
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.workforce.services.workforce_service import WorkforceService
-from infra.tenants.decorators import only_owner
+
 
 class TenantOrchestrator:
     @only_owner
