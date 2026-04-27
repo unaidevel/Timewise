@@ -35,6 +35,23 @@ Fill this in only if the PR introduces non-obvious design decisions, tradeoffs, 
 Delete this section if not applicable.
 -->
 
+## Risk assessment
+**Level:** `Low` / `Medium` / `High` ← delete the ones that don't apply
+
+| Factor | Notes |
+|--------|-------|
+| Affects production data | Yes / No |
+| Requires migration | Yes / No |
+| Touches auth / permissions | Yes / No |
+| Has external side effects (emails, webhooks, payments) | Yes / No |
+| Rollback complexity | Easy / Hard — describe how |
+
+<!--
+Low   — isolated change, fully tested, easy to revert
+Medium — touches shared code or has some external effect, tested but with caveats
+High  — data migration, auth change, external service, or hard to revert
+-->
+
 ## Checklist
 - [ ] Tests added or updated
 - [ ] Mypy passes (`uv run mypy .`)
