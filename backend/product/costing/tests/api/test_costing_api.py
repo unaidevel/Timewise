@@ -12,7 +12,7 @@ from infra.authz.api.dependencies import get_current_user
 from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
 from infra.common.classes import MembershipRoles
 from infra.tenants.api import router as tenants_router
-from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn
+from infra.tenants.dtos.dtos import TenantIn
 from infra.tenants.entities.tenant_entities import TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.costing.api import router as costing_router

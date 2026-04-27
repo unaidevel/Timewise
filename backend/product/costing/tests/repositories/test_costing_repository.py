@@ -1,7 +1,6 @@
 from datetime import date
 from decimal import Decimal
 
-import pytest
 from django.test import TestCase
 
 from infra.authz.repositories.auth_repository import AuthRepository
@@ -10,7 +9,6 @@ from infra.common.classes import MembershipRoles
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.common.classes import TimeReportStatus
-from product.costing.dtos.dtos import OvertimeRuleOut
 from product.costing.entities.costing_entities import OvertimeRuleEntity
 from product.costing.repositories.costing_repository import CostingRepository
 from product.timekeeping.models import PeriodModel, TimeEntryModel, TimeReportModel

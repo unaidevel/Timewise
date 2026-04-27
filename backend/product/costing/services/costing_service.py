@@ -14,8 +14,8 @@ from product.costing.repositories.costing_repository import CostingRepository
 from product.costing.services.rules_evaluator import (
     ConditionSpec,
     EntryContext,
-    RuleSpec,
     RulesEvaluator,
+    RuleSpec,
 )
 
 _CALCULABLE_STATUSES = {TimeReportStatus.APPROVED, TimeReportStatus.LOCKED}

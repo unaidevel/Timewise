@@ -10,8 +10,8 @@ from django.test import SimpleTestCase
 from product.costing.services.rules_evaluator import (
     ConditionSpec,
     EntryContext,
-    RuleSpec,
     RulesEvaluator,
+    RuleSpec,
 )
 
 SATURDAY = date(2025, 1, 4)  # isoweekday() == 6

@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -18,10 +18,9 @@ from product.timekeeping.dtos.dtos import (
     TimeEntryUpdate,
     TimeReportIn,
 )
+from product.timekeeping.services.timekeeping_service import TimekeepingService
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
 from product.workforce.services.workforce_service import WorkforceService
-
-from product.timekeeping.services.timekeeping_service import TimekeepingService
 
 
 def make_user(email: str = "owner@example.com"):
