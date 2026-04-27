@@ -4,6 +4,7 @@ repos:
     rev: v0.15.10
     hooks:
       - id: ruff
+        args: [--fix]
         files: ^backend/
       - id: ruff-format
         files: ^backend/
