@@ -16,9 +16,12 @@ def env_flag(name: str, default: bool = False) -> bool:
 
 def drop_postgres_test_database_if_exists() -> None:
     default_database = settings.DATABASES["default"]
-    if default_database["ENGINE"] != "django.db.backends.postgresql":
-        if not default_database["ENGINE"].endswith("postgresql"):
-            return
+    if default_database[
+        "ENGINE"
+    ] != "django.db.backends.postgresql" and not default_database["ENGINE"].endswith(
+        "postgresql"
+    ):
+        return
 
     test_database_name = default_database["TEST"]["NAME"]
     maintenance_database = default_database["TEST"].get(
