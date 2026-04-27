@@ -4,24 +4,23 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('approvals', '0001_initial'),
+        ("approvals", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='approvalmodel',
-            new_name='approvals_A_created_92cc62_idx',
-            old_name='product_app_created_f08ea1_idx',
+            model_name="approvalmodel",
+            new_name="approvals_A_created_92cc62_idx",
+            old_name="product_app_created_f08ea1_idx",
         ),
         migrations.RenameIndex(
-            model_name='approvalmodel',
-            new_name='approvals_A_created_9fed1f_idx',
-            old_name='product_app_created_d6bd58_idx',
+            model_name="approvalmodel",
+            new_name="approvals_A_created_9fed1f_idx",
+            old_name="product_app_created_d6bd58_idx",
         ),
         migrations.AlterModelTable(
-            name='approvalmodel',
-            table='approvals_Approval',
+            name="approvalmodel",
+            table="approvals_Approval",
         ),
     ]

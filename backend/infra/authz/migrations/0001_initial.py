@@ -6,58 +6,93 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='AuthLoginAttemptModel',
+            name="AuthLoginAttemptModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('email', models.CharField(max_length=254)),
-                ('ip_address', models.CharField(max_length=64)),
-                ('attempted_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("email", models.CharField(max_length=254)),
+                ("ip_address", models.CharField(max_length=64)),
+                ("attempted_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'authz_AuthLoginAttempt',
-                'indexes': [models.Index(fields=['email', 'attempted_at'], name='authz_AuthL_email_b27c2d_idx'), models.Index(fields=['ip_address', 'attempted_at'], name='authz_AuthL_ip_addr_95c7f3_idx')],
+                "db_table": "authz_AuthLoginAttempt",
+                "indexes": [
+                    models.Index(
+                        fields=["email", "attempted_at"],
+                        name="authz_AuthL_email_b27c2d_idx",
+                    ),
+                    models.Index(
+                        fields=["ip_address", "attempted_at"],
+                        name="authz_AuthL_ip_addr_95c7f3_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='AuthUserModel',
+            name="AuthUserModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('full_name', models.CharField(max_length=200)),
-                ('password_hash', models.CharField(max_length=255)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("full_name", models.CharField(max_length=200)),
+                ("password_hash", models.CharField(max_length=255)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'authz_AuthUser',
-                'indexes': [models.Index(fields=['email'], name='authz_AuthU_email_9c0515_idx'), models.Index(fields=['is_active'], name='authz_AuthU_is_acti_845d80_idx')],
-                'constraints': [models.UniqueConstraint(django.db.models.functions.text.Lower('email'), name='authz_users_email_ci_unique')],
+                "db_table": "authz_AuthUser",
+                "indexes": [
+                    models.Index(fields=["email"], name="authz_AuthU_email_9c0515_idx"),
+                    models.Index(
+                        fields=["is_active"], name="authz_AuthU_is_acti_845d80_idx"
+                    ),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        django.db.models.functions.text.Lower("email"),
+                        name="authz_users_email_ci_unique",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='AuthTokenModel',
+            name="AuthTokenModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('token_hash', models.CharField(max_length=64, unique=True)),
-                ('expires_at', models.DateTimeField()),
-                ('refresh_token_hash', models.CharField(max_length=64, unique=True)),
-                ('refresh_expires_at', models.DateTimeField()),
-                ('revoked_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tokens', to='authz.authusermodel')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("token_hash", models.CharField(max_length=64, unique=True)),
+                ("expires_at", models.DateTimeField()),
+                ("refresh_token_hash", models.CharField(max_length=64, unique=True)),
+                ("refresh_expires_at", models.DateTimeField()),
+                ("revoked_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tokens",
+                        to="authz.authusermodel",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'authz_AuthToken',
-                'indexes': [models.Index(fields=['expires_at'], name='authz_AuthT_expires_8e3192_idx'), models.Index(fields=['refresh_expires_at'], name='authz_AuthT_refresh_a9c0ad_idx'), models.Index(fields=['revoked_at'], name='authz_AuthT_revoked_57ec8c_idx')],
+                "db_table": "authz_AuthToken",
+                "indexes": [
+                    models.Index(
+                        fields=["expires_at"], name="authz_AuthT_expires_8e3192_idx"
+                    ),
+                    models.Index(
+                        fields=["refresh_expires_at"],
+                        name="authz_AuthT_refresh_a9c0ad_idx",
+                    ),
+                    models.Index(
+                        fields=["revoked_at"], name="authz_AuthT_revoked_57ec8c_idx"
+                    ),
+                ],
             },
         ),
     ]

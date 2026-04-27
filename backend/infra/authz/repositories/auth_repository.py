@@ -58,9 +58,9 @@ class AuthRepository:
 
     @staticmethod
     def revoke_all_user_tokens(user_id: int) -> None:
-        AuthTokenModel.objects.filter(
-            user_id=user_id, revoked_at__isnull=True
-        ).update(revoked_at=timezone.now())
+        AuthTokenModel.objects.filter(user_id=user_id, revoked_at__isnull=True).update(
+            revoked_at=timezone.now()
+        )
 
     @staticmethod
     def create_token(

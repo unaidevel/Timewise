@@ -7,6 +7,7 @@ from infra.tenants.services.tenants_service import TenantService
 from product.workforce.services.workforce_service import WorkforceService
 from infra.tenants.decorators import only_owner
 
+
 class TenantOrchestrator:
     @only_owner
     @staticmethod

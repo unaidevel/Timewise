@@ -4,94 +4,96 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workforce', '0004_rename_workforce_d_dept_left_idx_workforce_d_departm_140051_idx_and_more'),
+        (
+            "workforce",
+            "0004_rename_workforce_d_dept_left_idx_workforce_d_departm_140051_idx_and_more",
+        ),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='departmentmanagermodel',
-            new_name='workforce_D_departm_cd93ad_idx',
-            old_name='workforce_d_departm_140051_idx',
+            model_name="departmentmanagermodel",
+            new_name="workforce_D_departm_cd93ad_idx",
+            old_name="workforce_d_departm_140051_idx",
         ),
         migrations.RenameIndex(
-            model_name='departmentmanagermodel',
-            new_name='workforce_D_employe_804fa0_idx',
-            old_name='workforce_d_employe_b086b6_idx',
+            model_name="departmentmanagermodel",
+            new_name="workforce_D_employe_804fa0_idx",
+            old_name="workforce_d_employe_b086b6_idx",
         ),
         migrations.RenameIndex(
-            model_name='departmentmodel',
-            new_name='workforce_D_tenant__45fe8c_idx',
-            old_name='workforce_d_tenant__1aa1a2_idx',
+            model_name="departmentmodel",
+            new_name="workforce_D_tenant__45fe8c_idx",
+            old_name="workforce_d_tenant__1aa1a2_idx",
         ),
         migrations.RenameIndex(
-            model_name='departmentmodel',
-            new_name='workforce_D_is_acti_0584a1_idx',
-            old_name='workforce_d_is_acti_eb6c17_idx',
+            model_name="departmentmodel",
+            new_name="workforce_D_is_acti_0584a1_idx",
+            old_name="workforce_d_is_acti_eb6c17_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeedepartmentmodel',
-            new_name='workforce_E_employe_6f5e2a_idx',
-            old_name='workforce_e_employe_09838f_idx',
+            model_name="employeedepartmentmodel",
+            new_name="workforce_E_employe_6f5e2a_idx",
+            old_name="workforce_e_employe_09838f_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeedepartmentmodel',
-            new_name='workforce_E_departm_3a41d5_idx',
-            old_name='workforce_e_departm_e02596_idx',
+            model_name="employeedepartmentmodel",
+            new_name="workforce_E_departm_3a41d5_idx",
+            old_name="workforce_e_departm_e02596_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeemodel',
-            new_name='workforce_E_tenant__a9bc5c_idx',
-            old_name='workforce_e_tenant__b0f38f_idx',
+            model_name="employeemodel",
+            new_name="workforce_E_tenant__a9bc5c_idx",
+            old_name="workforce_e_tenant__b0f38f_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeemodel',
-            new_name='workforce_E_is_acti_eab0e2_idx',
-            old_name='workforce_e_is_acti_a162b0_idx',
+            model_name="employeemodel",
+            new_name="workforce_E_is_acti_eab0e2_idx",
+            old_name="workforce_e_is_acti_a162b0_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeerolemodel',
-            new_name='workforce_E_employe_644cb8_idx',
-            old_name='workforce_e_employe_42727b_idx',
+            model_name="employeerolemodel",
+            new_name="workforce_E_employe_644cb8_idx",
+            old_name="workforce_e_employe_42727b_idx",
         ),
         migrations.RenameIndex(
-            model_name='employeerolemodel',
-            new_name='workforce_E_role_id_8d6881_idx',
-            old_name='workforce_e_role_id_2c4000_idx',
+            model_name="employeerolemodel",
+            new_name="workforce_E_role_id_8d6881_idx",
+            old_name="workforce_e_role_id_2c4000_idx",
         ),
         migrations.RenameIndex(
-            model_name='rolemodel',
-            new_name='workforce_R_tenant__71bbdf_idx',
-            old_name='workforce_r_tenant__b06ed6_idx',
+            model_name="rolemodel",
+            new_name="workforce_R_tenant__71bbdf_idx",
+            old_name="workforce_r_tenant__b06ed6_idx",
         ),
         migrations.RenameIndex(
-            model_name='rolemodel',
-            new_name='workforce_R_is_acti_dcd83c_idx',
-            old_name='workforce_r_is_acti_1c4502_idx',
+            model_name="rolemodel",
+            new_name="workforce_R_is_acti_dcd83c_idx",
+            old_name="workforce_r_is_acti_1c4502_idx",
         ),
         migrations.AlterModelTable(
-            name='departmentmanagermodel',
-            table='workforce_DepartmentManager',
+            name="departmentmanagermodel",
+            table="workforce_DepartmentManager",
         ),
         migrations.AlterModelTable(
-            name='departmentmodel',
-            table='workforce_Department',
+            name="departmentmodel",
+            table="workforce_Department",
         ),
         migrations.AlterModelTable(
-            name='employeedepartmentmodel',
-            table='workforce_EmployeeDepartment',
+            name="employeedepartmentmodel",
+            table="workforce_EmployeeDepartment",
         ),
         migrations.AlterModelTable(
-            name='employeemodel',
-            table='workforce_Employee',
+            name="employeemodel",
+            table="workforce_Employee",
         ),
         migrations.AlterModelTable(
-            name='employeerolemodel',
-            table='workforce_EmployeeRole',
+            name="employeerolemodel",
+            table="workforce_EmployeeRole",
         ),
         migrations.AlterModelTable(
-            name='rolemodel',
-            table='workforce_Role',
+            name="rolemodel",
+            table="workforce_Role",
         ),
     ]

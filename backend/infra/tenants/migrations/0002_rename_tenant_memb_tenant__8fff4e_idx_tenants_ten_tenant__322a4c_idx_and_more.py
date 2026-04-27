@@ -4,53 +4,61 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tenants', '0001_initial'),
+        ("tenants", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='tenantmembershipmodel',
-            new_name='tenants_Ten_tenant__322a4c_idx',
-            old_name='tenant_memb_tenant__8fff4e_idx',
+            model_name="tenantmembershipmodel",
+            new_name="tenants_Ten_tenant__322a4c_idx",
+            old_name="tenant_memb_tenant__8fff4e_idx",
         ),
         migrations.RenameIndex(
-            model_name='tenantmembershipmodel',
-            new_name='tenants_Ten_tenant__4326fd_idx',
-            old_name='tenant_memb_tenant__9ab271_idx',
+            model_name="tenantmembershipmodel",
+            new_name="tenants_Ten_tenant__4326fd_idx",
+            old_name="tenant_memb_tenant__9ab271_idx",
         ),
         migrations.RenameIndex(
-            model_name='tenantmembershipmodel',
-            new_name='tenants_Ten_left_at_6f9cc2_idx',
-            old_name='tenant_memb_left_at_413aac_idx',
+            model_name="tenantmembershipmodel",
+            new_name="tenants_Ten_left_at_6f9cc2_idx",
+            old_name="tenant_memb_left_at_413aac_idx",
         ),
         migrations.RenameIndex(
-            model_name='tenantmodel',
-            new_name='tenants_Ten_slug_b8100d_idx',
-            old_name='tenants_slug_3181c2_idx',
+            model_name="tenantmodel",
+            new_name="tenants_Ten_slug_b8100d_idx",
+            old_name="tenants_slug_3181c2_idx",
         ),
         migrations.RenameIndex(
-            model_name='tenantmodel',
-            new_name='tenants_Ten_is_acti_c5d4b4_idx',
-            old_name='tenants_is_acti_ec1713_idx',
+            model_name="tenantmodel",
+            new_name="tenants_Ten_is_acti_c5d4b4_idx",
+            old_name="tenants_is_acti_ec1713_idx",
         ),
         migrations.RenameIndex(
-            model_name='tenantmodel',
-            new_name='tenants_Ten_vat_a317f0_idx',
-            old_name='tenants_vat_31b695_idx',
+            model_name="tenantmodel",
+            new_name="tenants_Ten_vat_a317f0_idx",
+            old_name="tenants_vat_31b695_idx",
         ),
         migrations.AlterField(
-            model_name='tenantmembershipmodel',
-            name='role',
-            field=models.CharField(choices=[('owner', 'Owner'), ('admin', 'Admin'), ('manager', 'Manager'), ('employee', 'Employee'), ('freelance', 'Freelance')], max_length=20),
+            model_name="tenantmembershipmodel",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("owner", "Owner"),
+                    ("admin", "Admin"),
+                    ("manager", "Manager"),
+                    ("employee", "Employee"),
+                    ("freelance", "Freelance"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.AlterModelTable(
-            name='tenantmembershipmodel',
-            table='tenants_TenantMembership',
+            name="tenantmembershipmodel",
+            table="tenants_TenantMembership",
         ),
         migrations.AlterModelTable(
-            name='tenantmodel',
-            table='tenants_Tenant',
+            name="tenantmodel",
+            table="tenants_Tenant",
         ),
     ]
