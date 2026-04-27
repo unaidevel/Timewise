@@ -9,6 +9,7 @@ from infra.authz.api.dependencies import (
 from infra.authz.dtos.dtos import (
     LoginRequest,
     LoginResponse,
+    RefreshRequest,
     RegisterRequest,
     UserResponse,
 )
@@ -64,6 +65,16 @@ def login_user(payload: LoginRequest, request: Request) -> LoginResponse:
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: CurrentUser) -> UserResponse:
     return to_user_response(current_user)
+
+
+@router.post(
+    "/refresh",
+    response_model=LoginResponse,
+    responses=responses_for(Unauthorized),
+)
+def refresh_token(payload: RefreshRequest) -> LoginResponse:
+    session = AuthService.refresh(payload.refresh_token)
+    return to_login_response(session)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

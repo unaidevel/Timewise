@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("authz", "0002_authloginattemptmodel_and_more"),
+        ("authz", "0001_initial"),
         ("tenants", "0001_initial"),
     ]
 

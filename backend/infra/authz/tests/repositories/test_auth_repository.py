@@ -50,6 +50,8 @@ class AuthRepositoryTests(TestCase):
             user=user,
             token_hash=token_hash,
             expires_at=timezone.now() + timedelta(hours=1),
+            refresh_token_hash=AuthService._hash_token("my-refresh-token"),
+            refresh_expires_at=timezone.now() + timedelta(days=7),
         )
 
         found_token = AuthRepository.find_valid_token(token_hash)
@@ -69,6 +71,8 @@ class AuthRepositoryTests(TestCase):
             user=user,
             token_hash=token_hash,
             expires_at=timezone.now() + timedelta(hours=1),
+            refresh_token_hash=AuthService._hash_token("logout-refresh-token"),
+            refresh_expires_at=timezone.now() + timedelta(days=7),
         )
 
         revoked_count = AuthRepository.revoke_token(token_hash)

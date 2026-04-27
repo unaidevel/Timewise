@@ -9,7 +9,9 @@ def to_user_response(user: AuthUser) -> UserResponse:
 def to_login_response(session: AuthSession) -> LoginResponse:
     return LoginResponse(
         access_token=session.access_token,
+        refresh_token=session.refresh_token,
         token_type=session.token_type,
         expires_at=session.expires_at,
+        refresh_expires_at=session.refresh_expires_at,
         user=to_user_response(session.user),
     )

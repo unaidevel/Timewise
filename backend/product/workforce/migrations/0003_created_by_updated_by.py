@@ -5,7 +5,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("workforce", "0002_manager_fields"),
-        ("authz", "0002_authloginattemptmodel_and_more"),
+        ("authz", "0001_initial"),
     ]
 
     operations = [

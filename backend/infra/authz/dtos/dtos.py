@@ -24,8 +24,14 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=1)
+
+
 class LoginResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
     expires_at: datetime
+    refresh_expires_at: datetime
     user: UserResponse
