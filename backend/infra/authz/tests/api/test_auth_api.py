@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from starlette.requests import Request
 
 from infra.authz.api import router as auth_router
+from infra.authz.api.dependencies import get_current_user
 from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 
@@ -62,7 +63,7 @@ class AuthApiTests(TestCase):
             scheme="Bearer",
             credentials=login_response.access_token,
         )
-        current_user = auth_router.get_current_user(credentials)
+        current_user = get_current_user(credentials)
         me_response = auth_router.get_me(current_user=current_user)
 
         self.assertEqual(me_response.email, "user@example.com")
@@ -70,7 +71,7 @@ class AuthApiTests(TestCase):
         auth_router.logout_user(credentials)
 
         with self.assertRaises(HTTPException) as exc:
-            auth_router.get_current_user(credentials)
+            get_current_user(credentials)
 
         self.assertEqual(exc.exception.status_code, 401)
 

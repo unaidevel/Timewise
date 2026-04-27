@@ -318,6 +318,7 @@ class TenantsApiTests(TestCase):
         removed = tenants_router.remove_member(
             tenant_id=tenant.id,
             membership_id=membership.id,
+            _=owner_user,
         )
 
         assert removed.id == membership.id
