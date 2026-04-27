@@ -1,3 +1,5 @@
+from typing import Any
+
 from infra.common.exceptions.http_exceptions import AppHTTPException
 
 STATUS_RESPONSES = {
@@ -9,7 +11,9 @@ STATUS_RESPONSES = {
 }
 
 
-def responses_for(*exc_types: type[AppHTTPException]) -> dict[int, dict]:
+def responses_for(
+    *exc_types: type[AppHTTPException],
+) -> dict[int | str, dict[str, Any]]:
     """
     Build FastAPI responses dict from typed HTTP exception classes.
 
