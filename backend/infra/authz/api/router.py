@@ -23,7 +23,6 @@ from infra.common.exceptions import (
     responses_for,
 )
 
-
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 __all__ = ["router", "get_current_user"]
 
