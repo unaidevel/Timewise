@@ -36,10 +36,6 @@ def _rule_to_dto(model: OvertimeRuleModel) -> OvertimeRuleOut:
 
 
 class CostingRepository:
-    # -------------------------------------------------------------------------
-    # Overtime rules
-    # -------------------------------------------------------------------------
-
     @staticmethod
     def create_rule(
         entity: OvertimeRuleEntity,
@@ -157,10 +153,6 @@ class CostingRepository:
         model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
         return _rule_to_dto(model)
 
-    # -------------------------------------------------------------------------
-    # Cross-module queries (read-only from other modules' models)
-    # -------------------------------------------------------------------------
-
     @staticmethod
     def get_employee_hourly_rate(employee_id: int) -> Decimal | None:
         assignment = EmployeeRoleModel.objects.filter(
@@ -181,10 +173,6 @@ class CostingRepository:
                 "date", "id"
             )
         ]
-
-    # -------------------------------------------------------------------------
-    # Cost calculations
-    # -------------------------------------------------------------------------
 
     @staticmethod
     def save_calculations(

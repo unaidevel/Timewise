@@ -31,7 +31,7 @@ def create_rule(
     payload: OvertimeRuleIn,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.create_rule(tenant_id, payload, user_id=current_user.id)
+    return CostingService.create_rule(tenant_id, payload, current_user.id)
 
 
 @router.get(
@@ -44,9 +44,7 @@ def list_rules(
     current_user: CurrentUser,
     active_only: bool = Query(default=False),
 ) -> list[OvertimeRuleOut]:
-    return CostingService.list_rules(
-        tenant_id, user_id=current_user.id, active_only=active_only
-    )
+    return CostingService.list_rules(tenant_id, current_user.id, active_only)
 
 
 @router.get(
@@ -59,7 +57,7 @@ def get_rule(
     rule_id: int,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.get_rule(tenant_id, rule_id, user_id=current_user.id)
+    return CostingService.get_rule(tenant_id, rule_id, current_user.id)
 
 
 @router.put(
@@ -73,9 +71,7 @@ def update_rule(
     payload: OvertimeRuleUpdate,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.update_rule(
-        tenant_id, rule_id, payload, user_id=current_user.id
-    )
+    return CostingService.update_rule(tenant_id, rule_id, payload, current_user.id)
 
 
 @router.delete(
@@ -88,7 +84,7 @@ def deactivate_rule(
     rule_id: int,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.deactivate_rule(tenant_id, rule_id, user_id=current_user.id)
+    return CostingService.deactivate_rule(tenant_id, rule_id, current_user.id)
 
 
 @router.post(
@@ -101,9 +97,7 @@ def calculate_report_cost(
     report_id: int,
     current_user: CurrentUser,
 ) -> ReportCostSummaryOut:
-    return CostingService.calculate_report_cost(
-        tenant_id, report_id, user_id=current_user.id
-    )
+    return CostingService.calculate_report_cost(tenant_id, report_id, current_user.id)
 
 
 @router.get(
@@ -117,5 +111,5 @@ def list_report_calculations(
     current_user: CurrentUser,
 ) -> list[HourCostBreakdownOut]:
     return CostingService.list_report_calculations(
-        tenant_id, report_id, user_id=current_user.id
+        tenant_id, report_id, current_user.id
     )

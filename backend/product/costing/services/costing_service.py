@@ -11,7 +11,7 @@ from product.costing.dtos.dtos import (
 )
 from product.costing.entities.costing_entities import OvertimeRuleEntity
 from product.costing.repositories.costing_repository import CostingRepository
-from product.costing.services.rules_evaluator import (
+from product.costing.utils.rules_evaluator import (
     ConditionSpec,
     EntryContext,
     RulesEvaluator,
