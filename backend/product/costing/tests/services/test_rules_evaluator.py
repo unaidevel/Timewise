@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from product.costing.services.rules_evaluator import (
+from product.costing.utils.rules_evaluator import (
     ConditionSpec,
     EntryContext,
     RulesEvaluator,
