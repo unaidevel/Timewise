@@ -205,7 +205,7 @@ class EmployeeServiceTests(TestCase):
     def test_create_employee_raises_if_email_already_exists(self):
         WorkforceService.create_employee(self.tenant.id, self._employee_payload())
 
-        with pytest.raises(Conflict, match="alice@example.com"):
+        with pytest.raises(Conflict, match=r"alice@example\.com"):
             WorkforceService.create_employee(self.tenant.id, self._employee_payload())
 
     def test_create_employee_raises_if_department_not_found(self):

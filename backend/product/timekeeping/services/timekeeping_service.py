@@ -144,15 +144,17 @@ class TimekeepingService:
             raise UnprocessableEntity("Cannot submit an empty report.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
-            new_status=TimeReportStatus.SUBMITTED,
+            new_status=str(TimeReportStatus.SUBMITTED),
             updated_by_id=user_id,
             submitted_at=timezone.now(),
         )
+        if result is None:
+            raise NotFound(f"Time report {report_id} not found.")
         if user_id is not None:
             TimekeepingRepository.create_status_history(
                 report_id,
                 from_status=report.status,
-                to_status=TimeReportStatus.SUBMITTED,
+                to_status=str(TimeReportStatus.SUBMITTED),
                 changed_by_id=user_id,
             )
         return result
@@ -172,14 +174,16 @@ class TimekeepingService:
             raise Conflict(f"Cannot approve report in status '{report.status}'.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
-            new_status=TimeReportStatus.APPROVED,
+            new_status=str(TimeReportStatus.APPROVED),
             updated_by_id=user_id,
             approved_at=timezone.now(),
         )
+        if result is None:
+            raise NotFound(f"Time report {report_id} not found.")
         TimekeepingRepository.create_status_history(
             report_id,
             from_status=report.status,
-            to_status=TimeReportStatus.APPROVED,
+            to_status=str(TimeReportStatus.APPROVED),
             changed_by_id=user_id,
         )
         return result
@@ -202,15 +206,17 @@ class TimekeepingService:
             raise Conflict(f"Cannot reject report in status '{report.status}'.")
         result = TimekeepingRepository.update_time_report_status(
             report_id,
-            new_status=TimeReportStatus.REJECTED,
+            new_status=str(TimeReportStatus.REJECTED),
             updated_by_id=user_id,
             rejection_reason=payload.reason,
             rejected_at=timezone.now(),
         )
+        if result is None:
+            raise NotFound(f"Time report {report_id} not found.")
         TimekeepingRepository.create_status_history(
             report_id,
             from_status=report.status,
-            to_status=TimeReportStatus.REJECTED,
+            to_status=str(TimeReportStatus.REJECTED),
             changed_by_id=user_id,
             reason=payload.reason,
         )
@@ -308,9 +314,12 @@ class TimekeepingService:
                     TimekeepingRepository.create_entry_change_history(
                         entry_id, field_name, old_val, new_val, user_id
                     )
-        return TimekeepingRepository.update_time_entry(
+        result = TimekeepingRepository.update_time_entry(
             entry_id, new_entity, updated_by_id=user_id
         )
+        if result is None:
+            raise NotFound(f"Time entry {entry_id} not found.")
+        return result
 
     @any_employee
     @staticmethod

@@ -32,7 +32,8 @@ class OvertimeRuleEntity:
     def _validate_multiplier(value: Decimal) -> Decimal:
         if value < Decimal("1.0"):
             raise UnprocessableEntity("Multiplier must be at least 1.0.")
-        if value.as_tuple().exponent < -2:
+        exponent = value.as_tuple().exponent
+        if isinstance(exponent, int) and exponent < -2:
             raise UnprocessableEntity(
                 "Multiplier cannot have more than 2 decimal places."
             )

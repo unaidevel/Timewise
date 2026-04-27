@@ -11,6 +11,7 @@ from infra.common.exceptions.http_exceptions import (
 from infra.common.exceptions.responses import STATUS_RESPONSES, responses_for
 
 __all__ = [
+    "STATUS_RESPONSES",
     "AppHTTPException",
     "BadRequest",
     "Conflict",
@@ -19,6 +20,5 @@ __all__ = [
     "TooManyRequests",
     "Unauthorized",
     "UnprocessableEntity",
-    "STATUS_RESPONSES",
     "responses_for",
 ]

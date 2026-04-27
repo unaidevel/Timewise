@@ -51,7 +51,8 @@ class TimeEntryEntity:
             raise UnprocessableEntity("Hours must be greater than zero.")
         if value > Decimal("24"):
             raise UnprocessableEntity("Hours cannot exceed 24 per day.")
-        if abs(value.as_tuple().exponent) > 2:
+        exponent = value.as_tuple().exponent
+        if isinstance(exponent, int) and abs(exponent) > 2:
             raise UnprocessableEntity("Hours cannot have more than 2 decimal places.")
         return value
 

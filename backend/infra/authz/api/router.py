@@ -4,7 +4,6 @@ from fastapi.security import HTTPAuthorizationCredentials
 from infra.authz.api.dependencies import (
     CurrentUser,
     bearer_security,
-    get_current_user,
 )
 from infra.authz.dtos.dtos import (
     LoginRequest,
@@ -24,7 +23,6 @@ from infra.common.exceptions import (
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-__all__ = ["router", "get_current_user"]
 
 
 def _get_client_ip(request: Request) -> str:

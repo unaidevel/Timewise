@@ -15,6 +15,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.6.0",
     "pytest>=9.0.3",
     "pytest-cov>=6.0.0",
     "ruff>=0.15.10",
@@ -25,11 +27,16 @@ line-length = 88
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "F",  # pyflakes
-    "I",  # isort — ordena imports
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort — imports ordening
+    "B",    # flake8-bugbear — detects common bugs
+    "SIM",  # flake8-simplify — simplify complex code
+    "UP",   # pyupgrade — modernize syntax automatically
+    "TCH",  # flake8-type-checking — Moves imports to  TYPE_CHECKING blocks
+    "RUF",  # ruff rules
 ]
-ignore = ["E501"]  # line too long — los strings largos son inevitables
+ignore = ["E501", "RUF012", "B008"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -41,3 +48,29 @@ omit = [
     "*/migrations/*",
     "manage.py",
 ]
+
+[tool.coverage.report]
+fail_under = 70
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+exclude = [
+    "\\.venv",
+    "migrations",
+    "manage\\.py",
+    "staticfiles",
+    "tests",
+]
+# Adoptado incrementalmente — solo módulos listos
+files = [
+    "infra",
+    "shared",
+    "api",
+    "product",
+]
+# Flags razonables sin strict total para no bloquear el desarrollo
+disallow_untyped_defs = false
+warn_return_any = false
+warn_unused_ignores = true
+no_implicit_optional = true

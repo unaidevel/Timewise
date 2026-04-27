@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, status
 
@@ -8,7 +8,7 @@ from infra.common.classes import MembershipRoles
 from infra.tenants.models import TenantMembershipModel
 
 
-def require_role(*roles: MembershipRoles) -> type:
+def require_role(*roles: MembershipRoles) -> Any:
     def _check(tenant_id: int, user: CurrentUser) -> AuthUser:
         membership = TenantMembershipModel.objects.filter(
             tenant_id=tenant_id,

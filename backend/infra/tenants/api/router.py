@@ -51,9 +51,9 @@ def add_member(
     current_user: CurrentUser,
 ) -> TenantMemberResponse:
     return TenantService.add_member(
-        tenant_id=tenant_id,
-        payload=payload,
-        invited_by_id=current_user.id,
+        tenant_id,
+        payload,
+        current_user.id,
     )
 
 
@@ -74,11 +74,11 @@ def list_members(tenant_id: int, _: CurrentUser) -> list[TenantMemberResponse]:
 def remove_member(
     tenant_id: int,
     membership_id: int,
+    _: CurrentUser,
     reason: str = "",
-    _: CurrentUser = None,
 ) -> TenantMemberResponse:
     return TenantService.remove_member(
-        tenant_id=tenant_id,
-        membership_id=membership_id,
-        reason=reason,
+        tenant_id,
+        membership_id,
+        reason,
     )
