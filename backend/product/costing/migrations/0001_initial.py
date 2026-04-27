@@ -5,85 +5,194 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('authz', '0001_initial'),
-        ('tenants', '0002_rename_tenant_memb_tenant__8fff4e_idx_tenants_ten_tenant__322a4c_idx_and_more'),
-        ('timekeeping', '0004_rename_timekeeping_tenant__4b3396_idx_timekeeping_tenant__2dd9e7_idx_and_more'),
-        ('workforce', '0005_rename_workforce_d_departm_140051_idx_workforce_d_departm_cd93ad_idx_and_more'),
+        ("authz", "0001_initial"),
+        (
+            "tenants",
+            "0002_rename_tenant_memb_tenant__8fff4e_idx_tenants_ten_tenant__322a4c_idx_and_more",
+        ),
+        (
+            "timekeeping",
+            "0004_rename_timekeeping_tenant__4b3396_idx_timekeeping_tenant__2dd9e7_idx_and_more",
+        ),
+        (
+            "workforce",
+            "0005_rename_workforce_d_departm_140051_idx_workforce_d_departm_cd93ad_idx_and_more",
+        ),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OvertimeRuleModel',
+            name="OvertimeRuleModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=200)),
-                ('multiplier', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('priority', models.PositiveSmallIntegerField(default=0)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_overtime_rules', to='authz.authusermodel')),
-                ('tenant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='overtime_rules', to='tenants.tenantmodel')),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='updated_overtime_rules', to='authz.authusermodel')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=200)),
+                ("multiplier", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("priority", models.PositiveSmallIntegerField(default=0)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_overtime_rules",
+                        to="authz.authusermodel",
+                    ),
+                ),
+                (
+                    "tenant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="overtime_rules",
+                        to="tenants.tenantmodel",
+                    ),
+                ),
+                (
+                    "updated_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="updated_overtime_rules",
+                        to="authz.authusermodel",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'costing_OvertimeRule',
+                "db_table": "costing_OvertimeRule",
             },
         ),
         migrations.CreateModel(
-            name='RuleConditionModel',
+            name="RuleConditionModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('condition_type', models.CharField(choices=[('hours_exceeded', 'Hours Exceeded'), ('weekly_hours_exceeded', 'Weekly Hours Exceeded'), ('day_of_week', 'Day of Week'), ('time_range', 'Time Range'), ('is_holiday', 'Is Holiday')], max_length=30)),
-                ('value', models.CharField(max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('rule', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='conditions', to='costing.overtimerulemodel')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                (
+                    "condition_type",
+                    models.CharField(
+                        choices=[
+                            ("hours_exceeded", "Hours Exceeded"),
+                            ("weekly_hours_exceeded", "Weekly Hours Exceeded"),
+                            ("day_of_week", "Day of Week"),
+                            ("time_range", "Time Range"),
+                            ("is_holiday", "Is Holiday"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("value", models.CharField(max_length=100)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "rule",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="conditions",
+                        to="costing.overtimerulemodel",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'costing_RuleCondition',
+                "db_table": "costing_RuleCondition",
             },
         ),
         migrations.CreateModel(
-            name='CostCalculationModel',
+            name="CostCalculationModel",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('applied_rule_name', models.CharField(blank=True, default='', max_length=200)),
-                ('multiplier', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('base_hours', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('overtime_hours', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('base_cost', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('total_cost', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('calculated_at', models.DateTimeField(auto_now_add=True)),
-                ('calculated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cost_calculations', to='authz.authusermodel')),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cost_calculations', to='workforce.employeemodel')),
-                ('tenant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cost_calculations', to='tenants.tenantmodel')),
-                ('time_entry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cost_calculation', to='timekeeping.timeentrymodel')),
-                ('time_report', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cost_calculations', to='timekeeping.timereportmodel')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                (
+                    "applied_rule_name",
+                    models.CharField(blank=True, default="", max_length=200),
+                ),
+                ("multiplier", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("base_hours", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("overtime_hours", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("base_cost", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("total_cost", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("calculated_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "calculated_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="cost_calculations",
+                        to="authz.authusermodel",
+                    ),
+                ),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="cost_calculations",
+                        to="workforce.employeemodel",
+                    ),
+                ),
+                (
+                    "tenant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cost_calculations",
+                        to="tenants.tenantmodel",
+                    ),
+                ),
+                (
+                    "time_entry",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cost_calculation",
+                        to="timekeeping.timeentrymodel",
+                    ),
+                ),
+                (
+                    "time_report",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="cost_calculations",
+                        to="timekeeping.timereportmodel",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'costing_CostCalculation',
-                'indexes': [models.Index(fields=['tenant', 'time_report'], name='costing_Cos_tenant__1098a7_idx')],
-                'constraints': [models.UniqueConstraint(fields=('time_entry',), name='unique_calculation_per_entry')],
+                "db_table": "costing_CostCalculation",
+                "indexes": [
+                    models.Index(
+                        fields=["tenant", "time_report"],
+                        name="costing_Cos_tenant__1098a7_idx",
+                    )
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("time_entry",), name="unique_calculation_per_entry"
+                    )
+                ],
             },
         ),
         migrations.AddIndex(
-            model_name='overtimerulemodel',
-            index=models.Index(fields=['tenant', 'is_active'], name='costing_Ove_tenant__d14720_idx'),
+            model_name="overtimerulemodel",
+            index=models.Index(
+                fields=["tenant", "is_active"], name="costing_Ove_tenant__d14720_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='overtimerulemodel',
-            index=models.Index(fields=['tenant', 'priority'], name='costing_Ove_tenant__cdea96_idx'),
+            model_name="overtimerulemodel",
+            index=models.Index(
+                fields=["tenant", "priority"], name="costing_Ove_tenant__cdea96_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='overtimerulemodel',
-            constraint=models.UniqueConstraint(fields=('tenant', 'name'), name='unique_overtime_rule_name_per_tenant'),
+            model_name="overtimerulemodel",
+            constraint=models.UniqueConstraint(
+                fields=("tenant", "name"), name="unique_overtime_rule_name_per_tenant"
+            ),
         ),
         migrations.AddIndex(
-            model_name='ruleconditionmodel',
-            index=models.Index(fields=['rule', 'condition_type'], name='costing_Rul_rule_id_6fcceb_idx'),
+            model_name="ruleconditionmodel",
+            index=models.Index(
+                fields=["rule", "condition_type"], name="costing_Rul_rule_id_6fcceb_idx"
+            ),
         ),
     ]

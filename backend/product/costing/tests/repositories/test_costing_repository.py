@@ -33,7 +33,9 @@ def make_tenant(user_id: int, slug: str = "acme"):
 
 
 def make_employee(tenant_id: int, email: str = "emp@example.com"):
-    dept = WorkforceService.create_department(tenant_id, DepartmentIn(name=f"Dept-{email}"))
+    dept = WorkforceService.create_department(
+        tenant_id, DepartmentIn(name=f"Dept-{email}")
+    )
     role = WorkforceService.create_role(tenant_id, RoleIn(name=f"Role-{email}"))
     return WorkforceService.create_employee(
         tenant_id,
@@ -156,9 +158,7 @@ class CostingRepositoryRulesTests(TestCase):
             self.tenant.id,
         )
         new_conditions = [{"condition_type": "is_holiday", "value": "true"}]
-        updated = CostingRepository.update_rule(
-            created.id, conditions=new_conditions
-        )
+        updated = CostingRepository.update_rule(created.id, conditions=new_conditions)
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "is_holiday"
 
@@ -167,9 +167,7 @@ class CostingRepositoryRulesTests(TestCase):
         created = CostingRepository.create_rule(
             entity, weekend_conditions(), self.tenant.id
         )
-        updated = CostingRepository.update_rule(
-            created.id, name="Updated Name"
-        )
+        updated = CostingRepository.update_rule(created.id, name="Updated Name")
         assert updated.name == "Updated Name"
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "day_of_week"

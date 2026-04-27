@@ -43,7 +43,9 @@ def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
 
 
 def make_employee(tenant_id: int, email: str = "emp@example.com"):
-    dept = WorkforceService.create_department(tenant_id, DepartmentIn(name=f"Dept-{email}"))
+    dept = WorkforceService.create_department(
+        tenant_id, DepartmentIn(name=f"Dept-{email}")
+    )
     role = WorkforceService.create_role(tenant_id, RoleIn(name=f"Role-{email}"))
     return WorkforceService.create_employee(
         tenant_id,
@@ -62,7 +64,9 @@ def make_employee(tenant_id: int, email: str = "emp@example.com"):
 def make_approved_report(tenant_id: int, employee_id: int, user_id: int):
     period = TimekeepingService.create_period(
         tenant_id,
-        PeriodIn(name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+        PeriodIn(
+            name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+        ),
         user_id,
     )
     report = TimekeepingService.create_time_report(
@@ -180,9 +184,7 @@ class CostingServiceCalculationTests(TestCase):
         self.employee = make_employee(self.tenant.id)
 
     def test_calculate_report_raises_not_found_for_wrong_tenant(self):
-        approved = make_approved_report(
-            self.tenant.id, self.employee.id, self.user.id
-        )
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, "other")
         add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
@@ -195,7 +197,9 @@ class CostingServiceCalculationTests(TestCase):
     def test_calculate_report_raises_conflict_for_wrong_status(self):
         period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+            PeriodIn(
+                name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            ),
             self.user.id,
         )
         report = TimekeepingService.create_time_report(
@@ -210,9 +214,7 @@ class CostingServiceCalculationTests(TestCase):
             )
 
     def test_calculate_returns_correct_totals_with_no_rules(self):
-        approved = make_approved_report(
-            self.tenant.id, self.employee.id, self.user.id
-        )
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
         summary = CostingService.calculate_report_cost(
             self.tenant.id, approved.id, user_id=self.user.id
         )
@@ -250,9 +252,7 @@ class CostingServiceCalculationTests(TestCase):
         assert summary.total_cost == Decimal("240.00")
 
     def test_calculate_is_idempotent(self):
-        approved = make_approved_report(
-            self.tenant.id, self.employee.id, self.user.id
-        )
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
         CostingService.calculate_report_cost(
             self.tenant.id, approved.id, user_id=self.user.id
         )

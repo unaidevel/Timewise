@@ -12,7 +12,9 @@ class OvertimeRuleEntity:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "name", self._validate_name(self.name))
-        object.__setattr__(self, "multiplier", self._validate_multiplier(self.multiplier))
+        object.__setattr__(
+            self, "multiplier", self._validate_multiplier(self.multiplier)
+        )
         object.__setattr__(self, "priority", self._validate_priority(self.priority))
 
     @staticmethod

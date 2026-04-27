@@ -23,7 +23,9 @@ from product.workforce.api import router as workforce_router
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
 
 
-def build_request(path: str = "/api/v1/auth/login", client_host: str = "127.0.0.1") -> Request:
+def build_request(
+    path: str = "/api/v1/auth/login", client_host: str = "127.0.0.1"
+) -> Request:
     return Request(
         {
             "type": "http",
@@ -50,7 +52,9 @@ class CostingApiTests(TestCase):
         return get_current_user(credentials)
 
     def setUp(self):
-        self.user = self._authenticate_user(email="owner@example.com", full_name="Owner")
+        self.user = self._authenticate_user(
+            email="owner@example.com", full_name="Owner"
+        )
         self.tenant = tenants_router.create_tenant(
             TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
         )
@@ -85,7 +89,9 @@ class CostingApiTests(TestCase):
     def _create_approved_report(self):
         period = timekeeping_router.create_period(
             self.tenant.id,
-            PeriodIn(name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+            PeriodIn(
+                name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            ),
             self.user,
         )
         report = timekeeping_router.create_time_report(
@@ -101,7 +107,9 @@ class CostingApiTests(TestCase):
             self.user,
         )
         timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
-        return timekeeping_router.approve_time_report(self.tenant.id, report.id, self.user)
+        return timekeeping_router.approve_time_report(
+            self.tenant.id, report.id, self.user
+        )
 
     # --- Auth ---
 

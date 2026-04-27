@@ -9,7 +9,14 @@ from product.costing.models import (
 
 @admin.register(OvertimeRuleModel)
 class OvertimeRuleAdmin(admin.ModelAdmin):
-    list_display = ("name", "tenant", "multiplier", "priority", "is_active", "created_at")
+    list_display = (
+        "name",
+        "tenant",
+        "multiplier",
+        "priority",
+        "is_active",
+        "created_at",
+    )
     search_fields = ("name", "tenant__slug")
     list_filter = ("is_active",)
 

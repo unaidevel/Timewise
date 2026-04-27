@@ -80,8 +80,7 @@ class RulesEvaluator:
         holidays: set[date],
     ) -> bool:
         return all(
-            self._condition_matches(cond, entry, holidays)
-            for cond in rule.conditions
+            self._condition_matches(cond, entry, holidays) for cond in rule.conditions
         )
 
     def _condition_matches(

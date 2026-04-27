@@ -86,7 +86,9 @@ def list_time_reports_for_period(
     period_id: int,
     current_user: CurrentUser,
 ) -> list[TimeReportOut]:
-    return TimekeepingService.list_time_reports(tenant_id, current_user.id, period_id=period_id)
+    return TimekeepingService.list_time_reports(
+        tenant_id, current_user.id, period_id=period_id
+    )
 
 
 @router.get(
@@ -94,7 +96,9 @@ def list_time_reports_for_period(
     response_model=TimeReportOut,
     responses=responses_for(NotFound),
 )
-def get_time_report(tenant_id: int, report_id: int, current_user: CurrentUser) -> TimeReportOut:
+def get_time_report(
+    tenant_id: int, report_id: int, current_user: CurrentUser
+) -> TimeReportOut:
     return TimekeepingService.get_time_report(tenant_id, report_id, current_user.id)
 
 

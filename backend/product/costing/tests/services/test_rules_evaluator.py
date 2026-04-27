@@ -14,9 +14,9 @@ from product.costing.services.rules_evaluator import (
     RulesEvaluator,
 )
 
-SATURDAY = date(2025, 1, 4)   # isoweekday() == 6
-SUNDAY = date(2025, 1, 5)     # isoweekday() == 7
-MONDAY = date(2025, 1, 6)     # isoweekday() == 1
+SATURDAY = date(2025, 1, 4)  # isoweekday() == 6
+SUNDAY = date(2025, 1, 5)  # isoweekday() == 7
+MONDAY = date(2025, 1, 6)  # isoweekday() == 1
 HOLIDAY = date(2025, 12, 25)
 
 RATE = Decimal("20.00")
@@ -183,7 +183,7 @@ class RulesEvaluatorTests(SimpleTestCase):
         result = self.evaluator.evaluate(entry, RATE, [], holidays=set())
         assert result.multiplier == Decimal("1.00")
         assert result.applied_rule_name == ""
-        assert result.base_cost == Decimal("160.00")   # 8h * 20
+        assert result.base_cost == Decimal("160.00")  # 8h * 20
         assert result.total_cost == Decimal("160.00")
         assert result.overtime_hours == Decimal("0.00")
 
@@ -215,7 +215,7 @@ class RulesEvaluatorTests(SimpleTestCase):
         rule = make_rule(condition_type="day_of_week", value="6,7", multiplier="1.50")
         entry = make_entry(d=SATURDAY, hours=Decimal("8.00"))
         result = self.evaluator.evaluate(entry, RATE, [rule], holidays=set())
-        assert result.base_cost == Decimal("160.00")   # 8 * 20
+        assert result.base_cost == Decimal("160.00")  # 8 * 20
         assert result.total_cost == Decimal("240.00")  # 160 * 1.5
         assert result.base_hours == Decimal("8.00")
         assert result.overtime_hours == Decimal("8.00")

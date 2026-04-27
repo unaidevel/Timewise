@@ -4,36 +4,53 @@ from decimal import Decimal
 import pytest
 
 from infra.common.exceptions import UnprocessableEntity
-from product.timekeeping.entities.timekeeping_entities import PeriodEntity, TimeEntryEntity
+from product.timekeeping.entities.timekeeping_entities import (
+    PeriodEntity,
+    TimeEntryEntity,
+)
 
 
 class TestPeriodEntity:
     def test_strips_whitespace_from_name(self):
-        entity = PeriodEntity(name="  Q1 2025  ", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+        entity = PeriodEntity(
+            name="  Q1 2025  ", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+        )
         assert entity.name == "Q1 2025"
 
     def test_raises_on_blank_name(self):
         with pytest.raises(UnprocessableEntity, match="cannot be blank"):
-            PeriodEntity(name="   ", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+            PeriodEntity(
+                name="   ", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            )
 
     def test_raises_on_name_exceeding_100_chars(self):
         with pytest.raises(UnprocessableEntity, match="100 characters"):
-            PeriodEntity(name="x" * 101, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+            PeriodEntity(
+                name="x" * 101, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            )
 
     def test_accepts_name_exactly_100_chars(self):
-        entity = PeriodEntity(name="x" * 100, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+        entity = PeriodEntity(
+            name="x" * 100, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+        )
         assert len(entity.name) == 100
 
     def test_raises_when_end_date_before_start_date(self):
         with pytest.raises(UnprocessableEntity, match="after start date"):
-            PeriodEntity(name="Q1", start_date=date(2025, 3, 31), end_date=date(2025, 1, 1))
+            PeriodEntity(
+                name="Q1", start_date=date(2025, 3, 31), end_date=date(2025, 1, 1)
+            )
 
     def test_raises_when_end_date_equals_start_date(self):
         with pytest.raises(UnprocessableEntity, match="after start date"):
-            PeriodEntity(name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 1, 1))
+            PeriodEntity(
+                name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 1, 1)
+            )
 
     def test_accepts_valid_dates(self):
-        entity = PeriodEntity(name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+        entity = PeriodEntity(
+            name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+        )
         assert entity.start_date == date(2025, 1, 1)
         assert entity.end_date == date(2025, 3, 31)
 

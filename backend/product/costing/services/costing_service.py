@@ -81,8 +81,12 @@ class CostingService:
         if payload.name is not None:
             entity = OvertimeRuleEntity(
                 name=payload.name,
-                multiplier=payload.multiplier if payload.multiplier is not None else rule.multiplier,
-                priority=payload.priority if payload.priority is not None else rule.priority,
+                multiplier=payload.multiplier
+                if payload.multiplier is not None
+                else rule.multiplier,
+                priority=payload.priority
+                if payload.priority is not None
+                else rule.priority,
             )
             name = entity.name
             duplicate = CostingRepository.find_rule_by_name(tenant_id, name)
@@ -94,8 +98,12 @@ class CostingService:
             # Validate multiplier/priority even when name is not changing
             OvertimeRuleEntity(
                 name=rule.name,
-                multiplier=payload.multiplier if payload.multiplier is not None else rule.multiplier,
-                priority=payload.priority if payload.priority is not None else rule.priority,
+                multiplier=payload.multiplier
+                if payload.multiplier is not None
+                else rule.multiplier,
+                priority=payload.priority
+                if payload.priority is not None
+                else rule.priority,
             )
 
         conditions = None

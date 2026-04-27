@@ -33,7 +33,9 @@ def make_user(email: str = "owner@example.com"):
 
 
 def make_tenant(user_id: int, slug: str = "acme"):
-    return TenantService.create(TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id)
+    return TenantService.create(
+        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+    )
 
 
 def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
@@ -46,7 +48,9 @@ def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
 
 
 def make_employee(tenant_id: int, email: str = "emp@example.com"):
-    dept = WorkforceService.create_department(tenant_id, DepartmentIn(name=f"Dept-{email}"))
+    dept = WorkforceService.create_department(
+        tenant_id, DepartmentIn(name=f"Dept-{email}")
+    )
     role = WorkforceService.create_role(tenant_id, RoleIn(name=f"Role-{email}"))
     return WorkforceService.create_employee(
         tenant_id,
@@ -69,7 +73,9 @@ class PeriodServiceTests(TestCase):
         add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
 
     def _period(self, name: str = "Q1 2025", **kwargs):
-        defaults = dict(name=name, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31))
+        defaults = dict(
+            name=name, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+        )
         return PeriodIn(**{**defaults, **kwargs})
 
     def test_create_period_normalizes_name(self):
@@ -83,14 +89,22 @@ class PeriodServiceTests(TestCase):
     def test_create_period_raises_on_duplicate_name(self):
         TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
         with pytest.raises(Conflict, match="Q1 2025"):
-            TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
+            TimekeepingService.create_period(
+                self.tenant.id, self._period(), self.user.id
+            )
 
     def test_create_period_raises_on_overlapping_dates(self):
-        TimekeepingService.create_period(self.tenant.id, self._period("Q1"), self.user.id)
+        TimekeepingService.create_period(
+            self.tenant.id, self._period("Q1"), self.user.id
+        )
         with pytest.raises(Conflict, match="overlaps"):
             TimekeepingService.create_period(
                 self.tenant.id,
-                self._period("Q1-partial", start_date=date(2025, 2, 1), end_date=date(2025, 4, 30)),
+                self._period(
+                    "Q1-partial",
+                    start_date=date(2025, 2, 1),
+                    end_date=date(2025, 4, 30),
+                ),
                 self.user.id,
             )
 
@@ -98,10 +112,14 @@ class PeriodServiceTests(TestCase):
         employee = make_user("emp@example.com")
         add_member(self.tenant.id, employee.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
-            TimekeepingService.create_period(self.tenant.id, self._period(), employee.id)
+            TimekeepingService.create_period(
+                self.tenant.id, self._period(), employee.id
+            )
 
     def test_get_period_returns_period(self):
-        created = TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
+        created = TimekeepingService.create_period(
+            self.tenant.id, self._period(), self.user.id
+        )
         found = TimekeepingService.get_period(self.tenant.id, created.id, self.user.id)
         assert found.id == created.id
 
@@ -113,26 +131,34 @@ class PeriodServiceTests(TestCase):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
         add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
-        period = TimekeepingService.create_period(other_tenant.id, self._period(), other_user.id)
+        period = TimekeepingService.create_period(
+            other_tenant.id, self._period(), other_user.id
+        )
         with pytest.raises(NotFound):
             TimekeepingService.get_period(self.tenant.id, period.id, self.user.id)
 
     def test_list_periods_returns_all_for_tenant(self):
         TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+            PeriodIn(
+                name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            ),
             self.user.id,
         )
         TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(name="Q2", start_date=date(2025, 4, 1), end_date=date(2025, 6, 30)),
+            PeriodIn(
+                name="Q2", start_date=date(2025, 4, 1), end_date=date(2025, 6, 30)
+            ),
             self.user.id,
         )
         periods = TimekeepingService.list_periods(self.tenant.id, self.user.id)
         assert len(periods) == 2
 
     def test_list_periods_filters_by_status(self):
-        period = TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
+        period = TimekeepingService.create_period(
+            self.tenant.id, self._period(), self.user.id
+        )
         TimekeepingService.lock_period(self.tenant.id, period.id, self.user.id)
 
         open_periods = TimekeepingService.list_periods(
@@ -146,14 +172,18 @@ class PeriodServiceTests(TestCase):
         assert len(locked_periods) == 1
 
     def test_lock_period_changes_status_to_locked(self):
-        period = TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
+        period = TimekeepingService.create_period(
+            self.tenant.id, self._period(), self.user.id
+        )
         locked = TimekeepingService.lock_period(self.tenant.id, period.id, self.user.id)
         assert locked.status == PeriodStatus.LOCKED
         assert locked.locked_at is not None
         assert locked.locked_by_id == self.user.id
 
     def test_lock_period_raises_if_already_locked(self):
-        period = TimekeepingService.create_period(self.tenant.id, self._period(), self.user.id)
+        period = TimekeepingService.create_period(
+            self.tenant.id, self._period(), self.user.id
+        )
         TimekeepingService.lock_period(self.tenant.id, period.id, self.user.id)
         with pytest.raises(Conflict, match="already locked"):
             TimekeepingService.lock_period(self.tenant.id, period.id, self.user.id)
@@ -171,7 +201,9 @@ class TimeReportServiceTests(TestCase):
         self.employee = make_employee(self.tenant.id)
         self.period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+            PeriodIn(
+                name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            ),
             self.user.id,
         )
 
@@ -185,7 +217,10 @@ class TimeReportServiceTests(TestCase):
 
     def test_create_time_report(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         assert report.employee_id == self.employee.id
         assert report.period_id == self.period.id
@@ -203,7 +238,10 @@ class TimeReportServiceTests(TestCase):
 
     def test_create_time_report_raises_on_duplicate(self):
         TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         with pytest.raises(Conflict):
             TimekeepingService.create_time_report(
@@ -215,9 +253,14 @@ class TimeReportServiceTests(TestCase):
 
     def test_get_time_report_returns_report(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
-        found = TimekeepingService.get_time_report(self.tenant.id, report.id, self.user.id)
+        found = TimekeepingService.get_time_report(
+            self.tenant.id, report.id, self.user.id
+        )
         assert found.id == report.id
 
     def test_get_time_report_raises_if_not_found(self):
@@ -227,10 +270,16 @@ class TimeReportServiceTests(TestCase):
     def test_list_time_reports_for_period(self):
         emp2 = make_employee(self.tenant.id, "emp2@example.com")
         TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=emp2.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=emp2.id),
+            self.user.id,
         )
         reports = TimekeepingService.list_time_reports(
             self.tenant.id, self.user.id, period_id=self.period.id
@@ -239,60 +288,93 @@ class TimeReportServiceTests(TestCase):
 
     def test_submit_time_report_requires_entries(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         with pytest.raises(UnprocessableEntity, match="empty"):
-            TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
+            TimekeepingService.submit_time_report(
+                self.tenant.id, report.id, self.user.id
+            )
 
     def test_submit_time_report_changes_status(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
-        submitted = TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
+        submitted = TimekeepingService.submit_time_report(
+            self.tenant.id, report.id, self.user.id
+        )
         assert submitted.status == TimeReportStatus.SUBMITTED
         assert submitted.submitted_at is not None
 
     def test_submit_time_report_raises_if_already_submitted(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
         with pytest.raises(Conflict, match="status"):
-            TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
+            TimekeepingService.submit_time_report(
+                self.tenant.id, report.id, self.user.id
+            )
 
     def test_approve_time_report(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
-        approved = TimekeepingService.approve_time_report(self.tenant.id, report.id, self.user.id)
+        approved = TimekeepingService.approve_time_report(
+            self.tenant.id, report.id, self.user.id
+        )
         assert approved.status == TimeReportStatus.APPROVED
         assert approved.approved_at is not None
 
     def test_approve_time_report_raises_if_not_submitted(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         with pytest.raises(Conflict, match="status"):
-            TimekeepingService.approve_time_report(self.tenant.id, report.id, self.user.id)
+            TimekeepingService.approve_time_report(
+                self.tenant.id, report.id, self.user.id
+            )
 
     def test_approve_time_report_raises_on_insufficient_permissions(self):
         employee_user = make_user("employee@example.com")
         add_member(self.tenant.id, employee_user.id, MembershipRoles.EMPLOYEE)
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
         with pytest.raises(Forbidden):
-            TimekeepingService.approve_time_report(self.tenant.id, report.id, employee_user.id)
+            TimekeepingService.approve_time_report(
+                self.tenant.id, report.id, employee_user.id
+            )
 
     def test_reject_time_report(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
@@ -308,7 +390,10 @@ class TimeReportServiceTests(TestCase):
 
     def test_reject_time_report_raises_if_not_submitted(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         with pytest.raises(Conflict, match="status"):
             TimekeepingService.reject_time_report(
@@ -317,23 +402,33 @@ class TimeReportServiceTests(TestCase):
 
     def test_submit_creates_status_history_entry(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
-        history = TimekeepingService.list_report_history(self.tenant.id, report.id, self.user.id)
+        history = TimekeepingService.list_report_history(
+            self.tenant.id, report.id, self.user.id
+        )
         assert len(history) == 1
         assert history[0].from_status == TimeReportStatus.DRAFT
         assert history[0].to_status == TimeReportStatus.SUBMITTED
 
     def test_approve_creates_status_history_entry(self):
         report = TimekeepingService.create_time_report(
-            self.tenant.id, self.period.id, TimeReportIn(employee_id=self.employee.id), self.user.id
+            self.tenant.id,
+            self.period.id,
+            TimeReportIn(employee_id=self.employee.id),
+            self.user.id,
         )
         self._add_entry(report.id)
         TimekeepingService.submit_time_report(self.tenant.id, report.id, self.user.id)
         TimekeepingService.approve_time_report(self.tenant.id, report.id, self.user.id)
-        history = TimekeepingService.list_report_history(self.tenant.id, report.id, self.user.id)
+        history = TimekeepingService.list_report_history(
+            self.tenant.id, report.id, self.user.id
+        )
         assert len(history) == 2
         assert history[-1].to_status == TimeReportStatus.APPROVED
 
@@ -346,7 +441,9 @@ class TimeEntryServiceTests(TestCase):
         self.employee = make_employee(self.tenant.id)
         period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)),
+            PeriodIn(
+                name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
+            ),
             self.user.id,
         )
         self.report = TimekeepingService.create_time_report(
@@ -374,7 +471,9 @@ class TimeEntryServiceTests(TestCase):
             TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
-        TimekeepingService.submit_time_report(self.tenant.id, self.report.id, self.user.id)
+        TimekeepingService.submit_time_report(
+            self.tenant.id, self.report.id, self.user.id
+        )
         with pytest.raises(UnprocessableEntity, match="status"):
             TimekeepingService.create_time_entry(
                 self.tenant.id,
@@ -396,7 +495,9 @@ class TimeEntryServiceTests(TestCase):
             TimeEntryIn(date=date(2025, 1, 16), hours=Decimal("6")),
             self.user.id,
         )
-        entries = TimekeepingService.list_time_entries(self.tenant.id, self.report.id, self.user.id)
+        entries = TimekeepingService.list_time_entries(
+            self.tenant.id, self.report.id, self.user.id
+        )
         assert len(entries) == 2
 
     def test_update_time_entry_changes_hours(self):
@@ -416,7 +517,9 @@ class TimeEntryServiceTests(TestCase):
         assert updated.hours == Decimal("6")
 
     def test_update_time_entry_creates_change_history(self):
-        from product.timekeeping.repositories.timekeeping_repository import TimekeepingRepository
+        from product.timekeeping.repositories.timekeeping_repository import (
+            TimekeepingRepository,
+        )
 
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
@@ -444,7 +547,9 @@ class TimeEntryServiceTests(TestCase):
             TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
-        TimekeepingService.submit_time_report(self.tenant.id, self.report.id, self.user.id)
+        TimekeepingService.submit_time_report(
+            self.tenant.id, self.report.id, self.user.id
+        )
         with pytest.raises(UnprocessableEntity, match="status"):
             TimekeepingService.update_time_entry(
                 self.tenant.id,
@@ -464,7 +569,9 @@ class TimeEntryServiceTests(TestCase):
         TimekeepingService.delete_time_entry(
             self.tenant.id, self.report.id, entry.id, self.user.id
         )
-        entries = TimekeepingService.list_time_entries(self.tenant.id, self.report.id, self.user.id)
+        entries = TimekeepingService.list_time_entries(
+            self.tenant.id, self.report.id, self.user.id
+        )
         assert len(entries) == 0
 
     def test_delete_time_entry_raises_if_report_not_draft(self):
@@ -474,7 +581,9 @@ class TimeEntryServiceTests(TestCase):
             TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
-        TimekeepingService.submit_time_report(self.tenant.id, self.report.id, self.user.id)
+        TimekeepingService.submit_time_report(
+            self.tenant.id, self.report.id, self.user.id
+        )
         with pytest.raises(UnprocessableEntity, match="status"):
             TimekeepingService.delete_time_entry(
                 self.tenant.id, self.report.id, entry.id, self.user.id
