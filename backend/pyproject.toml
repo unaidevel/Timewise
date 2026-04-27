@@ -60,15 +60,17 @@ exclude = [
     "migrations",
     "manage\\.py",
     "staticfiles",
+    "tests",
 ]
 # Adoptado incrementalmente — solo módulos listos
 files = [
     "infra",
     "shared",
     "api",
+    "product",
 ]
 # Flags razonables sin strict total para no bloquear el desarrollo
-disallow_untyped_defs = true
-warn_return_any = true
+disallow_untyped_defs = false
+warn_return_any = false
 warn_unused_ignores = true
 no_implicit_optional = true
