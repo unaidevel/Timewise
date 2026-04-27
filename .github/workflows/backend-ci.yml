@@ -62,7 +62,7 @@ jobs:
 
       - name: Run architecture tests
         working-directory: backend
-        run: uv run pytest infra/common/test_architecture.py
+        run: uv run pytest infra/common/testing/test_architecture.py
 
   test:
     name: Test
