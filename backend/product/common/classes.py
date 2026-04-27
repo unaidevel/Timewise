@@ -13,3 +13,11 @@ class TimeReportStatus(models.TextChoices):
     APPROVED = "approved", "Approved"
     REJECTED = "rejected", "Rejected"
     LOCKED = "locked", "Locked"
+
+
+class OvertimeConditionType(models.TextChoices):
+    HOURS_EXCEEDED = "hours_exceeded", "Hours Exceeded"
+    WEEKLY_HOURS_EXCEEDED = "weekly_hours_exceeded", "Weekly Hours Exceeded"
+    DAY_OF_WEEK = "day_of_week", "Day of Week"
+    TIME_RANGE = "time_range", "Time Range"
+    IS_HOLIDAY = "is_holiday", "Is Holiday"
