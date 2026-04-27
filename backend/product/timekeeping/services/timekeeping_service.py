@@ -282,7 +282,7 @@ class TimekeepingService:
         if not entry or entry.report_id != report_id:
             raise NotFound(f"Time entry {entry_id} not found.")
         new_entity = TimeEntryEntity(
-            date=payload.date,
+            date=payload.date_ if payload.date_ is not None else entry.date,
             hours=payload.hours,
             start_time=payload.start_time,
             end_time=payload.end_time,

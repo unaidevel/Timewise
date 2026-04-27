@@ -44,14 +44,14 @@ def list_periods(
     current_user: CurrentUser,
     status: str | None = Query(default=None),
 ) -> list[PeriodOut]:
-    return TimekeepingService.list_periods(tenant_id, status)
+    return TimekeepingService.list_periods(tenant_id, current_user.id, status)
 
 
 @router.get(
     "/periods/{period_id}", response_model=PeriodOut, responses=responses_for(NotFound)
 )
 def get_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> PeriodOut:
-    return TimekeepingService.get_period(tenant_id, period_id)
+    return TimekeepingService.get_period(tenant_id, period_id, current_user.id)
 
 
 @router.post(
@@ -84,9 +84,9 @@ def create_time_report(
 def list_time_reports_for_period(
     tenant_id: int,
     period_id: int,
-    _: CurrentUser,
+    current_user: CurrentUser,
 ) -> list[TimeReportOut]:
-    return TimekeepingService.list_time_reports(tenant_id, period_id=period_id)
+    return TimekeepingService.list_time_reports(tenant_id, current_user.id, period_id=period_id)
 
 
 @router.get(
@@ -94,8 +94,8 @@ def list_time_reports_for_period(
     response_model=TimeReportOut,
     responses=responses_for(NotFound),
 )
-def get_time_report(tenant_id: int, report_id: int, _: CurrentUser) -> TimeReportOut:
-    return TimekeepingService.get_time_report(tenant_id, report_id)
+def get_time_report(tenant_id: int, report_id: int, current_user: CurrentUser) -> TimeReportOut:
+    return TimekeepingService.get_time_report(tenant_id, report_id, current_user.id)
 
 
 @router.post(
@@ -146,9 +146,9 @@ def reject_time_report(
     responses=responses_for(NotFound),
 )
 def list_report_history(
-    tenant_id: int, report_id: int, _: CurrentUser
+    tenant_id: int, report_id: int, current_user: CurrentUser
 ) -> list[TimeReportStatusHistoryOut]:
-    return TimekeepingService.list_report_history(tenant_id, report_id)
+    return TimekeepingService.list_report_history(tenant_id, report_id, current_user.id)
 
 
 @router.post(
@@ -174,9 +174,9 @@ def create_time_entry(
     responses=responses_for(NotFound),
 )
 def list_time_entries(
-    tenant_id: int, report_id: int, _: CurrentUser
+    tenant_id: int, report_id: int, current_user: CurrentUser
 ) -> list[TimeEntryOut]:
-    return TimekeepingService.list_time_entries(tenant_id, report_id)
+    return TimekeepingService.list_time_entries(tenant_id, report_id, current_user.id)
 
 
 @router.put(

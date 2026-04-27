@@ -263,3 +263,12 @@ class TimekeepingRepository:
             changed_by_id=changed_by_id,
         )
         return TimeEntryChangeHistoryOut.model_validate(model)
+
+    @staticmethod
+    def list_entry_change_history(entry_id: int) -> list[TimeEntryChangeHistoryOut]:
+        return [
+            TimeEntryChangeHistoryOut.model_validate(m)
+            for m in TimeEntryChangeHistoryModel.objects.filter(
+                entry_id=entry_id
+            ).order_by("changed_at")
+        ]
