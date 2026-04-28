@@ -1,33 +1,32 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class CreateApprovalRequest(BaseModel):
-    title: str = Field(min_length=1, max_length=200)
-    description: str = Field(default="", max_length=2000)
+class RejectApprovalRequest(BaseModel):
+    reason: str = Field(default="", max_length=2000)
 
 
-class UpdateApprovalRequest(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=200)
-    description: str | None = Field(default=None, max_length=2000)
-    status: str | None = Field(default=None, min_length=1, max_length=20)
-
-    @model_validator(mode="after")
-    def validate_has_updates(self) -> "UpdateApprovalRequest":
-        if self.title is None and self.description is None and self.status is None:
-            raise ValueError("At least one field must be provided.")
-
-        return self
-
-
-class ApprovalResponse(BaseModel):
+class ReportApprovalResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    title: str
-    description: str
+    tenant_id: int
+    report_id: int
     status: str
-    created_by_user_id: int
+    reviewer_id: int | None
+    reviewed_at: datetime | None
+    created_by_id: int | None
     created_at: datetime
     updated_at: datetime
+
+
+class ReportApprovalEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    approval_id: int
+    action: str
+    actor_id: int
+    reason: str
+    actioned_at: datetime

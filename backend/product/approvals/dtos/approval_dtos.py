@@ -3,11 +3,23 @@ from datetime import datetime
 
 
 @dataclass(slots=True, frozen=True)
-class Approval:
+class ReportApproval:
     id: int
-    title: str
-    description: str
+    tenant_id: int
+    report_id: int
     status: str
-    created_by_user_id: int
+    reviewer_id: int | None
+    reviewed_at: datetime | None
+    created_by_id: int | None
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass(slots=True, frozen=True)
+class ReportApprovalEvent:
+    id: int
+    approval_id: int
+    action: str
+    actor_id: int
+    reason: str
+    actioned_at: datetime

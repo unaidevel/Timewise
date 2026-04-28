@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 
 from infra.authz.api.dependencies import CurrentUser
 from infra.common.exceptions import (
@@ -12,6 +12,9 @@ from product.approvals.dtos.dtos import (
     RejectApprovalRequest,
     ReportApprovalEventResponse,
     ReportApprovalResponse,
+)
+from product.approvals.orchestrators.approvals_orchestrator import (
+    ApprovalsOrchestrator,
 )
 from product.approvals.services.approvals_service import ApprovalsService
 
@@ -29,7 +32,7 @@ def submit_report_for_approval(
     report_id: int,
     current_user: CurrentUser,
 ) -> ReportApprovalResponse:
-    return ApprovalsService.submit_report_for_approval(
+    return ApprovalsOrchestrator.submit_report_for_approval(
         tenant_id, report_id, current_user.id
     )
 
@@ -44,7 +47,7 @@ def approve_report(
     approval_id: int,
     current_user: CurrentUser,
 ) -> ReportApprovalResponse:
-    return ApprovalsService.approve_report(tenant_id, approval_id, current_user.id)
+    return ApprovalsOrchestrator.approve_report(tenant_id, approval_id, current_user.id)
 
 
 @router.post(
@@ -58,7 +61,7 @@ def reject_report(
     payload: RejectApprovalRequest,
     current_user: CurrentUser,
 ) -> ReportApprovalResponse:
-    return ApprovalsService.reject_report(
+    return ApprovalsOrchestrator.reject_report(
         tenant_id, approval_id, payload, current_user.id
     )
 
@@ -71,9 +74,7 @@ def reject_report(
 def list_approvals(
     tenant_id: int,
     current_user: CurrentUser,
-    status: str | None = Query(
-        default=None
-    ),  # Optional query parameter to filter by approval status
+    status: str | None = None,
 ) -> list[ReportApprovalResponse]:
     return ApprovalsService.list_approvals(tenant_id, current_user.id, status)
 
