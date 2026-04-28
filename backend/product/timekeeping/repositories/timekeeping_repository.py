@@ -6,6 +6,7 @@ from product.timekeeping.dtos.dtos import (
     TimeEntryChangeHistoryOut,
     TimeEntryOut,
     TimeReportOut,
+    TimeReportStatus,
     TimeReportStatusHistoryOut,
 )
 from product.timekeeping.entities.timekeeping_entities import (
@@ -110,9 +111,13 @@ class TimekeepingRepository:
         return TimeReportOut.model_validate(model)
 
     @staticmethod
-    def get_time_report_by_id(report_id: int) -> TimeReportOut | None:
-        model = TimeReportModel.objects.filter(id=report_id).first()
-        return TimeReportOut.model_validate(model) if model else None
+    def get_report_status(report_id: int) -> TimeReportStatus | None:
+        status = (
+            TimeReportModel.objects.filter(id=report_id)
+            .values_list("status", flat=True)
+            .first()
+        )
+        return TimeReportStatus(status) if status else None
 
     @staticmethod
     def list_time_reports(

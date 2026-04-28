@@ -19,7 +19,7 @@ class ApprovalsOrchestrator:
         report_id: int,
         user_id: int,
     ) -> ReportApproval:
-        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        report = TimekeepingService.get_report_status(tenant_id, report_id, user_id)
         if report.status != TimeReportStatus.DRAFT:
             raise Conflict(f"Cannot submit a report in status '{report.status}'.")
 

@@ -5,8 +5,6 @@ from decimal import Decimal
 
 from infra.common.exceptions import UnprocessableEntity
 
-_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
-
 
 @dataclass(frozen=True, slots=True)
 class DepartmentEntity:
@@ -66,6 +64,7 @@ class EmployeeEntity:
     @staticmethod
     def _validate_email(value: str) -> str:
         clean = value.strip().lower()
+        _EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
         if not _EMAIL_RE.match(clean):
             raise UnprocessableEntity(f"Invalid email address: '{value}'.")
         return clean

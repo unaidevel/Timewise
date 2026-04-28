@@ -31,6 +31,13 @@ class TimeReportIn(BaseModel):
     employee_id: int
 
 
+class TimeReportStatus(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    status: str
+    tenant_id: int
+
+
 class TimeReportOut(TimeReportIn):
     model_config = ConfigDict(from_attributes=True)
 
