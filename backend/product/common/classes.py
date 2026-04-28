@@ -15,6 +15,18 @@ class TimeReportStatus(models.TextChoices):
     LOCKED = "locked", "Locked"
 
 
+class ApprovalStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    APPROVED = "approved", "Approved"
+    REJECTED = "rejected", "Rejected"
+
+
+class ApprovalAction(models.TextChoices):
+    SUBMITTED = "submitted", "Submitted"
+    APPROVED = "approved", "Approved"
+    REJECTED = "rejected", "Rejected"
+
+
 class OvertimeConditionType(models.TextChoices):
     HOURS_EXCEEDED = "hours_exceeded", "Hours Exceeded"
     WEEKLY_HOURS_EXCEEDED = "weekly_hours_exceeded", "Weekly Hours Exceeded"
