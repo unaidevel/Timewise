@@ -150,13 +150,12 @@ class TimekeepingService:
         )
         if result is None:
             raise NotFound(f"Time report {report_id} not found.")
-        if user_id is not None:
-            TimekeepingRepository.create_status_history(
-                report_id,
-                from_status=report.status,
-                to_status=str(TimeReportStatus.SUBMITTED),
-                changed_by_id=user_id,
-            )
+        TimekeepingRepository.create_status_history(
+            report_id,
+            from_status=report.status,
+            to_status=str(TimeReportStatus.SUBMITTED),
+            changed_by_id=user_id,
+        )
         return result
 
     @only_manager
