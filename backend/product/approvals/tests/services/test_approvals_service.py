@@ -11,14 +11,9 @@ from infra.common.exceptions import Conflict, Forbidden, NotFound
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.approvals.dtos.dtos import RejectApprovalIn
-from product.approvals.entities.approval_entities import (
-    APPROVAL_STATUS_APPROVED,
-    APPROVAL_STATUS_PENDING,
-    APPROVAL_STATUS_REJECTED,
-)
 from product.approvals.orchestrators.approvals_orchestrator import ApprovalsOrchestrator
 from product.approvals.services.approvals_service import ApprovalsService
-from product.common.classes import TimeReportStatus
+from product.common.classes import ApprovalStatus, TimeReportStatus
 from product.timekeeping.entities.timekeeping_entities import PeriodEntity
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
@@ -118,7 +113,7 @@ class ApprovalsServiceSubmitTests(TestCase):
 
         self.assertEqual(approval.tenant_id, self.tenant.id)
         self.assertEqual(approval.report_id, self.report.id)
-        self.assertEqual(approval.status, APPROVAL_STATUS_PENDING)
+        self.assertEqual(approval.status, ApprovalStatus.PENDING.value)
 
         events = ApprovalsService.list_approval_events(
             self.tenant.id, approval.id, user_id=self.employee_user.id
@@ -197,7 +192,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
             self.tenant.id, self.approval.id, user_id=self.manager_user.id
         )
 
-        self.assertEqual(updated.status, APPROVAL_STATUS_APPROVED)
+        self.assertEqual(updated.status, ApprovalStatus.APPROVED.value)
         self.assertEqual(updated.reviewer_id, self.manager_user.id)
         self.assertIsNotNone(updated.reviewed_at)
 
@@ -217,7 +212,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
             user_id=self.manager_user.id,
         )
 
-        self.assertEqual(updated.status, APPROVAL_STATUS_REJECTED)
+        self.assertEqual(updated.status, ApprovalStatus.REJECTED.value)
         self.assertEqual(updated.reviewer_id, self.manager_user.id)
 
         report = TimekeepingRepository.get_time_report_by_id(self.report.id)
@@ -349,12 +344,14 @@ class ApprovalsServiceListGetTests(TestCase):
         )
 
         pending = ApprovalsService.list_approvals(
-            self.tenant.id, user_id=self.manager_user.id, status=APPROVAL_STATUS_PENDING
+            self.tenant.id,
+            user_id=self.manager_user.id,
+            status=ApprovalStatus.PENDING.value,
         )
         approved = ApprovalsService.list_approvals(
             self.tenant.id,
             user_id=self.manager_user.id,
-            status=APPROVAL_STATUS_APPROVED,
+            status=ApprovalStatus.APPROVED.value,
         )
 
         self.assertEqual(len(pending), 0)

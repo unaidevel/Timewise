@@ -1,12 +1,11 @@
 from datetime import date, datetime
 
-from product.common.classes import PeriodStatus
+from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
     PeriodOut,
     TimeEntryChangeHistoryOut,
     TimeEntryOut,
     TimeReportOut,
-    TimeReportStatus,
     TimeReportStatusHistoryOut,
 )
 from product.timekeeping.entities.timekeeping_entities import (

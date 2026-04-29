@@ -9,13 +9,8 @@ from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
-from product.approvals.entities.approval_entities import (
-    APPROVAL_ACTION_APPROVED,
-    APPROVAL_ACTION_SUBMITTED,
-    APPROVAL_STATUS_APPROVED,
-    APPROVAL_STATUS_PENDING,
-)
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
+from product.common.classes import ApprovalAction, ApprovalStatus
 from product.timekeeping.entities.timekeeping_entities import PeriodEntity
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
@@ -102,7 +97,7 @@ class ApprovalsRepositoryTests(TestCase):
 
         self.assertEqual(approval.tenant_id, self.tenant.id)
         self.assertEqual(approval.report_id, self.report.id)
-        self.assertEqual(approval.status, APPROVAL_STATUS_PENDING)
+        self.assertEqual(approval.status, ApprovalStatus.PENDING.value)
         self.assertIsNone(approval.reviewer_id)
         self.assertIsNone(approval.reviewed_at)
 
@@ -169,15 +164,15 @@ class ApprovalsRepositoryTests(TestCase):
         )
         ApprovalsRepository.update_approval_status(
             approval.id,
-            new_status=APPROVAL_STATUS_APPROVED,
+            new_status=ApprovalStatus.APPROVED.value,
             reviewer_id=self.user.id,
         )
 
         pending = ApprovalsRepository.list_by_tenant(
-            self.tenant.id, status=APPROVAL_STATUS_PENDING
+            self.tenant.id, status=ApprovalStatus.PENDING.value
         )
         approved = ApprovalsRepository.list_by_tenant(
-            self.tenant.id, status=APPROVAL_STATUS_APPROVED
+            self.tenant.id, status=ApprovalStatus.APPROVED.value
         )
 
         self.assertEqual(len(pending), 0)
@@ -193,18 +188,18 @@ class ApprovalsRepositoryTests(TestCase):
 
         updated = ApprovalsRepository.update_approval_status(
             approval.id,
-            new_status=APPROVAL_STATUS_APPROVED,
+            new_status=ApprovalStatus.APPROVED.value,
             reviewer_id=self.user.id,
             reviewed_at=reviewed_at,
         )
 
-        self.assertEqual(updated.status, APPROVAL_STATUS_APPROVED)
+        self.assertEqual(updated.status, ApprovalStatus.APPROVED.value)
         self.assertEqual(updated.reviewer_id, self.user.id)
         self.assertIsNotNone(updated.reviewed_at)
 
     def test_update_approval_status_returns_none_when_not_found(self):
         result = ApprovalsRepository.update_approval_status(
-            99999, new_status=APPROVAL_STATUS_APPROVED
+            99999, new_status=ApprovalStatus.APPROVED.value
         )
         self.assertIsNone(result)
 
@@ -217,12 +212,12 @@ class ApprovalsRepositoryTests(TestCase):
 
         event = ApprovalsRepository.create_event(
             approval_id=approval.id,
-            action=APPROVAL_ACTION_SUBMITTED,
+            action=ApprovalAction.SUBMITTED.value,
             actor_id=self.user.id,
         )
 
         self.assertEqual(event.approval_id, approval.id)
-        self.assertEqual(event.action, APPROVAL_ACTION_SUBMITTED)
+        self.assertEqual(event.action, ApprovalAction.SUBMITTED.value)
         self.assertEqual(event.actor_id, self.user.id)
         self.assertEqual(event.reason, "")
 
@@ -234,17 +229,17 @@ class ApprovalsRepositoryTests(TestCase):
         )
         ApprovalsRepository.create_event(
             approval_id=approval.id,
-            action=APPROVAL_ACTION_SUBMITTED,
+            action=ApprovalAction.SUBMITTED.value,
             actor_id=self.user.id,
         )
         ApprovalsRepository.create_event(
             approval_id=approval.id,
-            action=APPROVAL_ACTION_APPROVED,
+            action=ApprovalAction.APPROVED.value,
             actor_id=self.user.id,
         )
 
         events = ApprovalsRepository.list_events(approval.id)
 
         self.assertEqual(len(events), 2)
-        self.assertEqual(events[0].action, APPROVAL_ACTION_SUBMITTED)
-        self.assertEqual(events[1].action, APPROVAL_ACTION_APPROVED)
+        self.assertEqual(events[0].action, ApprovalAction.SUBMITTED.value)
+        self.assertEqual(events[1].action, ApprovalAction.APPROVED.value)
