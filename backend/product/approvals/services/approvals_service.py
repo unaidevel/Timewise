@@ -36,7 +36,7 @@ class ApprovalsService:
         ApprovalsService.ensure_report_has_no_approval(tenant_id, report_id, user_id)
         approval = ApprovalsRepository.create_approval(tenant_id, report_id, user_id)
         ApprovalsRepository.create_event(
-            approval.id, APPROVAL_ACTION_SUBMITTED, user_id
+            approval.id, APPROVAL_ACTION_SUBMITTED.value, user_id
         )
         return approval
 
@@ -62,7 +62,7 @@ class ApprovalsService:
         approval = ApprovalsRepository.get_by_id(approval_id)
         if not approval:
             raise NotFound(f"Approval {approval_id} not found.")
-        if approval.status != APPROVAL_STATUS_PENDING:
+        if approval.status != APPROVAL_STATUS_PENDING.value:
             raise Conflict(f"Cannot review an approval in status '{approval.status}'.")
         return approval
 
@@ -76,11 +76,14 @@ class ApprovalsService:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            APPROVAL_STATUS_APPROVED,
+            APPROVAL_STATUS_APPROVED.value,
             user_id,
             reviewed_at,
         )
-        ApprovalsRepository.create_event(approval_id, APPROVAL_ACTION_APPROVED, user_id)
+        ApprovalsRepository.create_event(
+            approval_id, APPROVAL_ACTION_APPROVED.value, user_id
+        )
+        assert updated is not None
         return updated
 
     @only_manager
@@ -94,13 +97,14 @@ class ApprovalsService:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            APPROVAL_STATUS_REJECTED,
+            APPROVAL_STATUS_REJECTED.value,
             user_id,
             reviewed_at,
         )
         ApprovalsRepository.create_event(
-            approval_id, APPROVAL_ACTION_REJECTED, user_id, reason
+            approval_id, APPROVAL_ACTION_REJECTED.value, user_id, reason
         )
+        assert updated is not None
         return updated
 
     @any_employee

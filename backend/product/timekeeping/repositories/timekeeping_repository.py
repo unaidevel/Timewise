@@ -44,9 +44,8 @@ class TimekeepingRepository:
 
     @staticmethod
     def get_period_by_id(period_id: int) -> PeriodOut | None:
-        return PeriodOut.model_validate(
-            PeriodModel.objects.filter(id=period_id).first()
-        )
+        model = PeriodModel.objects.filter(id=period_id).first()
+        return PeriodOut.model_validate(model) if model else None
 
     @staticmethod
     def list_periods(tenant_id: int, status: str | None = None) -> list[PeriodOut]:
@@ -57,9 +56,10 @@ class TimekeepingRepository:
 
     @staticmethod
     def find_period_by_name(tenant_id: int, name: str) -> PeriodOut | None:
-        return PeriodOut.model_validate(
-            PeriodModel.objects.filter(tenant_id=tenant_id, name__iexact=name).first()
-        )
+        model = PeriodModel.objects.filter(
+            tenant_id=tenant_id, name__iexact=name
+        ).first()
+        return PeriodOut.model_validate(model) if model else None
 
     @staticmethod
     def find_overlapping_period(
@@ -75,7 +75,8 @@ class TimekeepingRepository:
         )
         if exclude_id is not None:
             qs = qs.exclude(id=exclude_id)
-        return PeriodOut.model_validate(qs.first())
+        model = qs.first()
+        return PeriodOut.model_validate(model) if model else None
 
     @staticmethod
     def lock_period(
@@ -112,17 +113,17 @@ class TimekeepingRepository:
 
     @staticmethod
     def get_time_report_by_id(report_id: int) -> TimeReportOut | None:
-        return TimeReportOut.model_validate(
-            TimeReportModel.objects.filter(id=report_id).first()
-        )
+        model = TimeReportModel.objects.filter(id=report_id).first()
+        return TimeReportOut.model_validate(model) if model else None
 
     @staticmethod
     def get_report_status(report_id: int) -> TimeReportStatus | None:
-        return TimeReportStatus.model_validate(
+        status = (
             TimeReportModel.objects.filter(id=report_id)
             .values_list("status", flat=True)
             .first()
         )
+        return TimeReportStatus(status) if status else None
 
     @staticmethod
     def list_time_reports(
