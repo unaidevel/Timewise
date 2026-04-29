@@ -23,7 +23,7 @@ APPROVAL_ACTION_VALUES = {
 
 
 @dataclass(frozen=True, slots=True)
-class ApprovalReason:
+class EntityApproval:
     value: str
 
     def __post_init__(self) -> None:

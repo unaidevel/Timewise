@@ -3,7 +3,7 @@ from django.db import transaction
 from infra.common.exceptions import Conflict
 from infra.tenants.decorators import any_employee, only_manager
 from product.approvals.dtos.dtos import ApprovalOut, RejectApprovalIn
-from product.approvals.entities.approval_entities import ApprovalReason
+from product.approvals.entities.approval_entities import EntityApproval
 from product.approvals.services.approvals_service import ApprovalsService
 from product.common.classes import TimeReportStatus
 from product.timekeeping.dtos.dtos import RejectReportRequest
@@ -42,11 +42,11 @@ class ApprovalsOrchestrator:
         approval_id: int,
         user_id: int,
     ) -> ApprovalOut:
-        approval = ApprovalsService.get_pending_approval(
-            tenant_id, approval_id, user_id
-        )
 
         with transaction.atomic():
+            approval = ApprovalsService.get_pending_approval(
+                tenant_id, approval_id, user_id
+            )
             TimekeepingService.approve_time_report(
                 tenant_id, approval.report_id, user_id
             )
@@ -60,7 +60,7 @@ class ApprovalsOrchestrator:
         payload: RejectApprovalIn,
         user_id: int,
     ) -> ApprovalOut:
-        reason = ApprovalReason(**payload.model_dump())
+        entity = EntityApproval(**payload.model_dump())
         approval = ApprovalsService.get_pending_approval(
             tenant_id, approval_id, user_id
         )
@@ -69,9 +69,9 @@ class ApprovalsOrchestrator:
             TimekeepingService.reject_time_report(
                 tenant_id,
                 approval.report_id,
-                RejectReportRequest(reason=reason.value),
+                RejectReportRequest(reason=entity.value),
                 user_id,
             )
             return ApprovalsService.reject_approval(
-                tenant_id, approval_id, reason.value, user_id
+                tenant_id, approval_id, entity.value, user_id
             )
