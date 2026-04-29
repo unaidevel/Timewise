@@ -19,8 +19,8 @@ class ApprovalsOrchestrator:
         user_id: int,
     ) -> ApprovalOut:
         report = TimekeepingService.get_report_status(tenant_id, report_id, user_id)
-        if report.status != TimeReportStatus.DRAFT:
-            raise Conflict(f"Cannot submit a report in status '{report.status}'.")
+        if report != TimeReportStatus.DRAFT:
+            raise Conflict(f"Cannot submit a report in status '{report}'.")
 
         entries = TimekeepingService.list_time_entries(tenant_id, report_id, user_id)
         if not entries:
@@ -69,9 +69,9 @@ class ApprovalsOrchestrator:
             TimekeepingService.reject_time_report(
                 tenant_id,
                 approval.report_id,
-                RejectReportRequest(reason=entity.value),
+                RejectReportRequest(reason=entity.reason),
                 user_id,
             )
             return ApprovalsService.reject_approval(
-                tenant_id, approval_id, entity.value, user_id
+                tenant_id, approval_id, entity.reason, user_id
             )

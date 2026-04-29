@@ -28,9 +28,7 @@ class ApprovalsService:
     ) -> ApprovalOut:
         ApprovalsService.ensure_report_has_no_approval(tenant_id, report_id, user_id)
         approval = ApprovalsRepository.create_approval(tenant_id, report_id, user_id)
-        ApprovalsRepository.create_event(
-            approval.id, ApprovalAction.SUBMITTED.value, user_id
-        )
+        ApprovalsRepository.create_event(approval.id, ApprovalAction.SUBMITTED, user_id)
         return approval
 
     @only_manager
@@ -55,7 +53,7 @@ class ApprovalsService:
         approval = ApprovalsRepository.get_by_id(approval_id)
         if not approval:
             raise NotFound(f"Approval {approval_id} not found.")
-        if approval.status != ApprovalStatus.PENDING.value:
+        if approval.status != ApprovalStatus.PENDING:
             raise Conflict(f"Cannot review an approval in status '{approval.status}'.")
         return approval
 
@@ -69,13 +67,11 @@ class ApprovalsService:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            ApprovalStatus.APPROVED.value,
+            ApprovalStatus.APPROVED,
             user_id,
             reviewed_at,
         )
-        ApprovalsRepository.create_event(
-            approval_id, ApprovalAction.APPROVED.value, user_id
-        )
+        ApprovalsRepository.create_event(approval_id, ApprovalAction.APPROVED, user_id)
         assert updated is not None
         return updated
 
@@ -90,12 +86,12 @@ class ApprovalsService:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            ApprovalStatus.REJECTED.value,
+            ApprovalStatus.REJECTED,
             user_id,
             reviewed_at,
         )
         ApprovalsRepository.create_event(
-            approval_id, ApprovalAction.REJECTED.value, user_id, reason
+            approval_id, ApprovalAction.REJECTED, user_id, reason
         )
         assert updated is not None
         return updated
@@ -108,7 +104,7 @@ class ApprovalsService:
         user_id: int,
     ) -> ApprovalOut:
         approval = ApprovalsRepository.get_by_id(approval_id)
-        if not approval:
+        if not approval or approval.tenant_id != tenant_id:
             raise NotFound(f"Approval {approval_id} not found.")
         return approval
 
