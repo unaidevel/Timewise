@@ -121,14 +121,14 @@ class ApprovalsRepositoryTests(TestCase):
     def test_find_by_report_id_returns_none_when_missing(self):
         self.assertIsNone(ApprovalsRepository.find_by_report_id(99999))
 
-    def test_find_by_id_returns_approval(self):
+    def test_get_by_id_returns_approval(self):
         created = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
             created_by_id=self.user.id,
         )
 
-        found = ApprovalsRepository.find_by_id(created.id)
+        found = ApprovalsRepository.get_by_id(created.id)
 
         self.assertIsNotNone(found)
         self.assertEqual(found.id, created.id)

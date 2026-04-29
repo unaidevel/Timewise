@@ -27,15 +27,8 @@ class ApprovalsRepository:
         return ApprovalOut.model_validate(model) if model else None
 
     @staticmethod
-    def find_by_id(approval_id: int) -> ApprovalOut | None:
+    def get_by_id(approval_id: int) -> ApprovalOut | None:
         model = TimeReportApprovalModel.objects.filter(id=approval_id).first()
-        return ApprovalOut.model_validate(model) if model else None
-
-    @staticmethod
-    def get_by_id(tenant_id: int, approval_id: int) -> ApprovalOut | None:
-        model = TimeReportApprovalModel.objects.filter(
-            id=approval_id, tenant_id=tenant_id
-        ).first()
         return ApprovalOut.model_validate(model) if model else None
 
     @staticmethod
@@ -75,13 +68,14 @@ class ApprovalsRepository:
         actor_id: int,
         reason: str = "",
     ) -> ApprovalEventOut:
-        model = TimeReportApprovalEventModel.objects.create(
-            approval_id=approval_id,
-            action=action,
-            actor_id=actor_id,
-            reason=reason,
+        return ApprovalEventOut.model_validate(
+            TimeReportApprovalEventModel.objects.create(
+                approval_id=approval_id,
+                action=action,
+                actor_id=actor_id,
+                reason=reason,
+            )
         )
-        return ApprovalEventOut.model_validate(model)
 
     @staticmethod
     def list_events(approval_id: int) -> list[ApprovalEventOut]:

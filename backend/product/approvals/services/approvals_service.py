@@ -15,13 +15,6 @@ from product.approvals.repositories.approvals_repository import ApprovalsReposit
 
 
 class ApprovalsService:
-    @staticmethod
-    def _fetch(tenant_id: int, approval_id: int) -> ApprovalOut:
-        approval = ApprovalsRepository.get_by_id(tenant_id, approval_id)
-        if not approval:
-            raise NotFound(f"Approval {approval_id} not found.")
-        return approval
-
     @any_employee
     @staticmethod
     def ensure_report_has_no_approval(
@@ -54,7 +47,10 @@ class ApprovalsService:
         approval_id: int,
         user_id: int,
     ) -> ApprovalOut:
-        return ApprovalsService._fetch(tenant_id, approval_id)
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
+        return approval
 
     @only_manager
     @staticmethod
@@ -63,7 +59,9 @@ class ApprovalsService:
         approval_id: int,
         user_id: int,
     ) -> ApprovalOut:
-        approval = ApprovalsService._fetch(tenant_id, approval_id)
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
         if approval.status != APPROVAL_STATUS_PENDING:
             raise Conflict(f"Cannot review an approval in status '{approval.status}'.")
         return approval
@@ -112,7 +110,10 @@ class ApprovalsService:
         approval_id: int,
         user_id: int,
     ) -> ApprovalOut:
-        return ApprovalsService._fetch(tenant_id, approval_id)
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
+        return approval
 
     @any_employee
     @staticmethod
@@ -130,5 +131,6 @@ class ApprovalsService:
         approval_id: int,
         user_id: int,
     ) -> list[ApprovalEventOut]:
-        ApprovalsService._fetch(tenant_id, approval_id)
+        if not ApprovalsRepository.get_by_id(approval_id):
+            raise NotFound(f"Approval {approval_id} not found.")
         return ApprovalsRepository.list_events(approval_id)
