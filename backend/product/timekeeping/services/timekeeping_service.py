@@ -123,7 +123,7 @@ class TimekeepingService:
         tenant_id: int, report_id: int, user_id: int
     ) -> TimeReportStatus:
         status = TimekeepingRepository.get_report_status(report_id)
-        if not status or status.tenant_id != tenant_id:
+        if not status:
             raise NotFound(f"Time report {report_id} not found.")
         return status
 
