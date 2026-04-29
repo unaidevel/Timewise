@@ -111,6 +111,11 @@ class TimekeepingService:
 
     @any_employee
     @staticmethod
+    def get_time_report(tenant_id: int, report_id: int, user_id: int) -> TimeReportOut:
+        return TimekeepingRepository.get_time_report_by_id(report_id)
+
+    @any_employee
+    @staticmethod
     def get_report_status(
         tenant_id: int, report_id: int, user_id: int
     ) -> TimeReportStatus:
