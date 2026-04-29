@@ -48,6 +48,20 @@ class TenantEntity:
 
 
 @dataclass(frozen=True, slots=True)
+class TenantMemberEntity:
+    user_id: int
+    role: str
+
+    def __post_init__(self) -> None:
+        if self.user_id <= 0:
+            raise UnprocessableEntity("user_id must be a positive integer.")
+        if self.role not in _VALID_ROLES:
+            raise UnprocessableEntity(
+                f"Invalid role '{self.role}'. Must be one of: {', '.join(sorted(_VALID_ROLES))}."
+            )
+
+
+@dataclass(frozen=True, slots=True)
 class TenantMembershipEntity:
     role: str
 
