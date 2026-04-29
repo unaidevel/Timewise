@@ -9,9 +9,9 @@ from infra.common.exceptions import (
     responses_for,
 )
 from product.approvals.dtos.dtos import (
-    RejectApprovalRequest,
-    ReportApprovalEventResponse,
-    ReportApprovalResponse,
+    ApprovalEventOut,
+    ApprovalOut,
+    RejectApprovalIn,
 )
 from product.approvals.orchestrators.approvals_orchestrator import (
     ApprovalsOrchestrator,
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["approvals"])
 
 @router.post(
     "/reports/{report_id}/submit",
-    response_model=ReportApprovalResponse,
+    response_model=ApprovalOut,
     responses=responses_for(Forbidden, NotFound, Conflict),
     status_code=status.HTTP_201_CREATED,
 )
@@ -31,7 +31,7 @@ def submit_report_for_approval(
     tenant_id: int,
     report_id: int,
     current_user: CurrentUser,
-) -> ReportApprovalResponse:
+) -> ApprovalOut:
     return ApprovalsOrchestrator.submit_report_for_approval(
         tenant_id, report_id, current_user.id
     )
@@ -39,28 +39,28 @@ def submit_report_for_approval(
 
 @router.post(
     "/approvals/{approval_id}/approve",
-    response_model=ReportApprovalResponse,
+    response_model=ApprovalOut,
     responses=responses_for(Forbidden, NotFound, Conflict),
 )
 def approve_report(
     tenant_id: int,
     approval_id: int,
     current_user: CurrentUser,
-) -> ReportApprovalResponse:
+) -> ApprovalOut:
     return ApprovalsOrchestrator.approve_report(tenant_id, approval_id, current_user.id)
 
 
 @router.post(
     "/approvals/{approval_id}/reject",
-    response_model=ReportApprovalResponse,
+    response_model=ApprovalOut,
     responses=responses_for(Forbidden, NotFound, Conflict, UnprocessableEntity),
 )
 def reject_report(
     tenant_id: int,
     approval_id: int,
-    payload: RejectApprovalRequest,
+    payload: RejectApprovalIn,
     current_user: CurrentUser,
-) -> ReportApprovalResponse:
+) -> ApprovalOut:
     return ApprovalsOrchestrator.reject_report(
         tenant_id, approval_id, payload, current_user.id
     )
@@ -68,40 +68,40 @@ def reject_report(
 
 @router.get(
     "/approvals",
-    response_model=list[ReportApprovalResponse],
+    response_model=list[ApprovalOut],
     responses=responses_for(Forbidden, NotFound),
 )
 def list_approvals(
     tenant_id: int,
     current_user: CurrentUser,
     status: str | None = None,
-) -> list[ReportApprovalResponse]:
+) -> list[ApprovalOut]:
     return ApprovalsService.list_approvals(tenant_id, current_user.id, status)
 
 
 @router.get(
     "/approvals/{approval_id}",
-    response_model=ReportApprovalResponse,
+    response_model=ApprovalOut,
     responses=responses_for(Forbidden, NotFound),
 )
 def get_approval(
     tenant_id: int,
     approval_id: int,
     current_user: CurrentUser,
-) -> ReportApprovalResponse:
+) -> ApprovalOut:
     return ApprovalsService.get_approval(tenant_id, approval_id, current_user.id)
 
 
 @router.get(
     "/approvals/{approval_id}/events",
-    response_model=list[ReportApprovalEventResponse],
+    response_model=list[ApprovalEventOut],
     responses=responses_for(Forbidden, NotFound),
 )
 def list_approval_events(
     tenant_id: int,
     approval_id: int,
     current_user: CurrentUser,
-) -> list[ReportApprovalEventResponse]:
+) -> list[ApprovalEventOut]:
     return ApprovalsService.list_approval_events(
         tenant_id, approval_id, current_user.id
     )

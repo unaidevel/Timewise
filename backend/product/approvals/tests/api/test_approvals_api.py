@@ -13,7 +13,7 @@ from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
 from infra.tenants.api import router as tenants_router
 from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn
 from product.approvals.api import router as approvals_router
-from product.approvals.dtos.dtos import RejectApprovalRequest
+from product.approvals.dtos.dtos import RejectApprovalIn
 from product.timekeeping.api import router as timekeeping_router
 from product.timekeeping.dtos.dtos import PeriodIn, TimeEntryIn, TimeReportIn
 from product.workforce.api import router as workforce_router
@@ -164,7 +164,7 @@ class ApprovalsApiTests(TestCase):
         updated = approvals_router.reject_report(
             self.tenant.id,
             approval.id,
-            RejectApprovalRequest(reason="Missing Thursday"),
+            RejectApprovalIn(reason="Missing Thursday"),
             current_user=self.manager,
         )
 
@@ -178,7 +178,7 @@ class ApprovalsApiTests(TestCase):
             approvals_router.reject_report(
                 self.tenant.id,
                 approval.id,
-                RejectApprovalRequest(reason="Bad data"),
+                RejectApprovalIn(reason="Bad data"),
                 current_user=self.employee_user,
             )
 

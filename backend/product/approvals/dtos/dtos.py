@@ -3,11 +3,11 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class RejectApprovalRequest(BaseModel):
+class RejectApprovalIn(BaseModel):
     reason: str = Field(default="", max_length=2000)
 
 
-class ReportApprovalResponse(BaseModel):
+class ApprovalOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -21,7 +21,7 @@ class ReportApprovalResponse(BaseModel):
     updated_at: datetime
 
 
-class ReportApprovalEventResponse(BaseModel):
+class ApprovalEventOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int

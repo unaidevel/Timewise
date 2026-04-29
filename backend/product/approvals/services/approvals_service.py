@@ -2,7 +2,7 @@ from django.utils import timezone
 
 from infra.common.exceptions import Conflict, NotFound
 from infra.tenants.decorators import any_employee, only_manager
-from product.approvals.dtos.approval_dtos import ReportApproval, ReportApprovalEvent
+from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
 from product.approvals.entities.approval_entities import (
     APPROVAL_ACTION_APPROVED,
     APPROVAL_ACTION_REJECTED,
@@ -10,12 +10,18 @@ from product.approvals.entities.approval_entities import (
     APPROVAL_STATUS_APPROVED,
     APPROVAL_STATUS_PENDING,
     APPROVAL_STATUS_REJECTED,
-    ApprovalReason,
 )
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
 
 
 class ApprovalsService:
+    @staticmethod
+    def _fetch(tenant_id: int, approval_id: int) -> ApprovalOut:
+        approval = ApprovalsRepository.get_by_id(tenant_id, approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
+        return approval
+
     @any_employee
     @staticmethod
     def ensure_report_has_no_approval(
@@ -33,17 +39,11 @@ class ApprovalsService:
         tenant_id: int,
         report_id: int,
         user_id: int,
-    ) -> ReportApproval:
+    ) -> ApprovalOut:
         ApprovalsService.ensure_report_has_no_approval(tenant_id, report_id, user_id)
-        approval = ApprovalsRepository.create_approval(
-            tenant_id=tenant_id,
-            report_id=report_id,
-            created_by_id=user_id,
-        )
+        approval = ApprovalsRepository.create_approval(tenant_id, report_id, user_id)
         ApprovalsRepository.create_event(
-            approval_id=approval.id,
-            action=APPROVAL_ACTION_SUBMITTED,
-            actor_id=user_id,
+            approval.id, APPROVAL_ACTION_SUBMITTED, user_id
         )
         return approval
 
@@ -53,11 +53,8 @@ class ApprovalsService:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> ReportApproval:
-        approval = ApprovalsRepository.get_by_id(tenant_id, approval_id)
-        if not approval or approval.tenant_id != tenant_id:
-            raise NotFound(f"Approval {approval_id} not found.")
-        return approval
+    ) -> ApprovalOut:
+        return ApprovalsService._fetch(tenant_id, approval_id)
 
     @only_manager
     @staticmethod
@@ -65,10 +62,8 @@ class ApprovalsService:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> ReportApproval:
-        approval = ApprovalsRepository.get_by_id(approval_id)
-        if not approval or approval.tenant_id != tenant_id:
-            raise NotFound(f"Approval {approval_id} not found.")
+    ) -> ApprovalOut:
+        approval = ApprovalsService._fetch(tenant_id, approval_id)
         if approval.status != APPROVAL_STATUS_PENDING:
             raise Conflict(f"Cannot review an approval in status '{approval.status}'.")
         return approval
@@ -79,22 +74,15 @@ class ApprovalsService:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> ReportApproval:
-        ApprovalsService.get_pending_approval(tenant_id, approval_id, user_id)
+    ) -> ApprovalOut:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            new_status=APPROVAL_STATUS_APPROVED,
-            reviewer_id=user_id,
-            reviewed_at=reviewed_at,
+            APPROVAL_STATUS_APPROVED,
+            user_id,
+            reviewed_at,
         )
-        if not updated:
-            raise NotFound(f"Approval {approval_id} not found.")
-        ApprovalsRepository.create_event(
-            approval_id=approval_id,
-            action=APPROVAL_ACTION_APPROVED,
-            actor_id=user_id,
-        )
+        ApprovalsRepository.create_event(approval_id, APPROVAL_ACTION_APPROVED, user_id)
         return updated
 
     @only_manager
@@ -104,28 +92,16 @@ class ApprovalsService:
         approval_id: int,
         reason: str,
         user_id: int,
-    ) -> ReportApproval:
-        clean_reason = ApprovalReason(reason).value
-        approval = ApprovalsRepository.find_by_id(approval_id)
-        if not approval or approval.tenant_id != tenant_id:
-            raise NotFound(f"Approval {approval_id} not found.")
-        if approval.status != APPROVAL_STATUS_PENDING:
-            raise Conflict(f"Cannot reject an approval in status '{approval.status}'.")
-
+    ) -> ApprovalOut:
         reviewed_at = timezone.now()
         updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            new_status=APPROVAL_STATUS_REJECTED,
-            reviewer_id=user_id,
-            reviewed_at=reviewed_at,
+            APPROVAL_STATUS_REJECTED,
+            user_id,
+            reviewed_at,
         )
-        if not updated:
-            raise NotFound(f"Approval {approval_id} not found.")
         ApprovalsRepository.create_event(
-            approval_id=approval_id,
-            action=APPROVAL_ACTION_REJECTED,
-            actor_id=user_id,
-            reason=clean_reason,
+            approval_id, APPROVAL_ACTION_REJECTED, user_id, reason
         )
         return updated
 
@@ -135,11 +111,8 @@ class ApprovalsService:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> ReportApproval:
-        approval = ApprovalsRepository.find_by_id(approval_id)
-        if not approval or approval.tenant_id != tenant_id:
-            raise NotFound(f"Approval {approval_id} not found.")
-        return approval
+    ) -> ApprovalOut:
+        return ApprovalsService._fetch(tenant_id, approval_id)
 
     @any_employee
     @staticmethod
@@ -147,8 +120,8 @@ class ApprovalsService:
         tenant_id: int,
         user_id: int,
         status: str | None = None,
-    ) -> list[ReportApproval]:
-        return ApprovalsRepository.list_by_tenant(tenant_id, status=status)
+    ) -> list[ApprovalOut]:
+        return ApprovalsRepository.list_by_tenant(tenant_id, status)
 
     @any_employee
     @staticmethod
@@ -156,8 +129,6 @@ class ApprovalsService:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> list[ReportApprovalEvent]:
-        approval = ApprovalsRepository.find_by_id(approval_id)
-        if not approval or approval.tenant_id != tenant_id:
-            raise NotFound(f"Approval {approval_id} not found.")
+    ) -> list[ApprovalEventOut]:
+        ApprovalsService._fetch(tenant_id, approval_id)
         return ApprovalsRepository.list_events(approval_id)

@@ -2,8 +2,7 @@ from django.db import transaction
 
 from infra.common.exceptions import Conflict
 from infra.tenants.decorators import any_employee, only_manager
-from product.approvals.dtos.approval_dtos import ReportApproval
-from product.approvals.dtos.dtos import RejectApprovalRequest
+from product.approvals.dtos.dtos import ApprovalOut, RejectApprovalIn
 from product.approvals.entities.approval_entities import ApprovalReason
 from product.approvals.services.approvals_service import ApprovalsService
 from product.common.classes import TimeReportStatus
@@ -18,7 +17,7 @@ class ApprovalsOrchestrator:
         tenant_id: int,
         report_id: int,
         user_id: int,
-    ) -> ReportApproval:
+    ) -> ApprovalOut:
         report = TimekeepingService.get_report_status(tenant_id, report_id, user_id)
         if report.status != TimeReportStatus.DRAFT:
             raise Conflict(f"Cannot submit a report in status '{report.status}'.")
@@ -42,7 +41,7 @@ class ApprovalsOrchestrator:
         tenant_id: int,
         approval_id: int,
         user_id: int,
-    ) -> ReportApproval:
+    ) -> ApprovalOut:
         approval = ApprovalsService.get_pending_approval(
             tenant_id, approval_id, user_id
         )
@@ -58,10 +57,10 @@ class ApprovalsOrchestrator:
     def reject_report(
         tenant_id: int,
         approval_id: int,
-        payload: RejectApprovalRequest,
+        payload: RejectApprovalIn,
         user_id: int,
-    ) -> ReportApproval:
-        clean_reason = ApprovalReason(payload.reason).value
+    ) -> ApprovalOut:
+        reason = ApprovalReason(**payload.model_dump())
         approval = ApprovalsService.get_pending_approval(
             tenant_id, approval_id, user_id
         )
@@ -70,9 +69,9 @@ class ApprovalsOrchestrator:
             TimekeepingService.reject_time_report(
                 tenant_id,
                 approval.report_id,
-                RejectReportRequest(reason=clean_reason),
+                RejectReportRequest(reason=reason.value),
                 user_id,
             )
             return ApprovalsService.reject_approval(
-                tenant_id, approval_id, clean_reason, user_id
+                tenant_id, approval_id, reason.value, user_id
             )

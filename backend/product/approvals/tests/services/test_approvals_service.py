@@ -10,7 +10,7 @@ from infra.common.classes import MembershipRoles
 from infra.common.exceptions import Conflict, Forbidden, NotFound
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
-from product.approvals.dtos.dtos import RejectApprovalRequest
+from product.approvals.dtos.dtos import RejectApprovalIn
 from product.approvals.entities.approval_entities import (
     APPROVAL_STATUS_APPROVED,
     APPROVAL_STATUS_PENDING,
@@ -213,7 +213,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
         updated = ApprovalsOrchestrator.reject_report(
             self.tenant.id,
             self.approval.id,
-            RejectApprovalRequest(reason="Missing entries"),
+            RejectApprovalIn(reason="Missing entries"),
             user_id=self.manager_user.id,
         )
 
@@ -244,7 +244,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
         ApprovalsOrchestrator.reject_report(
             self.tenant.id,
             self.approval.id,
-            RejectApprovalRequest(reason="Bad data"),
+            RejectApprovalIn(reason="Bad data"),
             user_id=self.manager_user.id,
         )
 
@@ -252,7 +252,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
             ApprovalsOrchestrator.reject_report(
                 self.tenant.id,
                 self.approval.id,
-                RejectApprovalRequest(reason="Again"),
+                RejectApprovalIn(reason="Again"),
                 user_id=self.manager_user.id,
             )
 
@@ -267,7 +267,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
             ApprovalsOrchestrator.reject_report(
                 self.tenant.id,
                 self.approval.id,
-                RejectApprovalRequest(reason="Nope"),
+                RejectApprovalIn(reason="Nope"),
                 user_id=self.employee_user.id,
             )
 
@@ -291,7 +291,7 @@ class ApprovalsServiceApproveRejectTests(TestCase):
         ApprovalsOrchestrator.reject_report(
             self.tenant.id,
             self.approval.id,
-            RejectApprovalRequest(reason="  Too many gaps  "),
+            RejectApprovalIn(reason="  Too many gaps  "),
             user_id=self.manager_user.id,
         )
 
