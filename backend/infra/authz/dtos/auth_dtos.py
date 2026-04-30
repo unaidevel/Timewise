@@ -16,12 +16,15 @@ class AuthUser:
 class AuthToken:
     id: int
     user: AuthUser
+    family_id: str
     token_hash: str
     expires_at: datetime
     refresh_token_hash: str
     refresh_expires_at: datetime
     revoked_at: datetime | None
     created_at: datetime
+    client_ip: str
+    user_agent: str
 
 
 @dataclass(slots=True, frozen=True)
@@ -32,3 +35,9 @@ class AuthSession:
     expires_at: datetime
     refresh_expires_at: datetime
     user: AuthUser
+
+
+@dataclass(slots=True, frozen=True)
+class ClientContext:
+    ip: str
+    user_agent: str

@@ -5,6 +5,8 @@ from django.core.validators import validate_email
 
 from infra.common.exceptions import UnprocessableEntity
 
+EMAIL_MAX_LENGTH = 254
+
 
 @dataclass(frozen=True, slots=True)
 class Email:
@@ -12,6 +14,8 @@ class Email:
 
     def __post_init__(self) -> None:
         normalized_email = self.value.strip().lower()
+        if len(normalized_email) > EMAIL_MAX_LENGTH:
+            raise UnprocessableEntity("Email is too long.")
         try:
             validate_email(normalized_email)
         except DjangoValidationError as exc:
