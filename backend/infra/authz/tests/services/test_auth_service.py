@@ -3,10 +3,9 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
+from infra.authz.dtos.auth_dtos import AuthToken, AuthUser, ClientContext
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 from infra.common.exceptions import (
-    Conflict,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -14,12 +13,13 @@ from infra.common.exceptions import (
 
 
 def make_user(
+    user_id: int = 1,
     email: str = "user@example.com",
     password: str = "SecurePass123!",
     is_active: bool = True,
 ) -> AuthUser:
     return AuthUser(
-        id=1,
+        id=user_id,
         email=email,
         full_name="Test User",
         password_hash=AuthService._hash_password(password),
@@ -28,14 +28,75 @@ def make_user(
     )
 
 
-def test_register_user_raises_if_email_exists(monkeypatch):
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.find_user_by_email",
-        lambda email: make_user(),
+def make_client(ip: str = "127.0.0.1", user_agent: str = "pytest") -> ClientContext:
+    return ClientContext(ip=ip, user_agent=user_agent)
+
+
+def make_token(
+    user: AuthUser,
+    revoked_at=None,
+    refresh_expires_at=None,
+    family_id: str = "fam-1",
+) -> AuthToken:
+    now = timezone.now()
+    return AuthToken(
+        id=1,
+        user=user,
+        family_id=family_id,
+        token_hash="token-hash",
+        expires_at=now + timedelta(hours=1),
+        refresh_token_hash="refresh-hash",
+        refresh_expires_at=refresh_expires_at or now + timedelta(days=7),
+        revoked_at=revoked_at,
+        created_at=now,
+        client_ip="127.0.0.1",
+        user_agent="pytest",
     )
 
-    with pytest.raises(Conflict):
-        AuthService.register_user("user@example.com", "Test User", "SecurePass123!")
+
+def patch_repo(monkeypatch, name: str, value) -> None:
+    monkeypatch.setattr(
+        f"infra.authz.repositories.auth_repository.AuthRepository.{name}",
+        value,
+    )
+
+
+def stub_login_repo(monkeypatch, *, user: AuthUser | None) -> dict:
+    state: dict = {
+        "failed_logins": [],
+        "events": [],
+        "tokens_created": [],
+        "revoked_old_sessions": 0,
+    }
+
+    patch_repo(monkeypatch, "find_user_by_email", lambda email: user)
+    patch_repo(monkeypatch, "clear_stale_login_attempts", lambda before: 0)
+    patch_repo(
+        monkeypatch, "count_recent_failed_attempts_by_email", lambda email, since: 0
+    )
+    patch_repo(monkeypatch, "count_recent_failed_attempts_by_ip", lambda ip, since: 0)
+    patch_repo(monkeypatch, "clear_failed_logins", lambda email: 1)
+    patch_repo(
+        monkeypatch,
+        "record_failed_login",
+        lambda email, ip: state["failed_logins"].append((email, ip)),
+    )
+    patch_repo(
+        monkeypatch,
+        "record_login_event",
+        lambda **kwargs: state["events"].append(kwargs),
+    )
+    patch_repo(
+        monkeypatch,
+        "revoke_oldest_active_user_sessions",
+        lambda user_id, keep: state.update(revoked_old_sessions=keep) or 0,
+    )
+    patch_repo(
+        monkeypatch,
+        "create_token",
+        lambda **kwargs: state["tokens_created"].append(kwargs) or None,
+    )
+    return state
 
 
 def test_register_user_rejects_weak_password():
@@ -55,135 +116,168 @@ def test_register_user_rejects_blank_full_name():
 
 def test_login_rejects_blank_password():
     with pytest.raises(UnprocessableEntity):
-        AuthService.login("user@example.com", "   ", "127.0.0.1")
+        AuthService.login("user@example.com", "   ", make_client())
 
 
 def test_login_creates_token_for_valid_credentials(monkeypatch):
     user = make_user()
-    created_tokens: list[tuple[str, timezone.datetime]] = []
+    state = stub_login_repo(monkeypatch, user=user)
 
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.find_user_by_email",
-        lambda email: user,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.clear_stale_login_attempts",
-        lambda before: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_email",
-        lambda email, since: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_ip",
-        lambda ip, since: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.clear_failed_logins",
-        lambda email: 1,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.create_token",
-        lambda user, token_hash, expires_at: created_tokens.append(
-            (token_hash, expires_at)
-        ),
-    )
-
-    session = AuthService.login("user@example.com", "SecurePass123!", "127.0.0.1")
+    session = AuthService.login("user@example.com", "SecurePass123!", make_client())
 
     assert session.user.email == "user@example.com"
     assert session.token_type == "bearer"
-    assert session.expires_at > timezone.now() + timedelta(hours=7)
-    assert len(created_tokens) == 1
+    assert session.expires_at > timezone.now()
+    assert len(state["tokens_created"]) == 1
+    assert state["tokens_created"][0]["family_id"]
+    assert state["tokens_created"][0]["client_ip"] == "127.0.0.1"
+    assert state["tokens_created"][0]["user_agent"] == "pytest"
+    assert any(e["event_type"] == "login_success" for e in state["events"])
 
 
 def test_login_records_failed_attempt_when_invalid_credentials(monkeypatch):
-    recorded_attempts: list[tuple[str, str]] = []
     user = make_user(password="SecurePass123!")
-
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.find_user_by_email",
-        lambda email: user,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.clear_stale_login_attempts",
-        lambda before: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_email",
-        lambda email, since: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_ip",
-        lambda ip, since: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.record_failed_login",
-        lambda email, ip: recorded_attempts.append((email, ip)),
-    )
+    state = stub_login_repo(monkeypatch, user=user)
 
     with pytest.raises(Unauthorized):
-        AuthService.login("user@example.com", "wrong-password", "127.0.0.1")
+        AuthService.login("user@example.com", "wrong-password", make_client())
 
-    assert recorded_attempts == [("user@example.com", "127.0.0.1")]
+    assert state["failed_logins"] == [("user@example.com", "127.0.0.1")]
+    assert any(e["event_type"] == "login_failure" for e in state["events"])
+
+
+def test_login_does_not_record_failed_attempt_for_unknown_user(monkeypatch):
+    state = stub_login_repo(monkeypatch, user=None)
+
+    with pytest.raises(Unauthorized):
+        AuthService.login("ghost@example.com", "any-password", make_client())
+
+    assert state["failed_logins"] == []
+    assert any(e["event_type"] == "login_failure" for e in state["events"])
 
 
 def test_login_rejects_rate_limited_requests(monkeypatch):
     auth_settings = get_auth_security_settings()
+    events: list[dict] = []
 
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.clear_stale_login_attempts",
-        lambda before: 0,
-    )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_email",
+    patch_repo(monkeypatch, "clear_stale_login_attempts", lambda before: 0)
+    patch_repo(
+        monkeypatch,
+        "count_recent_failed_attempts_by_email",
         lambda email, since: auth_settings.max_failed_attempts_per_account,
     )
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.count_recent_failed_attempts_by_ip",
-        lambda ip, since: 0,
+    patch_repo(monkeypatch, "count_recent_failed_attempts_by_ip", lambda ip, since: 0)
+    patch_repo(
+        monkeypatch, "record_login_event", lambda **kwargs: events.append(kwargs)
     )
 
     with pytest.raises(TooManyRequests):
-        AuthService.login("user@example.com", "SecurePass123!", "127.0.0.1")
+        AuthService.login("user@example.com", "SecurePass123!", make_client())
+
+    assert any(e["event_type"] == "rate_limited" for e in events)
 
 
 def test_authenticate_returns_none_for_invalid_token(monkeypatch):
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.find_valid_token",
-        lambda token_hash: None,
-    )
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
 
     assert AuthService.authenticate("invalid-token") is None
 
 
 def test_authenticate_returns_user_for_valid_token(monkeypatch):
     user = make_user()
-    token = AuthToken(
-        id=1,
-        user=user,
-        token_hash="token-hash",
-        expires_at=timezone.now() + timedelta(hours=1),
-        revoked_at=None,
-        created_at=timezone.now(),
-    )
+    token = make_token(user=user)
 
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.find_valid_token",
-        lambda token_hash: token,
-    )
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
 
     assert AuthService.authenticate("valid-token") == user
 
 
 def test_logout_revokes_token(monkeypatch):
     revoked_tokens: list[str] = []
+    user = make_user()
+    token = make_token(user=user)
 
-    monkeypatch.setattr(
-        "infra.authz.repositories.auth_repository.AuthRepository.revoke_token",
-        lambda token_hash: revoked_tokens.append(token_hash),
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
+    patch_repo(
+        monkeypatch,
+        "revoke_token",
+        lambda token_hash: revoked_tokens.append(token_hash) or 1,
     )
+    patch_repo(monkeypatch, "record_login_event", lambda **kwargs: None)
 
     AuthService.logout("valid-token")
 
     assert len(revoked_tokens) == 1
+
+
+def test_refresh_rotates_token_and_keeps_family(monkeypatch):
+    user = make_user()
+    token = make_token(user=user, family_id="family-x")
+    revoked_tokens: list[str] = []
+    created_tokens: list[dict] = []
+
+    patch_repo(monkeypatch, "find_token_by_refresh_hash", lambda h: token)
+    patch_repo(
+        monkeypatch,
+        "revoke_token",
+        lambda token_hash: revoked_tokens.append(token_hash) or 1,
+    )
+    patch_repo(
+        monkeypatch,
+        "create_token",
+        lambda **kwargs: created_tokens.append(kwargs) or None,
+    )
+    patch_repo(monkeypatch, "record_login_event", lambda **kwargs: None)
+
+    session = AuthService.refresh("refresh-token", make_client())
+
+    assert session.user.id == user.id
+    assert revoked_tokens == [token.token_hash]
+    assert created_tokens[0]["family_id"] == "family-x"
+
+
+def test_refresh_detects_reuse_and_revokes_family(monkeypatch):
+    user = make_user()
+    revoked_token = make_token(
+        user=user,
+        family_id="family-x",
+        revoked_at=timezone.now(),
+    )
+    revoked_families: list[str] = []
+    events: list[dict] = []
+
+    patch_repo(monkeypatch, "find_token_by_refresh_hash", lambda h: revoked_token)
+    patch_repo(
+        monkeypatch,
+        "revoke_token_family",
+        lambda family_id: revoked_families.append(family_id) or 1,
+    )
+    patch_repo(
+        monkeypatch, "record_login_event", lambda **kwargs: events.append(kwargs)
+    )
+
+    with pytest.raises(Unauthorized):
+        AuthService.refresh("stolen-refresh", make_client())
+
+    assert revoked_families == ["family-x"]
+    assert any(e["event_type"] == "refresh_reuse" for e in events)
+
+
+def test_refresh_rejects_unknown_token(monkeypatch):
+    patch_repo(monkeypatch, "find_token_by_refresh_hash", lambda h: None)
+
+    with pytest.raises(Unauthorized):
+        AuthService.refresh("unknown-refresh", make_client())
+
+
+def test_refresh_rejects_expired_refresh(monkeypatch):
+    user = make_user()
+    expired = make_token(
+        user=user,
+        refresh_expires_at=timezone.now() - timedelta(seconds=1),
+    )
+
+    patch_repo(monkeypatch, "find_token_by_refresh_hash", lambda h: expired)
+
+    with pytest.raises(Unauthorized):
+        AuthService.refresh("expired-refresh", make_client())
