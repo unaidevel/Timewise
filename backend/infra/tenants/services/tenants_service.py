@@ -4,7 +4,11 @@ from infra.tenants.dtos.dtos import (
     TenantMemberResponse,
     TenantOut,
 )
-from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
+from infra.tenants.entities.tenant_entities import (
+    TenantEntity,
+    TenantMemberEntity,
+    TenantMembershipEntity,
+)
 from infra.tenants.repositories.tenants_repository import TenantRepository
 
 
@@ -43,19 +47,19 @@ class TenantService:
         payload: AddMemberRequest,
         invited_by_id: int,
     ) -> TenantMemberResponse:
+        entity = TenantMemberEntity(**payload.model_dump())
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise NotFound(f"Tenant {tenant_id} not found.")
 
-        existing = TenantRepository.find_active_membership(tenant_id, payload.user_id)
+        existing = TenantRepository.find_active_membership(tenant_id, entity.user_id)
         if existing:
             raise Conflict("User is already an active member.")
 
-        entity = TenantMembershipEntity(role=payload.role)
         return TenantRepository.add_membership(
             tenant_id,
-            payload.user_id,
-            entity,
+            entity.user_id,
+            TenantMembershipEntity(role=entity.role),
             invited_by_id,
         )
 

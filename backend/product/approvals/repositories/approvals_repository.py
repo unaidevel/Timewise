@@ -1,82 +1,87 @@
-from product.approvals.dtos.approval_dtos import Approval
-from product.approvals.models import ApprovalModel
+from datetime import datetime
 
-
-def _to_approval(approval_model: ApprovalModel) -> Approval:
-    return Approval(
-        id=approval_model.id,
-        title=approval_model.title,
-        description=approval_model.description,
-        status=approval_model.status,
-        created_by_user_id=approval_model.created_by_id,
-        created_at=approval_model.created_at,
-        updated_at=approval_model.updated_at,
-    )
+from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
+from product.approvals.models import (
+    TimeReportApprovalEventModel,
+    TimeReportApprovalModel,
+)
 
 
 class ApprovalsRepository:
     @staticmethod
     def create_approval(
-        title: str,
-        description: str,
-        created_by_user_id: int,
-    ) -> Approval:
-        approval_model = ApprovalModel.objects.create(
-            title=title,
-            description=description,
-            created_by_id=created_by_user_id,
+        tenant_id: int,
+        report_id: int,
+        created_by_id: int,
+    ) -> ApprovalOut:
+        model = TimeReportApprovalModel.objects.create(
+            tenant_id=tenant_id,
+            report_id=report_id,
+            created_by_id=created_by_id,
         )
-        return _to_approval(approval_model)
+        return ApprovalOut.model_validate(model)
 
     @staticmethod
-    def list_approvals_for_owner(created_by_user_id: int) -> list[Approval]:
-        approval_models = ApprovalModel.objects.filter(
-            created_by_id=created_by_user_id
-        ).order_by("-created_at")
-        return [_to_approval(approval_model) for approval_model in approval_models]
+    def find_by_report_id(report_id: int) -> ApprovalOut | None:
+        model = TimeReportApprovalModel.objects.filter(report_id=report_id).first()
+        return ApprovalOut.model_validate(model) if model else None
 
     @staticmethod
-    def find_by_id_for_owner(
-        approval_id: int,
-        created_by_user_id: int,
-    ) -> Approval | None:
-        approval_model = ApprovalModel.objects.filter(
-            id=approval_id,
-            created_by_id=created_by_user_id,
-        ).first()
-        return _to_approval(approval_model) if approval_model else None
+    def get_by_id(approval_id: int) -> ApprovalOut | None:
+        model = TimeReportApprovalModel.objects.filter(id=approval_id).first()
+        return ApprovalOut.model_validate(model) if model else None
 
     @staticmethod
-    def update_approval(
-        approval_id: int,
-        created_by_user_id: int,
-        *,
-        title: str | None = None,
-        description: str | None = None,
+    def list_by_tenant(
+        tenant_id: int,
         status: str | None = None,
-    ) -> Approval | None:
-        approval_model = ApprovalModel.objects.filter(
-            id=approval_id,
-            created_by_id=created_by_user_id,
-        ).first()
-        if not approval_model:
-            return None
-
-        if title is not None:
-            approval_model.title = title
-        if description is not None:
-            approval_model.description = description
+    ) -> list[ApprovalOut]:
+        qs = TimeReportApprovalModel.objects.filter(tenant_id=tenant_id)
         if status is not None:
-            approval_model.status = status
-
-        approval_model.save()
-        approval_model.refresh_from_db()
-        return _to_approval(approval_model)
+            qs = qs.filter(status=status)
+        return [ApprovalOut.model_validate(m) for m in qs.order_by("-created_at")]
 
     @staticmethod
-    def delete_approval(approval_id: int, created_by_user_id: int) -> int:
-        deleted_count, _ = ApprovalModel.objects.filter(
-            id=approval_id,
-            created_by_id=created_by_user_id,
-        ).delete()
-        return deleted_count
+    def update_approval_status(
+        approval_id: int,
+        new_status: str,
+        reviewer_id: int | None = None,
+        reviewed_at: datetime | None = None,
+    ) -> ApprovalOut | None:
+        update_fields: dict = {"status": new_status}
+        if reviewer_id is not None:
+            update_fields["reviewer_id"] = reviewer_id
+        if reviewed_at is not None:
+            update_fields["reviewed_at"] = reviewed_at
+        rows = TimeReportApprovalModel.objects.filter(id=approval_id).update(
+            **update_fields
+        )
+        if rows == 0:
+            return None
+        model = TimeReportApprovalModel.objects.get(id=approval_id)
+        return ApprovalOut.model_validate(model)
+
+    @staticmethod
+    def create_event(
+        approval_id: int,
+        action: str,
+        actor_id: int,
+        reason: str = "",
+    ) -> ApprovalEventOut:
+        return ApprovalEventOut.model_validate(
+            TimeReportApprovalEventModel.objects.create(
+                approval_id=approval_id,
+                action=action,
+                actor_id=actor_id,
+                reason=reason,
+            )
+        )
+
+    @staticmethod
+    def list_events(approval_id: int) -> list[ApprovalEventOut]:
+        return [
+            ApprovalEventOut.model_validate(m)
+            for m in TimeReportApprovalEventModel.objects.filter(
+                approval_id=approval_id
+            ).order_by("actioned_at")
+        ]

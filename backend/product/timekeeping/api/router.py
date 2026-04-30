@@ -103,59 +103,6 @@ def get_time_report(
 
 
 @router.post(
-    "/reports/{report_id}/submit",
-    response_model=TimeReportOut,
-    responses=responses_for(NotFound, Conflict, UnprocessableEntity),
-)
-def submit_time_report(
-    tenant_id: int, report_id: int, current_user: CurrentUser
-) -> TimeReportOut:
-    return TimekeepingService.submit_time_report(
-        tenant_id, report_id, user_id=current_user.id
-    )
-
-
-@router.post(
-    "/reports/{report_id}/approve",
-    response_model=TimeReportOut,
-    responses=responses_for(Forbidden, NotFound, Conflict),
-)
-def approve_time_report(
-    tenant_id: int, report_id: int, current_user: CurrentUser
-) -> TimeReportOut:
-    return TimekeepingService.approve_time_report(
-        tenant_id, report_id, user_id=current_user.id
-    )
-
-
-@router.post(
-    "/reports/{report_id}/reject",
-    response_model=TimeReportOut,
-    responses=responses_for(Forbidden, NotFound, Conflict),
-)
-def reject_time_report(
-    tenant_id: int,
-    report_id: int,
-    payload: RejectReportRequest,
-    current_user: CurrentUser,
-) -> TimeReportOut:
-    return TimekeepingService.reject_time_report(
-        tenant_id, report_id, payload, user_id=current_user.id
-    )
-
-
-@router.get(
-    "/reports/{report_id}/history",
-    response_model=list[TimeReportStatusHistoryOut],
-    responses=responses_for(NotFound),
-)
-def list_report_history(
-    tenant_id: int, report_id: int, current_user: CurrentUser
-) -> list[TimeReportStatusHistoryOut]:
-    return TimekeepingService.list_report_history(tenant_id, report_id, current_user.id)
-
-
-@router.post(
     "/reports/{report_id}/entries",
     response_model=TimeEntryOut,
     responses=responses_for(NotFound, Conflict, UnprocessableEntity),
@@ -214,3 +161,58 @@ def delete_time_entry(
     TimekeepingService.delete_time_entry(
         tenant_id, report_id, entry_id, user_id=current_user.id
     )
+
+
+@router.post(
+    "/reports/{report_id}/submit",
+    response_model=TimeReportOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, UnprocessableEntity),
+)
+def submit_time_report(
+    tenant_id: int,
+    report_id: int,
+    current_user: CurrentUser,
+) -> TimeReportOut:
+    return TimekeepingService.submit_time_report(tenant_id, report_id, current_user.id)
+
+
+@router.post(
+    "/reports/{report_id}/approve",
+    response_model=TimeReportOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
+)
+def approve_time_report(
+    tenant_id: int,
+    report_id: int,
+    current_user: CurrentUser,
+) -> TimeReportOut:
+    return TimekeepingService.approve_time_report(tenant_id, report_id, current_user.id)
+
+
+@router.post(
+    "/reports/{report_id}/reject",
+    response_model=TimeReportOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
+)
+def reject_time_report(
+    tenant_id: int,
+    report_id: int,
+    payload: RejectReportRequest,
+    current_user: CurrentUser,
+) -> TimeReportOut:
+    return TimekeepingService.reject_time_report(
+        tenant_id, report_id, payload, user_id=current_user.id
+    )
+
+
+@router.get(
+    "/reports/{report_id}/history",
+    response_model=list[TimeReportStatusHistoryOut],
+    responses=responses_for(NotFound),
+)
+def list_report_history(
+    tenant_id: int,
+    report_id: int,
+    current_user: CurrentUser,
+) -> list[TimeReportStatusHistoryOut]:
+    return TimekeepingService.list_report_history(tenant_id, report_id, current_user.id)

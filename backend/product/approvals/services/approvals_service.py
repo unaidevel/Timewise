@@ -1,77 +1,129 @@
-from product.approvals.dtos.approval_dtos import Approval
-from product.approvals.entities.approval_entities import (
-    ApprovalDescription,
-    ApprovalStatus,
-    ApprovalTitle,
-)
-from product.approvals.exceptions import (
-    ApprovalNotFoundError,
-    InvalidApprovalValueError,
-)
+from django.utils import timezone
+
+from infra.common.exceptions import Conflict, NotFound
+from infra.tenants.decorators import any_employee, only_manager
+from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
+from product.common.classes import ApprovalAction, ApprovalStatus
 
 
 class ApprovalsService:
+    @any_employee
     @staticmethod
-    def create_approval(
-        title: str,
-        description: str,
-        created_by_user_id: int,
-    ) -> Approval:
-        return ApprovalsRepository.create_approval(
-            title=ApprovalTitle(title).value,
-            description=ApprovalDescription(description).value,
-            created_by_user_id=created_by_user_id,
-        )
+    def ensure_report_has_no_approval(
+        tenant_id: int,
+        report_id: int,
+        user_id: int,
+    ) -> None:
+        existing = ApprovalsRepository.find_by_report_id(report_id)
+        if existing:
+            raise Conflict(f"An approval record already exists for report {report_id}.")
 
+    @any_employee
     @staticmethod
-    def list_approvals(created_by_user_id: int) -> list[Approval]:
-        return ApprovalsRepository.list_approvals_for_owner(created_by_user_id)
-
-    @staticmethod
-    def get_approval(approval_id: int, created_by_user_id: int) -> Approval:
-        approval = ApprovalsRepository.find_by_id_for_owner(
-            approval_id,
-            created_by_user_id,
-        )
-        if not approval:
-            raise ApprovalNotFoundError("Approval not found.")
-
+    def create_submitted_approval(
+        tenant_id: int,
+        report_id: int,
+        user_id: int,
+    ) -> ApprovalOut:
+        ApprovalsService.ensure_report_has_no_approval(tenant_id, report_id, user_id)
+        approval = ApprovalsRepository.create_approval(tenant_id, report_id, user_id)
+        ApprovalsRepository.create_event(approval.id, ApprovalAction.SUBMITTED, user_id)
         return approval
 
+    @only_manager
     @staticmethod
-    def update_approval(
+    def get_by_id(
+        tenant_id: int,
         approval_id: int,
-        created_by_user_id: int,
-        *,
-        title: str | None = None,
-        description: str | None = None,
-        status: str | None = None,
-    ) -> Approval:
-        if title is None and description is None and status is None:
-            raise InvalidApprovalValueError("At least one field must be provided.")
+        user_id: int,
+    ) -> ApprovalOut:
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
+        return approval
 
-        updated_approval = ApprovalsRepository.update_approval(
-            approval_id,
-            created_by_user_id,
-            title=ApprovalTitle(title).value if title is not None else None,
-            description=(
-                ApprovalDescription(description).value
-                if description is not None
-                else None
-            ),
-            status=ApprovalStatus(status).value if status is not None else None,
-        )
-        if not updated_approval:
-            raise ApprovalNotFoundError("Approval not found.")
-
-        return updated_approval
-
+    @only_manager
     @staticmethod
-    def delete_approval(approval_id: int, created_by_user_id: int) -> None:
-        deleted_count = ApprovalsRepository.delete_approval(
+    def get_pending_approval(
+        tenant_id: int,
+        approval_id: int,
+        user_id: int,
+    ) -> ApprovalOut:
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval:
+            raise NotFound(f"Approval {approval_id} not found.")
+        if approval.status != ApprovalStatus.PENDING:
+            raise Conflict(f"Cannot review an approval in status '{approval.status}'.")
+        return approval
+
+    @only_manager
+    @staticmethod
+    def approve_approval(
+        tenant_id: int,
+        approval_id: int,
+        user_id: int,
+    ) -> ApprovalOut:
+        reviewed_at = timezone.now()
+        updated = ApprovalsRepository.update_approval_status(
             approval_id,
-            created_by_user_id,
+            ApprovalStatus.APPROVED,
+            user_id,
+            reviewed_at,
         )
-        if deleted_count == 0:
-            raise ApprovalNotFoundError("Approval not found.")
+        ApprovalsRepository.create_event(approval_id, ApprovalAction.APPROVED, user_id)
+        assert updated is not None
+        return updated
+
+    @only_manager
+    @staticmethod
+    def reject_approval(
+        tenant_id: int,
+        approval_id: int,
+        reason: str,
+        user_id: int,
+    ) -> ApprovalOut:
+        reviewed_at = timezone.now()
+        updated = ApprovalsRepository.update_approval_status(
+            approval_id,
+            ApprovalStatus.REJECTED,
+            user_id,
+            reviewed_at,
+        )
+        ApprovalsRepository.create_event(
+            approval_id, ApprovalAction.REJECTED, user_id, reason
+        )
+        assert updated is not None
+        return updated
+
+    @any_employee
+    @staticmethod
+    def get_approval(
+        tenant_id: int,
+        approval_id: int,
+        user_id: int,
+    ) -> ApprovalOut:
+        approval = ApprovalsRepository.get_by_id(approval_id)
+        if not approval or approval.tenant_id != tenant_id:
+            raise NotFound(f"Approval {approval_id} not found.")
+        return approval
+
+    @any_employee
+    @staticmethod
+    def list_approvals(
+        tenant_id: int,
+        user_id: int,
+        status: str | None = None,
+    ) -> list[ApprovalOut]:
+        return ApprovalsRepository.list_by_tenant(tenant_id, status)
+
+    @any_employee
+    @staticmethod
+    def list_approval_events(
+        tenant_id: int,
+        approval_id: int,
+        user_id: int,
+    ) -> list[ApprovalEventOut]:
+        if not ApprovalsRepository.get_by_id(approval_id):
+            raise NotFound(f"Approval {approval_id} not found.")
+        return ApprovalsRepository.list_events(approval_id)

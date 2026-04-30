@@ -1,5 +1,6 @@
 from django.contrib import admin
 
-from .models import ApprovalModel
+from .models import TimeReportApprovalEventModel, TimeReportApprovalModel
 
-admin.site.register(ApprovalModel)
+admin.site.register(TimeReportApprovalModel)
+admin.site.register(TimeReportApprovalEventModel)

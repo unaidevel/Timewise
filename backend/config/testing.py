@@ -1,4 +1,5 @@
 import os
+from typing import Any, cast
 
 import psycopg
 from django.conf import settings
@@ -15,7 +16,7 @@ def env_flag(name: str, default: bool = False) -> bool:
 
 
 def drop_postgres_test_database_if_exists() -> None:
-    default_database = settings.DATABASES["default"]
+    default_database = cast("dict[str, Any]", settings.DATABASES["default"])
     if default_database[
         "ENGINE"
     ] != "django.db.backends.postgresql" and not default_database["ENGINE"].endswith(

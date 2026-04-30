@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from product.common.classes import PeriodStatus
+from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
     PeriodOut,
     TimeEntryChangeHistoryOut,
@@ -30,15 +30,16 @@ class TimekeepingRepository:
     ) -> PeriodOut:
         if not isinstance(entity, PeriodEntity):
             raise TypeError(f"Expected PeriodEntity, got {type(entity).__name__}")
-        model = PeriodModel.objects.create(
-            tenant_id=tenant_id,
-            name=entity.name,
-            start_date=entity.start_date,
-            end_date=entity.end_date,
-            status=PeriodStatus.OPEN,
-            created_by_id=created_by_id,
+        return PeriodOut.model_validate(
+            PeriodModel.objects.create(
+                tenant_id=tenant_id,
+                name=entity.name,
+                start_date=entity.start_date,
+                end_date=entity.end_date,
+                status=PeriodStatus.OPEN,
+                created_by_id=created_by_id,
+            )
         )
-        return PeriodOut.model_validate(model)
 
     @staticmethod
     def get_period_by_id(period_id: int) -> PeriodOut | None:
@@ -91,8 +92,7 @@ class TimekeepingRepository:
         )
         if rows == 0:
             return None
-        model = PeriodModel.objects.get(id=period_id)
-        return PeriodOut.model_validate(model)
+        return PeriodOut.model_validate(PeriodModel.objects.get(id=period_id))
 
     @staticmethod
     def create_time_report(
@@ -101,18 +101,28 @@ class TimekeepingRepository:
         tenant_id: int,
         created_by_id: int | None = None,
     ) -> TimeReportOut:
-        model = TimeReportModel.objects.create(
-            tenant_id=tenant_id,
-            employee_id=employee_id,
-            period_id=period_id,
-            created_by_id=created_by_id,
+        return TimeReportOut.model_validate(
+            TimeReportModel.objects.create(
+                tenant_id=tenant_id,
+                employee_id=employee_id,
+                period_id=period_id,
+                created_by_id=created_by_id,
+            )
         )
-        return TimeReportOut.model_validate(model)
 
     @staticmethod
     def get_time_report_by_id(report_id: int) -> TimeReportOut | None:
         model = TimeReportModel.objects.filter(id=report_id).first()
         return TimeReportOut.model_validate(model) if model else None
+
+    @staticmethod
+    def get_report_status(report_id: int) -> TimeReportStatus | None:
+        status = (
+            TimeReportModel.objects.filter(id=report_id)
+            .values_list("status", flat=True)
+            .first()
+        )
+        return TimeReportStatus(status) if status else None
 
     @staticmethod
     def list_time_reports(
@@ -213,8 +223,7 @@ class TimekeepingRepository:
         )
         if rows == 0:
             return None
-        model = TimeEntryModel.objects.get(id=entry_id)
-        return TimeEntryOut.model_validate(model)
+        return TimeEntryOut.model_validate(TimeEntryModel.objects.get(id=entry_id))
 
     @staticmethod
     def delete_time_entry(entry_id: int) -> bool:
@@ -229,14 +238,15 @@ class TimekeepingRepository:
         changed_by_id: int,
         reason: str = "",
     ) -> TimeReportStatusHistoryOut:
-        model = TimeReportStatusHistoryModel.objects.create(
-            report_id=report_id,
-            from_status=from_status,
-            to_status=to_status,
-            changed_by_id=changed_by_id,
-            reason=reason,
+        return TimeReportStatusHistoryOut.model_validate(
+            TimeReportStatusHistoryModel.objects.create(
+                report_id=report_id,
+                from_status=from_status,
+                to_status=to_status,
+                changed_by_id=changed_by_id,
+                reason=reason,
+            )
         )
-        return TimeReportStatusHistoryOut.model_validate(model)
 
     @staticmethod
     def list_status_history(report_id: int) -> list[TimeReportStatusHistoryOut]:
@@ -255,14 +265,15 @@ class TimekeepingRepository:
         new_value: str | None,
         changed_by_id: int,
     ) -> TimeEntryChangeHistoryOut:
-        model = TimeEntryChangeHistoryModel.objects.create(
-            entry_id=entry_id,
-            field_name=field_name,
-            old_value=old_value,
-            new_value=new_value,
-            changed_by_id=changed_by_id,
+        return TimeEntryChangeHistoryOut.model_validate(
+            TimeEntryChangeHistoryModel.objects.create(
+                entry_id=entry_id,
+                field_name=field_name,
+                old_value=old_value,
+                new_value=new_value,
+                changed_by_id=changed_by_id,
+            )
         )
-        return TimeEntryChangeHistoryOut.model_validate(model)
 
     @staticmethod
     def list_entry_change_history(entry_id: int) -> list[TimeEntryChangeHistoryOut]:

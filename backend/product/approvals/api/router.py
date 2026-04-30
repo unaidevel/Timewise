@@ -1,99 +1,107 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from infra.authz.api.dependencies import CurrentUser
-from product.approvals.dtos.dtos import (
-    ApprovalResponse,
-    CreateApprovalRequest,
-    UpdateApprovalRequest,
+from infra.common.exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+    responses_for,
 )
-from product.approvals.dtos.mappers.approval_mapper import to_approval_response
-from product.approvals.exceptions import (
-    ApprovalNotFoundError,
-    InvalidApprovalValueError,
+from product.approvals.dtos.dtos import (
+    ApprovalEventOut,
+    ApprovalOut,
+    RejectApprovalIn,
+)
+from product.approvals.orchestrators.approvals_orchestrator import (
+    ApprovalsOrchestrator,
 )
 from product.approvals.services.approvals_service import ApprovalsService
 
-router = APIRouter(prefix="/api/v1/approvals", tags=["approvals"])
-
-
-def _raise_http_exception(exc: Exception) -> None:
-    if isinstance(exc, ApprovalNotFoundError):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(exc),
-        ) from exc
-    if isinstance(exc, InvalidApprovalValueError):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
-
-    raise exc
+router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["approvals"])
 
 
 @router.post(
-    "",
-    response_model=ApprovalResponse,
+    "/reports/{report_id}/submit",
+    response_model=ApprovalOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
     status_code=status.HTTP_201_CREATED,
 )
-def create_approval(
-    payload: CreateApprovalRequest,
+def submit_report_for_approval(
+    tenant_id: int,
+    report_id: int,
     current_user: CurrentUser,
-) -> ApprovalResponse:
-    try:
-        approval = ApprovalsService.create_approval(
-            title=payload.title,
-            description=payload.description,
-            created_by_user_id=current_user.id,
-        )
-    except InvalidApprovalValueError as exc:
-        _raise_http_exception(exc)
-
-    return to_approval_response(approval)
+) -> ApprovalOut:
+    return ApprovalsOrchestrator.submit_report_for_approval(
+        tenant_id, report_id, current_user.id
+    )
 
 
-@router.get("", response_model=list[ApprovalResponse])
-def list_approvals(current_user: CurrentUser) -> list[ApprovalResponse]:
-    approvals = ApprovalsService.list_approvals(current_user.id)
-    return [to_approval_response(approval) for approval in approvals]
+@router.post(
+    "/approvals/{approval_id}/approve",
+    response_model=ApprovalOut,
+    responses=responses_for(Forbidden, NotFound, Conflict),
+)
+def approve_report(
+    tenant_id: int,
+    approval_id: int,
+    current_user: CurrentUser,
+) -> ApprovalOut:
+    return ApprovalsOrchestrator.approve_report(tenant_id, approval_id, current_user.id)
 
 
-@router.get("/{approval_id}", response_model=ApprovalResponse)
+@router.post(
+    "/approvals/{approval_id}/reject",
+    response_model=ApprovalOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, UnprocessableEntity),
+)
+def reject_report(
+    tenant_id: int,
+    approval_id: int,
+    payload: RejectApprovalIn,
+    current_user: CurrentUser,
+) -> ApprovalOut:
+    return ApprovalsOrchestrator.reject_report(
+        tenant_id, approval_id, payload, current_user.id
+    )
+
+
+@router.get(
+    "/approvals",
+    response_model=list[ApprovalOut],
+    responses=responses_for(Forbidden, NotFound),
+)
+def list_approvals(
+    tenant_id: int,
+    current_user: CurrentUser,
+    status: str | None = None,
+) -> list[ApprovalOut]:
+    return ApprovalsService.list_approvals(tenant_id, current_user.id, status)
+
+
+@router.get(
+    "/approvals/{approval_id}",
+    response_model=ApprovalOut,
+    responses=responses_for(Forbidden, NotFound),
+)
 def get_approval(
+    tenant_id: int,
     approval_id: int,
     current_user: CurrentUser,
-) -> ApprovalResponse:
-    try:
-        approval = ApprovalsService.get_approval(approval_id, current_user.id)
-    except ApprovalNotFoundError as exc:
-        _raise_http_exception(exc)
-
-    return to_approval_response(approval)
+) -> ApprovalOut:
+    return ApprovalsService.get_approval(tenant_id, approval_id, current_user.id)
 
 
-@router.patch("/{approval_id}", response_model=ApprovalResponse)
-def update_approval(
+@router.get(
+    "/approvals/{approval_id}/events",
+    response_model=list[ApprovalEventOut],
+    responses=responses_for(Forbidden, NotFound),
+)
+def list_approval_events(
+    tenant_id: int,
     approval_id: int,
-    payload: UpdateApprovalRequest,
     current_user: CurrentUser,
-) -> ApprovalResponse:
-    try:
-        approval = ApprovalsService.update_approval(
-            approval_id,
-            current_user.id,
-            title=payload.title,
-            description=payload.description,
-            status=payload.status,
-        )
-    except (ApprovalNotFoundError, InvalidApprovalValueError) as exc:
-        _raise_http_exception(exc)
-
-    return to_approval_response(approval)
-
-
-@router.delete("/{approval_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_approval(approval_id: int, current_user: CurrentUser) -> None:
-    try:
-        ApprovalsService.delete_approval(approval_id, current_user.id)
-    except ApprovalNotFoundError as exc:
-        _raise_http_exception(exc)
+) -> list[ApprovalEventOut]:
+    return ApprovalsService.list_approval_events(
+        tenant_id, approval_id, current_user.id
+    )
