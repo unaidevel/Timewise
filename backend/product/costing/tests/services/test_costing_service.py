@@ -10,7 +10,7 @@ from infra.common.classes import MembershipRoles
 from infra.common.exceptions import Conflict, Forbidden, NotFound
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
-from product.costing.dtos.dtos import OvertimeRuleIn
+from product.costing.dtos.dtos import OvertimeRuleIn, OvertimeRuleUpdate
 from product.costing.services.costing_service import CostingService
 from product.timekeeping.dtos.dtos import PeriodIn, TimeEntryIn, TimeReportIn
 from product.timekeeping.services.timekeeping_service import TimekeepingService
@@ -260,3 +260,155 @@ class CostingServiceCalculationTests(TestCase):
         )
         # Re-calculate should overwrite, not duplicate
         assert len(summary.breakdowns) == 1
+
+    def test_calculate_raises_not_found_for_unknown_report(self):
+        with pytest.raises(NotFound, match="Time report 99999 not found"):
+            CostingService.calculate_report_cost(
+                self.tenant.id, 99999, user_id=self.user.id
+            )
+
+    def test_list_report_calculations_returns_empty_when_no_calculations(self):
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
+
+        result = CostingService.list_report_calculations(
+            self.tenant.id, approved.id, user_id=self.user.id
+        )
+
+        assert result == []
+
+    def test_list_report_calculations_returns_saved_breakdowns(self):
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
+        summary = CostingService.calculate_report_cost(
+            self.tenant.id, approved.id, user_id=self.user.id
+        )
+
+        result = CostingService.list_report_calculations(
+            self.tenant.id, approved.id, user_id=self.user.id
+        )
+
+        assert len(result) == 1
+        assert result[0].id == summary.breakdowns[0].id
+        assert result[0].time_entry_id == summary.breakdowns[0].time_entry_id
+
+    def test_list_report_calculations_raises_not_found_for_wrong_tenant(self):
+        approved = make_approved_report(self.tenant.id, self.employee.id, self.user.id)
+        other_user = make_user("other@example.com")
+        other_tenant = make_tenant(other_user.id, "other")
+        add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
+
+        with pytest.raises(NotFound):
+            CostingService.list_report_calculations(
+                other_tenant.id, approved.id, user_id=other_user.id
+            )
+
+
+class CostingServiceUpdateRuleTests(TestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
+        self.rule = CostingService.create_rule(
+            self.tenant.id, make_rule_payload("Original"), user_id=self.user.id
+        )
+
+    def test_update_rule_changes_name(self):
+        updated = CostingService.update_rule(
+            self.tenant.id,
+            self.rule.id,
+            OvertimeRuleUpdate(name="Renamed"),
+            user_id=self.user.id,
+        )
+
+        assert updated.name == "Renamed"
+
+    def test_update_rule_changes_multiplier_only(self):
+        updated = CostingService.update_rule(
+            self.tenant.id,
+            self.rule.id,
+            OvertimeRuleUpdate(multiplier=Decimal("2.00")),
+            user_id=self.user.id,
+        )
+
+        assert updated.multiplier == Decimal("2.00")
+        assert updated.name == "Original"
+
+    def test_update_rule_changes_priority_only(self):
+        updated = CostingService.update_rule(
+            self.tenant.id,
+            self.rule.id,
+            OvertimeRuleUpdate(priority=99),
+            user_id=self.user.id,
+        )
+
+        assert updated.priority == 99
+
+    def test_update_rule_replaces_conditions(self):
+        updated = CostingService.update_rule(
+            self.tenant.id,
+            self.rule.id,
+            OvertimeRuleUpdate(
+                conditions=[{"condition_type": "day_of_week", "value": "1,2,3"}]
+            ),
+            user_id=self.user.id,
+        )
+
+        assert len(updated.conditions) == 1
+        assert updated.conditions[0].value == "1,2,3"
+
+    def test_update_rule_raises_not_found_for_unknown_id(self):
+        with pytest.raises(NotFound):
+            CostingService.update_rule(
+                self.tenant.id,
+                99999,
+                OvertimeRuleUpdate(name="New name"),
+                user_id=self.user.id,
+            )
+
+    def test_update_rule_raises_not_found_for_other_tenant(self):
+        other_user = make_user("other@example.com")
+        other_tenant = make_tenant(other_user.id, "other")
+        add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
+
+        with pytest.raises(NotFound):
+            CostingService.update_rule(
+                other_tenant.id,
+                self.rule.id,
+                OvertimeRuleUpdate(name="Hijack"),
+                user_id=other_user.id,
+            )
+
+    def test_update_rule_raises_conflict_when_renaming_to_existing_name(self):
+        CostingService.create_rule(
+            self.tenant.id, make_rule_payload("Existing"), user_id=self.user.id
+        )
+
+        with pytest.raises(Conflict, match="Existing"):
+            CostingService.update_rule(
+                self.tenant.id,
+                self.rule.id,
+                OvertimeRuleUpdate(name="Existing"),
+                user_id=self.user.id,
+            )
+
+    def test_update_rule_renaming_to_same_name_is_allowed(self):
+        # Renaming the rule to its own current name must not trigger Conflict.
+        updated = CostingService.update_rule(
+            self.tenant.id,
+            self.rule.id,
+            OvertimeRuleUpdate(name="Original"),
+            user_id=self.user.id,
+        )
+
+        assert updated.name == "Original"
+
+    def test_update_rule_requires_admin_role(self):
+        employee_user = make_user("emp@example.com")
+        add_member(self.tenant.id, employee_user.id, MembershipRoles.EMPLOYEE)
+
+        with pytest.raises(Forbidden):
+            CostingService.update_rule(
+                self.tenant.id,
+                self.rule.id,
+                OvertimeRuleUpdate(name="Hijack"),
+                user_id=employee_user.id,
+            )
