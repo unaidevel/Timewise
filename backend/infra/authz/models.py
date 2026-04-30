@@ -36,12 +36,15 @@ class AuthTokenModel(models.Model):
         on_delete=models.CASCADE,
         related_name="tokens",
     )
+    family_id = models.CharField(max_length=64, db_index=True)
     token_hash = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
     refresh_token_hash = models.CharField(max_length=64, unique=True)
     refresh_expires_at = models.DateTimeField()
     revoked_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    client_ip = models.CharField(max_length=64, blank=True, default="")
+    user_agent = models.CharField(max_length=255, blank=True, default="")
 
     class Meta:
         db_table = "authz_AuthToken"
@@ -49,6 +52,7 @@ class AuthTokenModel(models.Model):
             models.Index(fields=["expires_at"]),
             models.Index(fields=["refresh_expires_at"]),
             models.Index(fields=["revoked_at"]),
+            models.Index(fields=["user", "revoked_at"]),
         ]
 
     @property
@@ -67,4 +71,44 @@ class AuthLoginAttemptModel(models.Model):
         indexes = [
             models.Index(fields=["email", "attempted_at"]),
             models.Index(fields=["ip_address", "attempted_at"]),
+        ]
+
+
+class AuthLoginEventModel(models.Model):
+    EVENT_LOGIN_SUCCESS = "login_success"
+    EVENT_LOGIN_FAILURE = "login_failure"
+    EVENT_LOGOUT = "logout"
+    EVENT_REFRESH = "refresh"
+    EVENT_REFRESH_REUSE = "refresh_reuse"
+    EVENT_RATE_LIMITED = "rate_limited"
+
+    EVENT_CHOICES = [
+        (EVENT_LOGIN_SUCCESS, "Login success"),
+        (EVENT_LOGIN_FAILURE, "Login failure"),
+        (EVENT_LOGOUT, "Logout"),
+        (EVENT_REFRESH, "Refresh"),
+        (EVENT_REFRESH_REUSE, "Refresh token reuse detected"),
+        (EVENT_RATE_LIMITED, "Rate limited"),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(
+        AuthUserModel,
+        on_delete=models.SET_NULL,
+        related_name="login_events",
+        null=True,
+        blank=True,
+    )
+    email = models.CharField(max_length=254, blank=True, default="")
+    event_type = models.CharField(max_length=32, choices=EVENT_CHOICES)
+    client_ip = models.CharField(max_length=64, blank=True, default="")
+    user_agent = models.CharField(max_length=255, blank=True, default="")
+    occurred_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "authz_AuthLoginEvent"
+        indexes = [
+            models.Index(fields=["user", "occurred_at"]),
+            models.Index(fields=["email", "occurred_at"]),
+            models.Index(fields=["event_type", "occurred_at"]),
         ]
