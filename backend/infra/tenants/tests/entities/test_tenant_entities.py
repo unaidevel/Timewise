@@ -4,6 +4,7 @@ from infra.common.classes import MembershipRoles
 from infra.common.exceptions import UnprocessableEntity
 from infra.tenants.entities.tenant_entities import (
     TenantEntity,
+    TenantMemberEntity,
     TenantMembershipEntity,
 )
 
@@ -76,3 +77,43 @@ def test_tenant_membership_entity_accepts_valid_role():
 def test_tenant_membership_entity_rejects_invalid_role():
     with pytest.raises(UnprocessableEntity, match="Invalid role"):
         TenantMembershipEntity(role="guest")
+
+
+def test_tenant_member_entity_accepts_valid_values():
+    entity = TenantMemberEntity(user_id=1, role=MembershipRoles.EMPLOYEE.value)
+
+    assert entity.user_id == 1
+    assert entity.role == MembershipRoles.EMPLOYEE.value
+
+
+def test_tenant_member_entity_rejects_zero_user_id():
+    with pytest.raises(UnprocessableEntity, match="positive integer"):
+        TenantMemberEntity(user_id=0, role=MembershipRoles.EMPLOYEE.value)
+
+
+def test_tenant_member_entity_rejects_negative_user_id():
+    with pytest.raises(UnprocessableEntity, match="positive integer"):
+        TenantMemberEntity(user_id=-1, role=MembershipRoles.EMPLOYEE.value)
+
+
+def test_tenant_member_entity_rejects_invalid_role():
+    with pytest.raises(UnprocessableEntity, match="Invalid role"):
+        TenantMemberEntity(user_id=1, role="not-a-role")
+
+
+def test_tenant_entity_is_frozen():
+    tenant = TenantEntity(name="Acme", slug="acme")
+
+    with pytest.raises(AttributeError):
+        tenant.name = "Other"
+
+
+def test_tenant_entity_lowercases_slug():
+    tenant = TenantEntity(name="Acme", slug="ACME-CORP")
+
+    assert tenant.slug == "acme-corp"
+
+
+def test_tenant_entity_rejects_double_hyphen_only_slug():
+    with pytest.raises(UnprocessableEntity):
+        TenantEntity(name="Acme", slug="--")
