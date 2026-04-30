@@ -4,6 +4,7 @@ from datetime import timedelta
 from functools import lru_cache
 from hashlib import sha256
 from types import SimpleNamespace
+from typing import Any, cast
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
@@ -212,7 +213,7 @@ class AuthService:
         )
 
         try:
-            validate_password(password.value, user=validation_user)
+            validate_password(password.value, user=cast("Any", validation_user))
         except DjangoValidationError as exc:
             raise UnprocessableEntity(list(exc.messages)) from exc
 
