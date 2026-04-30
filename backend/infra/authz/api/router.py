@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from infra.authz.api.dependencies import (
     CurrentUser,
     bearer_security,
+    get_client_context,
 )
 from infra.authz.dtos.dtos import (
     LoginRequest,
@@ -23,12 +24,6 @@ from infra.common.exceptions import (
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-
-
-def _get_client_ip(request: Request) -> str:
-    if request.client and request.client.host:
-        return request.client.host
-    return "unknown"
 
 
 @router.post(
@@ -55,7 +50,7 @@ def login_user(payload: LoginRequest, request: Request) -> LoginResponse:
     session = AuthService.login(
         email=payload.email,
         password=payload.password,
-        client_ip=_get_client_ip(request),
+        client=get_client_context(request),
     )
     return to_login_response(session)
 
@@ -70,8 +65,8 @@ def get_me(current_user: CurrentUser) -> UserResponse:
     response_model=LoginResponse,
     responses=responses_for(Unauthorized),
 )
-def refresh_token(payload: RefreshRequest) -> LoginResponse:
-    session = AuthService.refresh(payload.refresh_token)
+def refresh_token(payload: RefreshRequest, request: Request) -> LoginResponse:
+    session = AuthService.refresh(payload.refresh_token, get_client_context(request))
     return to_login_response(session)
 
 

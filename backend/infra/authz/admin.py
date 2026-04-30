@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import AuthTokenModel, AuthUserModel
+from .models import (
+    AuthLoginAttemptModel,
+    AuthLoginEventModel,
+    AuthTokenModel,
+    AuthUserModel,
+)
 
 
 @admin.register(AuthUserModel)
@@ -12,6 +17,35 @@ class AuthUserAdmin(admin.ModelAdmin):
 
 @admin.register(AuthTokenModel)
 class AuthTokenAdmin(admin.ModelAdmin):
-    list_display = ("user", "created_at", "expires_at", "revoked_at")
-    search_fields = ("user__email", "token_hash")
+    list_display = (
+        "user",
+        "client_ip",
+        "user_agent",
+        "created_at",
+        "expires_at",
+        "revoked_at",
+    )
+    search_fields = ("user__email", "token_hash", "family_id")
     list_filter = ("created_at", "expires_at", "revoked_at")
+    readonly_fields = ("token_hash", "refresh_token_hash", "family_id")
+
+
+@admin.register(AuthLoginAttemptModel)
+class AuthLoginAttemptAdmin(admin.ModelAdmin):
+    list_display = ("email", "ip_address", "attempted_at")
+    search_fields = ("email", "ip_address")
+    list_filter = ("attempted_at",)
+
+
+@admin.register(AuthLoginEventModel)
+class AuthLoginEventAdmin(admin.ModelAdmin):
+    list_display = (
+        "occurred_at",
+        "event_type",
+        "email",
+        "user",
+        "client_ip",
+    )
+    search_fields = ("email", "user__email", "client_ip")
+    list_filter = ("event_type", "occurred_at")
+    readonly_fields = ("occurred_at",)
