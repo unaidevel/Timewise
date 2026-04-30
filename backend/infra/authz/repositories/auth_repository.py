@@ -4,7 +4,12 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
-from infra.authz.models import AuthLoginAttemptModel, AuthTokenModel, AuthUserModel
+from infra.authz.models import (
+    AuthLoginAttemptModel,
+    AuthLoginEventModel,
+    AuthTokenModel,
+    AuthUserModel,
+)
 from infra.common.exceptions import Conflict
 
 
@@ -23,19 +28,22 @@ def _to_auth_token(token_model: AuthTokenModel) -> AuthToken:
     return AuthToken(
         id=token_model.id,
         user=_to_auth_user(token_model.user),
+        family_id=token_model.family_id,
         token_hash=token_model.token_hash,
         expires_at=token_model.expires_at,
         refresh_token_hash=token_model.refresh_token_hash,
         refresh_expires_at=token_model.refresh_expires_at,
         revoked_at=token_model.revoked_at,
         created_at=token_model.created_at,
+        client_ip=token_model.client_ip,
+        user_agent=token_model.user_agent,
     )
 
 
 class AuthRepository:
     @staticmethod
     def find_user_by_email(email: str) -> AuthUser | None:
-        user_model = AuthUserModel.objects.filter(email__iexact=email).first()
+        user_model = AuthUserModel.objects.filter(email=email).first()
         return _to_auth_user(user_model) if user_model else None
 
     @staticmethod
@@ -57,35 +65,76 @@ class AuthRepository:
         return _to_auth_user(user_model)
 
     @staticmethod
-    def revoke_all_user_tokens(user_id: int) -> None:
-        AuthTokenModel.objects.filter(user_id=user_id, revoked_at__isnull=True).update(
+    def revoke_all_user_tokens(user_id: int) -> int:
+        return AuthTokenModel.objects.filter(
+            user_id=user_id, revoked_at__isnull=True
+        ).update(revoked_at=timezone.now())
+
+    @staticmethod
+    def revoke_token_family(family_id: str) -> int:
+        return AuthTokenModel.objects.filter(
+            family_id=family_id, revoked_at__isnull=True
+        ).update(revoked_at=timezone.now())
+
+    @staticmethod
+    def count_active_user_sessions(user_id: int) -> int:
+        return AuthTokenModel.objects.filter(
+            user_id=user_id,
+            revoked_at__isnull=True,
+            refresh_expires_at__gt=timezone.now(),
+        ).count()
+
+    @staticmethod
+    def revoke_oldest_active_user_sessions(user_id: int, keep: int) -> int:
+        active_ids = list(
+            AuthTokenModel.objects.filter(
+                user_id=user_id,
+                revoked_at__isnull=True,
+                refresh_expires_at__gt=timezone.now(),
+            )
+            .order_by("-created_at")
+            .values_list("id", flat=True)
+        )
+        to_revoke = active_ids[keep:]
+        if not to_revoke:
+            return 0
+        return AuthTokenModel.objects.filter(id__in=to_revoke).update(
             revoked_at=timezone.now()
         )
 
     @staticmethod
     def create_token(
         user: AuthUser,
+        family_id: str,
         token_hash: str,
         expires_at: datetime,
         refresh_token_hash: str,
         refresh_expires_at: datetime,
+        client_ip: str = "",
+        user_agent: str = "",
     ) -> AuthToken:
         token_model = AuthTokenModel.objects.create(
             user_id=user.id,
+            family_id=family_id,
             token_hash=token_hash,
             expires_at=expires_at,
             refresh_token_hash=refresh_token_hash,
             refresh_expires_at=refresh_expires_at,
+            client_ip=client_ip,
+            user_agent=user_agent,
         )
         return AuthToken(
             id=token_model.id,
             user=user,
+            family_id=token_model.family_id,
             token_hash=token_model.token_hash,
             expires_at=token_model.expires_at,
             refresh_token_hash=token_model.refresh_token_hash,
             refresh_expires_at=token_model.refresh_expires_at,
             revoked_at=token_model.revoked_at,
             created_at=token_model.created_at,
+            client_ip=token_model.client_ip,
+            user_agent=token_model.user_agent,
         )
 
     @staticmethod
@@ -102,14 +151,11 @@ class AuthRepository:
         return _to_auth_token(token_model) if token_model else None
 
     @staticmethod
-    def find_valid_token_by_refresh_hash(refresh_token_hash: str) -> AuthToken | None:
+    def find_token_by_refresh_hash(refresh_token_hash: str) -> AuthToken | None:
+        """Find a refresh token regardless of revocation status — needed for reuse detection."""
         token_model = (
             AuthTokenModel.objects.select_related("user")
-            .filter(
-                refresh_token_hash=refresh_token_hash,
-                revoked_at__isnull=True,
-                refresh_expires_at__gt=timezone.now(),
-            )
+            .filter(refresh_token_hash=refresh_token_hash)
             .first()
         )
         return _to_auth_token(token_model) if token_model else None
@@ -149,3 +195,19 @@ class AuthRepository:
             attempted_at__lt=before
         ).delete()
         return deleted_count
+
+    @staticmethod
+    def record_login_event(
+        event_type: str,
+        user_id: int | None = None,
+        email: str = "",
+        client_ip: str = "",
+        user_agent: str = "",
+    ) -> None:
+        AuthLoginEventModel.objects.create(
+            user_id=user_id,
+            email=email,
+            event_type=event_type,
+            client_ip=client_ip,
+            user_agent=user_agent,
+        )
