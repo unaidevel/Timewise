@@ -203,3 +203,68 @@ class ClientIpResolutionTests(TestCase):
         )
 
         self.assertEqual(_resolve_client_ip(request), "198.51.100.1")
+
+    @override_settings(
+        AUTH_TRUST_PROXY_HEADERS=True,
+        AUTH_TRUSTED_PROXIES=["10.0.0.5"],
+    )
+    def test_x_real_ip_used_when_x_forwarded_for_absent(self):
+        request = build_request(
+            "/anything",
+            client_host="10.0.0.5",
+            headers=[(b"x-real-ip", b"203.0.113.9")],
+        )
+
+        self.assertEqual(_resolve_client_ip(request), "203.0.113.9")
+
+    def test_unknown_returned_when_no_client_set(self):
+        request = Request(
+            {
+                "type": "http",
+                "method": "POST",
+                "path": "/x",
+                "headers": [],
+                "client": None,
+            }
+        )
+
+        self.assertEqual(_resolve_client_ip(request), "unknown")
+
+
+class AuthApiAdditionalTests(TestCase):
+    def test_register_rejects_duplicate_email(self):
+        AuthService.register_user(
+            email="user@example.com",
+            full_name="Test User",
+            password="SecurePass123!",
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.register(
+                RegisterRequest(
+                    email="user@example.com",
+                    full_name="Other User",
+                    password="SecurePass123!",
+                )
+            )
+
+        self.assertEqual(exc.exception.status_code, 409)
+
+    def test_refresh_rejects_unknown_token(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.refresh_token(
+                RefreshRequest(refresh_token="ghost-refresh"),
+                build_request("/api/v1/auth/refresh"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 401)
+
+    def test_logout_is_noop_without_credentials(self):
+        # Calling logout with no credentials must not raise.
+        auth_router.logout_user(credentials=None)
+
+    def test_get_current_user_rejects_missing_credentials(self):
+        with self.assertRaises(HTTPException) as exc:
+            get_current_user(credentials=None)
+
+        self.assertEqual(exc.exception.status_code, 401)

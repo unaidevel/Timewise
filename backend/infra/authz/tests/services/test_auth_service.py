@@ -281,3 +281,132 @@ def test_refresh_rejects_expired_refresh(monkeypatch):
 
     with pytest.raises(Unauthorized):
         AuthService.refresh("expired-refresh", make_client())
+
+
+def test_authenticate_returns_none_for_blank_token():
+    assert AuthService.authenticate("   ") is None
+
+
+def test_authenticate_returns_none_for_empty_token():
+    assert AuthService.authenticate("") is None
+
+
+def test_authenticate_returns_none_for_inactive_user(monkeypatch):
+    user = make_user(is_active=False)
+    token = make_token(user=user)
+
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
+
+    assert AuthService.authenticate("valid-token") is None
+
+
+def test_logout_is_noop_for_blank_token(monkeypatch):
+    revoked: list[str] = []
+    patch_repo(
+        monkeypatch,
+        "revoke_token",
+        lambda token_hash: revoked.append(token_hash) or 1,
+    )
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
+
+    AuthService.logout("   ")
+
+    assert revoked == []
+
+
+def test_logout_does_not_record_event_when_token_unknown(monkeypatch):
+    events: list[dict] = []
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
+    patch_repo(monkeypatch, "revoke_token", lambda token_hash: 0)
+    patch_repo(monkeypatch, "record_login_event", lambda **kw: events.append(kw))
+
+    AuthService.logout("ghost-token")
+
+    assert events == []
+
+
+def test_refresh_rejects_blank_token():
+    with pytest.raises(Unauthorized):
+        AuthService.refresh("   ", make_client())
+
+
+def test_refresh_rejects_inactive_user(monkeypatch):
+    user = make_user(is_active=False)
+    token = make_token(user=user)
+    patch_repo(monkeypatch, "find_token_by_refresh_hash", lambda h: token)
+
+    with pytest.raises(Unauthorized):
+        AuthService.refresh("any-refresh", make_client())
+
+
+def test_login_rate_limited_by_ip_attempts(monkeypatch):
+    auth_settings = get_auth_security_settings()
+    events: list[dict] = []
+
+    patch_repo(monkeypatch, "clear_stale_login_attempts", lambda before: 0)
+    patch_repo(
+        monkeypatch, "count_recent_failed_attempts_by_email", lambda email, since: 0
+    )
+    patch_repo(
+        monkeypatch,
+        "count_recent_failed_attempts_by_ip",
+        lambda ip, since: auth_settings.max_failed_attempts_per_ip,
+    )
+    patch_repo(
+        monkeypatch, "record_login_event", lambda **kwargs: events.append(kwargs)
+    )
+
+    with pytest.raises(TooManyRequests):
+        AuthService.login("user@example.com", "SecurePass123!", make_client())
+
+    assert any(e["event_type"] == "rate_limited" for e in events)
+
+
+def test_login_with_inactive_user_treated_as_invalid(monkeypatch):
+    user = make_user(is_active=False)
+    state = stub_login_repo(monkeypatch, user=user)
+
+    with pytest.raises(Unauthorized):
+        AuthService.login("user@example.com", "SecurePass123!", make_client())
+
+    # Inactive users should NOT have failed-login attempts recorded against them.
+    assert state["failed_logins"] == []
+    assert any(e["event_type"] == "login_failure" for e in state["events"])
+
+
+def test_hash_token_is_deterministic_and_changes_with_input():
+    a = AuthService._hash_token("abc")
+    a_again = AuthService._hash_token("abc")
+    b = AuthService._hash_token("abd")
+
+    assert a == a_again
+    assert a != b
+    assert len(a) == 64  # sha256 hex digest
+
+
+def test_normalize_client_ip_falls_back_to_unknown():
+    assert AuthService._normalize_client_ip("") == "unknown"
+    assert AuthService._normalize_client_ip("   ") == "unknown"
+
+
+def test_normalize_client_ip_strips_whitespace():
+    assert AuthService._normalize_client_ip("  10.0.0.1  ") == "10.0.0.1"
+
+
+def test_normalize_user_agent_truncates_to_max_length():
+    long_ua = "x" * 500
+
+    result = AuthService._normalize_user_agent(long_ua)
+
+    assert len(result) == 255
+
+
+def test_normalize_user_agent_handles_blank():
+    assert AuthService._normalize_user_agent("") == ""
+    assert AuthService._normalize_user_agent("   ") == ""
+
+
+def test_verify_password_returns_false_for_invalid_hash():
+    # check_password raises TypeError/ValueError for malformed hashes; the
+    # service catches both and returns False rather than propagating.
+    assert AuthService._verify_password("any-pass", "not-a-real-hash") is False

@@ -174,3 +174,76 @@ class AuthRepositoryTests(TestCase):
         ).update(refresh_expires_at=timezone.now() - timedelta(days=1))
 
         self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 1)
+
+    def test_find_user_by_email_returns_none_when_not_found(self):
+        self.assertIsNone(AuthRepository.find_user_by_email("ghost@example.com"))
+
+    def test_find_user_by_id_returns_user_when_found(self):
+        user = self._create_user()
+
+        found = AuthRepository.find_user_by_id(user.id)
+
+        self.assertIsNotNone(found)
+        self.assertEqual(found.id, user.id)
+        self.assertEqual(found.email, user.email)
+
+    def test_find_user_by_id_returns_none_when_not_found(self):
+        self.assertIsNone(AuthRepository.find_user_by_id(99999))
+
+    def test_find_valid_token_returns_none_for_expired_token(self):
+        user = self._create_user()
+        self._create_token(user, "expiring", "expiring-r")
+        AuthTokenModel.objects.filter(
+            token_hash=AuthService._hash_token("expiring")
+        ).update(expires_at=timezone.now() - timedelta(seconds=1))
+
+        self.assertIsNone(
+            AuthRepository.find_valid_token(AuthService._hash_token("expiring"))
+        )
+
+    def test_find_valid_token_returns_none_for_unknown_hash(self):
+        self.assertIsNone(AuthRepository.find_valid_token("does-not-exist"))
+
+    def test_find_token_by_refresh_hash_returns_none_when_unknown(self):
+        self.assertIsNone(AuthRepository.find_token_by_refresh_hash("unknown"))
+
+    def test_revoke_token_returns_zero_when_already_revoked(self):
+        user = self._create_user()
+        self._create_token(user, "once", "once-r")
+        AuthRepository.revoke_token(AuthService._hash_token("once"))
+
+        revoked_again = AuthRepository.revoke_token(AuthService._hash_token("once"))
+
+        self.assertEqual(revoked_again, 0)
+
+    def test_revoke_oldest_active_user_sessions_returns_zero_when_below_keep(self):
+        user = self._create_user()
+        self._create_token(user, "a", "ra")
+
+        revoked = AuthRepository.revoke_oldest_active_user_sessions(user.id, keep=2)
+
+        self.assertEqual(revoked, 0)
+        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 1)
+
+    def test_revoke_all_user_tokens_revokes_only_unrevoked(self):
+        user = self._create_user()
+        self._create_token(user, "t1", "r1")
+        self._create_token(user, "t2", "r2")
+        AuthRepository.revoke_token(AuthService._hash_token("t1"))
+
+        revoked = AuthRepository.revoke_all_user_tokens(user.id)
+
+        self.assertEqual(revoked, 1)
+        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 0)
+
+    def test_record_login_event_with_no_user_id(self):
+        AuthRepository.record_login_event(
+            event_type=AuthLoginEventModel.EVENT_LOGIN_FAILURE,
+            email="ghost@example.com",
+            client_ip="127.0.0.1",
+            user_agent="pytest",
+        )
+
+        event = AuthLoginEventModel.objects.get()
+        self.assertIsNone(event.user_id)
+        self.assertEqual(event.email, "ghost@example.com")
