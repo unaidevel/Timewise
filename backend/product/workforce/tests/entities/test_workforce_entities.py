@@ -8,6 +8,7 @@ from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     EmployeeEntity,
     EmployeeRoleEntity,
+    EmployeeUpdateEntity,
     RoleEntity,
 )
 
@@ -98,3 +99,106 @@ class TestEmployeeRoleEntity:
             hourly_rate=Decimal("25.00"), contract_hours_per_week=168
         )
         assert entity.contract_hours_per_week == 168
+
+    def test_accepts_min_contract_hours(self):
+        entity = EmployeeRoleEntity(
+            hourly_rate=Decimal("25.00"), contract_hours_per_week=1
+        )
+        assert entity.contract_hours_per_week == 1
+
+    def test_raises_on_negative_contract_hours(self):
+        with pytest.raises(UnprocessableEntity, match="between 1 and 168"):
+            EmployeeRoleEntity(hourly_rate=Decimal("25.00"), contract_hours_per_week=-1)
+
+
+class TestDepartmentEntityBoundaries:
+    def test_accepts_name_at_200_chars(self):
+        entity = DepartmentEntity(name="x" * 200)
+        assert len(entity.name) == 200
+
+
+class TestRoleEntityBoundaries:
+    def test_accepts_name_at_200_chars(self):
+        entity = RoleEntity(name="r" * 200)
+        assert len(entity.name) == 200
+
+
+class TestEmployeeEntityBoundaries:
+    def test_accepts_full_name_at_200_chars(self):
+        entity = EmployeeEntity(
+            full_name="x" * 200,
+            email="user@example.com",
+            hired_at=date(2024, 1, 1),
+        )
+        assert len(entity.full_name) == 200
+
+    def test_raises_on_full_name_over_200_chars(self):
+        with pytest.raises(UnprocessableEntity, match="200 characters"):
+            EmployeeEntity(
+                full_name="x" * 201,
+                email="user@example.com",
+                hired_at=date(2024, 1, 1),
+            )
+
+    def test_preserves_hired_at_value(self):
+        entity = EmployeeEntity(
+            full_name="Jane Doe",
+            email="jane@example.com",
+            hired_at=date(2024, 6, 15),
+        )
+        assert entity.hired_at == date(2024, 6, 15)
+
+    def test_rejects_email_without_dot(self):
+        with pytest.raises(UnprocessableEntity, match="Invalid email"):
+            EmployeeEntity(
+                full_name="Jane",
+                email="user@example",
+                hired_at=date(2024, 1, 1),
+            )
+
+    def test_rejects_email_without_at(self):
+        with pytest.raises(UnprocessableEntity, match="Invalid email"):
+            EmployeeEntity(
+                full_name="Jane",
+                email="user.example.com",
+                hired_at=date(2024, 1, 1),
+            )
+
+
+class TestEmployeeUpdateEntity:
+    def test_accepts_all_none_values(self):
+        entity = EmployeeUpdateEntity(full_name=None, email=None, hired_at=None)
+
+        assert entity.full_name is None
+        assert entity.email is None
+        assert entity.hired_at is None
+
+    def test_validates_full_name_when_provided(self):
+        entity = EmployeeUpdateEntity(full_name="  Jane  ", email=None, hired_at=None)
+
+        assert entity.full_name == "Jane"
+
+    def test_rejects_blank_full_name_when_provided(self):
+        with pytest.raises(UnprocessableEntity, match="cannot be blank"):
+            EmployeeUpdateEntity(full_name="   ", email=None, hired_at=None)
+
+    def test_rejects_too_long_full_name_when_provided(self):
+        with pytest.raises(UnprocessableEntity, match="200 characters"):
+            EmployeeUpdateEntity(full_name="x" * 201, email=None, hired_at=None)
+
+    def test_validates_email_when_provided(self):
+        entity = EmployeeUpdateEntity(
+            full_name=None, email="USER@Example.COM", hired_at=None
+        )
+
+        assert entity.email == "user@example.com"
+
+    def test_rejects_invalid_email_when_provided(self):
+        with pytest.raises(UnprocessableEntity, match="Invalid email"):
+            EmployeeUpdateEntity(full_name=None, email="not-an-email", hired_at=None)
+
+    def test_preserves_hired_at_when_provided(self):
+        d = date(2024, 6, 15)
+        entity = EmployeeUpdateEntity(full_name=None, email=None, hired_at=d)
+
+        assert entity.hired_at == d
