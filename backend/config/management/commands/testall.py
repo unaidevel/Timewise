@@ -202,7 +202,9 @@ class Command(BaseCommand):
             if tests_dir.is_dir():
                 for test_file in tests_dir.glob("test*.py"):
                     if test_file.is_file():
-                        targets.add(str(test_file.relative_to(backend_root)))
+                        relative = test_file.relative_to(backend_root)
+                        module_name = ".".join(relative.with_suffix("").parts)
+                        targets.add(module_name)
 
                 for child in tests_dir.iterdir():
                     if child.name in {"api", "__pycache__"}:
@@ -213,7 +215,8 @@ class Command(BaseCommand):
 
             app_tests_file = app_path / "tests.py"
             if app_tests_file.is_file():
-                targets.add(str(app_tests_file.relative_to(backend_root)))
+                relative = app_tests_file.relative_to(backend_root)
+                targets.add(".".join(relative.with_suffix("").parts))
 
         return sorted(targets)
 
