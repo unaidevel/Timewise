@@ -4,6 +4,7 @@ from datetime import timedelta
 from functools import lru_cache
 from hashlib import sha256
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
@@ -11,17 +12,25 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 
-from infra.authz.dtos.auth_dtos import AuthSession, AuthUser
+if TYPE_CHECKING:
+    from django.contrib.auth.base_user import AbstractBaseUser
+
+from infra.authz.dtos.auth_dtos import AuthSession, AuthUser, ClientContext
 from infra.authz.entities.auth_entities import Email, FullName, Password
+from infra.authz.models import AuthLoginEventModel
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.common.exceptions import (
-    Conflict,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
 )
 
 STALE_LOGIN_ATTEMPT_RETENTION_DAYS = 30
+TOKEN_TYPE_BEARER = "bearer"
+ACCESS_TOKEN_BYTES = 48
+REFRESH_TOKEN_BYTES = 64
+FAMILY_ID_BYTES = 32
+USER_AGENT_MAX_LENGTH = 255
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,6 +40,8 @@ class AuthSecuritySettings:
     max_failed_attempts_per_account: int
     max_failed_attempts_per_ip: int
     lockout_window_minutes: int
+    max_active_sessions_per_user: int
+    cleanup_probability_pct: int
 
 
 @lru_cache
@@ -41,6 +52,8 @@ def get_auth_security_settings() -> AuthSecuritySettings:
         max_failed_attempts_per_account=settings.AUTH_MAX_FAILED_ATTEMPTS_PER_ACCOUNT,
         max_failed_attempts_per_ip=settings.AUTH_MAX_FAILED_ATTEMPTS_PER_IP,
         lockout_window_minutes=settings.AUTH_LOCKOUT_WINDOW_MINUTES,
+        max_active_sessions_per_user=settings.AUTH_MAX_ACTIVE_SESSIONS_PER_USER,
+        cleanup_probability_pct=settings.AUTH_LOGIN_ATTEMPT_CLEANUP_PROBABILITY,
     )
 
 
@@ -50,10 +63,6 @@ class AuthService:
         email_entity = Email(email)
         full_name_entity = FullName(full_name)
         password_entity = Password(password)
-
-        existing_user = AuthRepository.find_user_by_email(email_entity.value)
-        if existing_user:
-            raise Conflict("A user with this email already exists")
 
         AuthService._validate_password(
             password_entity,
@@ -68,18 +77,29 @@ class AuthService:
         )
 
     @staticmethod
-    def login(email: str, password: str, client_ip: str) -> AuthSession:
+    def login(
+        email: str,
+        password: str,
+        client: ClientContext,
+    ) -> AuthSession:
         auth_settings = get_auth_security_settings()
         email_entity = Email(email)
         password_entity = Password(password)
-        normalized_ip = AuthService._normalize_client_ip(client_ip)
+        normalized_ip = AuthService._normalize_client_ip(client.ip)
+        normalized_ua = AuthService._normalize_user_agent(client.user_agent)
 
-        AuthService._cleanup_stale_login_attempts()
+        AuthService._maybe_cleanup_stale_login_attempts(auth_settings)
         if AuthService._is_login_rate_limited(
             email_entity.value,
             normalized_ip,
             auth_settings,
         ):
+            AuthRepository.record_login_event(
+                event_type=AuthLoginEventModel.EVENT_RATE_LIMITED,
+                email=email_entity.value,
+                client_ip=normalized_ip,
+                user_agent=normalized_ua,
+            )
             raise TooManyRequests("Too many login attempts. Try again later.")
 
         user = AuthRepository.find_user_by_email(email_entity.value)
@@ -92,33 +112,38 @@ class AuthService:
         )
 
         if not user or not user.is_active or not password_matches:
-            AuthRepository.record_failed_login(email_entity.value, normalized_ip)
+            if user and user.is_active:
+                AuthRepository.record_failed_login(email_entity.value, normalized_ip)
+            AuthRepository.record_login_event(
+                event_type=AuthLoginEventModel.EVENT_LOGIN_FAILURE,
+                user_id=user.id if user else None,
+                email=email_entity.value,
+                client_ip=normalized_ip,
+                user_agent=normalized_ua,
+            )
             raise Unauthorized("Invalid credentials")
 
-        access_token = secrets.token_urlsafe(48)
-        refresh_token = secrets.token_urlsafe(64)
-        now = timezone.now()
-        expires_at = now + timedelta(minutes=auth_settings.access_token_ttl_minutes)
-        refresh_expires_at = now + timedelta(days=auth_settings.refresh_token_ttl_days)
-
         AuthRepository.clear_failed_logins(email_entity.value)
-        AuthRepository.revoke_all_user_tokens(user.id)
-        AuthRepository.create_token(
-            user=user,
-            token_hash=AuthService._hash_token(access_token),
-            expires_at=expires_at,
-            refresh_token_hash=AuthService._hash_token(refresh_token),
-            refresh_expires_at=refresh_expires_at,
+        AuthRepository.revoke_oldest_active_user_sessions(
+            user.id,
+            keep=auth_settings.max_active_sessions_per_user - 1,
         )
 
-        return AuthSession(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_at=expires_at,
-            refresh_expires_at=refresh_expires_at,
+        session = AuthService._issue_session(
             user=user,
+            family_id=AuthService._new_family_id(),
+            auth_settings=auth_settings,
+            client_ip=normalized_ip,
+            user_agent=normalized_ua,
         )
+        AuthRepository.record_login_event(
+            event_type=AuthLoginEventModel.EVENT_LOGIN_SUCCESS,
+            user_id=user.id,
+            email=email_entity.value,
+            client_ip=normalized_ip,
+            user_agent=normalized_ua,
+        )
+        return session
 
     @staticmethod
     def authenticate(access_token: str) -> AuthUser | None:
@@ -137,44 +162,103 @@ class AuthService:
     @staticmethod
     def logout(access_token: str) -> None:
         clean_token = access_token.strip()
-        if clean_token:
-            AuthRepository.revoke_token(AuthService._hash_token(clean_token))
+        if not clean_token:
+            return
+
+        token_hash = AuthService._hash_token(clean_token)
+        token_record = AuthRepository.find_valid_token(token_hash)
+        AuthRepository.revoke_token(token_hash)
+        if token_record:
+            AuthRepository.record_login_event(
+                event_type=AuthLoginEventModel.EVENT_LOGOUT,
+                user_id=token_record.user.id,
+                email=token_record.user.email,
+            )
 
     @staticmethod
-    def refresh(refresh_token: str) -> AuthSession:
+    def refresh(refresh_token: str, client: ClientContext) -> AuthSession:
         clean_token = refresh_token.strip()
         if not clean_token:
             raise Unauthorized("Invalid or expired refresh token")
 
-        token_record = AuthRepository.find_valid_token_by_refresh_hash(
+        normalized_ip = AuthService._normalize_client_ip(client.ip)
+        normalized_ua = AuthService._normalize_user_agent(client.user_agent)
+        token_record = AuthRepository.find_token_by_refresh_hash(
             AuthService._hash_token(clean_token)
         )
-        if not token_record or not token_record.user.is_active:
+
+        if not token_record:
+            raise Unauthorized("Invalid or expired refresh token")
+
+        # Reuse detection: a previously-revoked refresh token being replayed
+        # signals compromise. Revoke the entire token family.
+        if token_record.revoked_at is not None:
+            AuthRepository.revoke_token_family(token_record.family_id)
+            AuthRepository.record_login_event(
+                event_type=AuthLoginEventModel.EVENT_REFRESH_REUSE,
+                user_id=token_record.user.id,
+                email=token_record.user.email,
+                client_ip=normalized_ip,
+                user_agent=normalized_ua,
+            )
+            raise Unauthorized("Invalid or expired refresh token")
+
+        if (
+            token_record.refresh_expires_at <= timezone.now()
+            or not token_record.user.is_active
+        ):
             raise Unauthorized("Invalid or expired refresh token")
 
         auth_settings = get_auth_security_settings()
-        new_access_token = secrets.token_urlsafe(48)
-        new_refresh_token = secrets.token_urlsafe(64)
+        AuthRepository.revoke_token(token_record.token_hash)
+        session = AuthService._issue_session(
+            user=token_record.user,
+            family_id=token_record.family_id,
+            auth_settings=auth_settings,
+            client_ip=normalized_ip,
+            user_agent=normalized_ua,
+        )
+        AuthRepository.record_login_event(
+            event_type=AuthLoginEventModel.EVENT_REFRESH,
+            user_id=token_record.user.id,
+            email=token_record.user.email,
+            client_ip=normalized_ip,
+            user_agent=normalized_ua,
+        )
+        return session
+
+    @staticmethod
+    def _issue_session(
+        user: AuthUser,
+        family_id: str,
+        auth_settings: AuthSecuritySettings,
+        client_ip: str,
+        user_agent: str,
+    ) -> AuthSession:
+        access_token = secrets.token_urlsafe(ACCESS_TOKEN_BYTES)
+        refresh_token = secrets.token_urlsafe(REFRESH_TOKEN_BYTES)
         now = timezone.now()
         expires_at = now + timedelta(minutes=auth_settings.access_token_ttl_minutes)
         refresh_expires_at = now + timedelta(days=auth_settings.refresh_token_ttl_days)
 
-        AuthRepository.revoke_token(token_record.token_hash)
         AuthRepository.create_token(
-            user=token_record.user,
-            token_hash=AuthService._hash_token(new_access_token),
+            user=user,
+            family_id=family_id,
+            token_hash=AuthService._hash_token(access_token),
             expires_at=expires_at,
-            refresh_token_hash=AuthService._hash_token(new_refresh_token),
+            refresh_token_hash=AuthService._hash_token(refresh_token),
             refresh_expires_at=refresh_expires_at,
+            client_ip=client_ip,
+            user_agent=user_agent,
         )
 
         return AuthSession(
-            access_token=new_access_token,
-            refresh_token=new_refresh_token,
-            token_type="bearer",
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type=TOKEN_TYPE_BEARER,
             expires_at=expires_at,
             refresh_expires_at=refresh_expires_at,
-            user=token_record.user,
+            user=user,
         )
 
     @staticmethod
@@ -193,9 +277,18 @@ class AuthService:
         return sha256(raw_token.encode("utf-8")).hexdigest()
 
     @staticmethod
+    def _new_family_id() -> str:
+        return secrets.token_hex(FAMILY_ID_BYTES)
+
+    @staticmethod
     def _normalize_client_ip(client_ip: str) -> str:
         clean_ip = (client_ip or "").strip()
         return clean_ip or "unknown"
+
+    @staticmethod
+    def _normalize_user_agent(user_agent: str) -> str:
+        clean = (user_agent or "").strip()
+        return clean[:USER_AGENT_MAX_LENGTH]
 
     @staticmethod
     def _validate_password(
@@ -212,7 +305,12 @@ class AuthService:
         )
 
         try:
-            validate_password(password.value, user=validation_user)
+            # django-stubs types `user` as the concrete `User` model, but Django
+            # itself accepts any object with the standard auth attributes.
+            validate_password(
+                password.value,
+                user=cast("AbstractBaseUser", validation_user),  # type: ignore[arg-type]
+            )
         except DjangoValidationError as exc:
             raise UnprocessableEntity(list(exc.messages)) from exc
 
@@ -229,17 +327,22 @@ class AuthService:
             email,
             window_start,
         )
+        if account_attempts >= auth_settings.max_failed_attempts_per_account:
+            return True
         ip_attempts = AuthRepository.count_recent_failed_attempts_by_ip(
             client_ip,
             window_start,
         )
-        return (
-            account_attempts >= auth_settings.max_failed_attempts_per_account
-            or ip_attempts >= auth_settings.max_failed_attempts_per_ip
-        )
+        return ip_attempts >= auth_settings.max_failed_attempts_per_ip
 
     @staticmethod
-    def _cleanup_stale_login_attempts() -> None:
+    def _maybe_cleanup_stale_login_attempts(
+        auth_settings: AuthSecuritySettings,
+    ) -> None:
+        if auth_settings.cleanup_probability_pct <= 0:
+            return
+        if secrets.randbelow(100) >= auth_settings.cleanup_probability_pct:
+            return
         stale_before = timezone.now() - timedelta(
             days=STALE_LOGIN_ATTEMPT_RETENTION_DAYS
         )
