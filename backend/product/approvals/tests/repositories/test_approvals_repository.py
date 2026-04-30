@@ -243,3 +243,70 @@ class ApprovalsRepositoryTests(TestCase):
         self.assertEqual(len(events), 2)
         self.assertEqual(events[0].action, ApprovalAction.SUBMITTED.value)
         self.assertEqual(events[1].action, ApprovalAction.APPROVED.value)
+
+    def test_get_by_id_returns_none_when_not_found(self):
+        self.assertIsNone(ApprovalsRepository.get_by_id(99999))
+
+    def test_create_event_persists_reason(self):
+        approval = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            created_by_id=self.user.id,
+        )
+
+        event = ApprovalsRepository.create_event(
+            approval_id=approval.id,
+            action=ApprovalAction.REJECTED.value,
+            actor_id=self.user.id,
+            reason="Missing entries",
+        )
+
+        self.assertEqual(event.reason, "Missing entries")
+
+    def test_list_events_returns_empty_list_when_no_events(self):
+        approval = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            created_by_id=self.user.id,
+        )
+
+        events = ApprovalsRepository.list_events(approval.id)
+
+        self.assertEqual(events, [])
+
+    def test_update_approval_status_only_status_when_no_optional_fields(self):
+        approval = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            created_by_id=self.user.id,
+        )
+
+        updated = ApprovalsRepository.update_approval_status(
+            approval.id, new_status=ApprovalStatus.APPROVED.value
+        )
+
+        self.assertEqual(updated.status, ApprovalStatus.APPROVED.value)
+        self.assertIsNone(updated.reviewer_id)
+        self.assertIsNone(updated.reviewed_at)
+
+    def test_list_by_tenant_orders_by_created_at_desc(self):
+        first = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            created_by_id=self.user.id,
+        )
+
+        # Second approval requires a separate report.
+        other_employee = make_employee(self.tenant.id, "emp2@example.com")
+        other_report = make_report(
+            self.tenant.id, other_employee.id, self.period.id, self.user.id
+        )
+        second = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=other_report.id,
+            created_by_id=self.user.id,
+        )
+
+        result = ApprovalsRepository.list_by_tenant(self.tenant.id)
+
+        self.assertEqual([r.id for r in result], [second.id, first.id])
