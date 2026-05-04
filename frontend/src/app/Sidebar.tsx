@@ -8,6 +8,7 @@ const links = [
   { to: "/periods", label: "Periodos" },
   { to: "/reports", label: "Mis reportes" },
   { to: "/approvals", label: "Aprobaciones" },
+  { to: "/costing-rules", label: "Reglas de coste" },
 ];
 
 export function Sidebar() {

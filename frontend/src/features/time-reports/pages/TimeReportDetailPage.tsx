@@ -8,12 +8,14 @@ import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
-import { formatDate, formatDateTime, formatHours } from "@/lib/format";
+import { formatDate, formatCurrency, formatDateTime, formatHours } from "@/lib/format";
 import {
   useApproveReport,
+  useCalculateReportCost,
   useCreateTimeEntry,
   useDeleteTimeEntry,
   useRejectReport,
+  useReportCostBreakdown,
   useReportHistory,
   useSubmitReport,
   useTimeEntries,
@@ -85,6 +87,7 @@ export default function TimeReportDetailPage() {
       </Card>
 
       <EntriesCard reportId={reportId!} canEdit={isDraft} />
+      <CostBreakdownCard reportId={reportId!} />
       <HistoryCard reportId={reportId!} />
 
       <RejectModal open={rejecting} onClose={() => setRejecting(false)} reportId={reportId!} />
@@ -246,6 +249,79 @@ function CreateEntryModal({
         </div>
       </form>
     </Modal>
+  );
+}
+
+function CostBreakdownCard({ reportId }: { reportId: number }) {
+  const tenantId = useCurrentTenantId();
+  const { data: breakdowns = [], isLoading } = useReportCostBreakdown(tenantId, reportId);
+  const calculate = useCalculateReportCost(tenantId, reportId);
+
+  const totalCost = breakdowns.reduce((sum, b) => sum + parseFloat(b.total_cost), 0);
+  const totalBaseHours = breakdowns.reduce((sum, b) => sum + parseFloat(b.base_hours), 0);
+  const totalOvertimeHours = breakdowns.reduce((sum, b) => sum + parseFloat(b.overtime_hours), 0);
+
+  return (
+    <Card>
+      <CardHeader
+        title="Desglose de costes"
+        description={
+          breakdowns.length > 0
+            ? `${formatHours(String(totalBaseHours))} base · ${formatHours(String(totalOvertimeHours))} extra · Total ${formatCurrency(String(totalCost))}`
+            : "Sin cálculo disponible"
+        }
+        action={
+          <Button
+            variant="secondary"
+            onClick={() => calculate.mutate()}
+            disabled={calculate.isPending}
+          >
+            {calculate.isPending ? "Calculando…" : "Calcular costes"}
+          </Button>
+        }
+      />
+      {isLoading ? (
+        <CardBody className="flex justify-center p-8">
+          <Spinner />
+        </CardBody>
+      ) : breakdowns.length > 0 ? (
+        <CardBody className="p-0">
+          <Table>
+            <thead>
+              <tr>
+                <Th>Regla aplicada</Th>
+                <Th>Multiplicador</Th>
+                <Th>Horas base</Th>
+                <Th>Horas extra</Th>
+                <Th>Coste base</Th>
+                <Th>Coste total</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {breakdowns.map((b) => (
+                <tr key={b.id}>
+                  <Td className="font-medium">{b.applied_rule_name}</Td>
+                  <Td>×{b.multiplier}</Td>
+                  <Td>{formatHours(b.base_hours)}</Td>
+                  <Td>{formatHours(b.overtime_hours)}</Td>
+                  <Td>{formatCurrency(b.base_cost)}</Td>
+                  <Td className="font-semibold">{formatCurrency(b.total_cost)}</Td>
+                </tr>
+              ))}
+              <tr className="border-t border-slate-200 bg-slate-50">
+                <Td colSpan={4} className="font-semibold text-slate-700">
+                  Total
+                </Td>
+                <Td></Td>
+                <Td className="font-bold text-slate-900">
+                  {formatCurrency(String(totalCost))}
+                </Td>
+              </tr>
+            </tbody>
+          </Table>
+        </CardBody>
+      ) : null}
+    </Card>
   );
 }
 
