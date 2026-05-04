@@ -6,6 +6,8 @@ Employee time tracking and labour cost management platform built as a portfolio 
 
 TimeWise lets companies track employee working hours, apply configurable cost rules, and generate cost reports — with a full approval workflow and a complete audit trail.
 
+
+
 ## Technical highlights
 
 - **Hexagonal architecture** (ports & adapters) strictly separating domain, application, and infrastructure layers
@@ -56,5 +58,44 @@ backend/
 
 ## Documentation
 
-- [Backend setup and commands](backend/README.md)
-- [Frontend setup and API client](frontend/README.md)
+- [Backend](backend/README.md)
+- [Frontend](frontend/README.md)
+
+
+
+## Getting started
+
+
+**1. Clone and configure**
+
+```bash
+git clone https://github.com/unaidevel/New_Portfolio.git
+cd New_Portfolio
+cp backend/.env/.env.example backend/.env/.env
+# Fill in your PostgreSQL credentials in backend/.env/.env
+```
+
+**2. Start the stack**
+
+```bash
+docker compose up --build
+```
+
+**3. Run migrations**
+
+```bash
+docker compose run --rm admin uv run python manage.py migrate
+```
+
+**4. Open the app**
+
+| Service | URL |
+|---|---|
+| API | http://localhost:8000 |
+| API docs | http://localhost:8000/docs |
+| Django admin | http://localhost:8001/admin/ |
+| Frontend | http://localhost:3000 |
+
+---
+
+Without Docker, see [Backend](backend/README.md) and [Frontend](frontend/README.md) for local setup.

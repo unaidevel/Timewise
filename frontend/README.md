@@ -1,4 +1,4 @@
-# Frontend — TimeWise
+# Frontend
 
 React + TypeScript SPA for the TimeWise platform.
 
@@ -18,6 +18,18 @@ React + TypeScript SPA for the TimeWise platform.
 pnpm install
 pnpm dev          # http://localhost:3000
 ```
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start dev server at http://localhost:3000 |
+| `pnpm build` | Type-check and produce production bundle |
+| `pnpm preview` | Serve the production bundle locally |
+| `pnpm lint` | Run Biome — reports warnings and errors |
+| `pnpm lint:fix` | Run Biome and auto-fix safe issues |
+| `pnpm format` | Format all files with Biome |
+| `pnpm generate-client` | Regenerate API client from live backend schema |
 
 ## API client
 
