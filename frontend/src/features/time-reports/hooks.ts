@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RejectReportRequest, TimeEntryIn, TimeEntryUpdate } from "@/client";
 import {
   approveTimeReportApiV1TenantsTenantIdReportsReportIdApprovePost,
+  calculateReportCostApiV1TenantsTenantIdCostingReportsReportIdCalculatePost,
   createTimeEntryApiV1TenantsTenantIdReportsReportIdEntriesPost,
   deleteTimeEntryApiV1TenantsTenantIdReportsReportIdEntriesEntryIdDelete,
   getTimeReportApiV1TenantsTenantIdReportsReportIdGet,
+  listReportCalculationsApiV1TenantsTenantIdCostingReportsReportIdCalculationsGet,
   listReportHistoryApiV1TenantsTenantIdReportsReportIdHistoryGet,
   listTimeEntriesApiV1TenantsTenantIdReportsReportIdEntriesGet,
   rejectTimeReportApiV1TenantsTenantIdReportsReportIdRejectPost,
@@ -144,5 +146,35 @@ export function useDeleteTimeEntry(tenantId: number | null, reportId: number | n
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["time-entries", tenantId, reportId] }),
+  });
+}
+
+export function useReportCostBreakdown(tenantId: number | null, reportId: number | null) {
+  return useQuery({
+    queryKey: ["cost-breakdown", tenantId, reportId],
+    enabled: tenantId != null && reportId != null,
+    queryFn: async () => {
+      const { data, error } =
+        await listReportCalculationsApiV1TenantsTenantIdCostingReportsReportIdCalculationsGet({
+          path: { tenant_id: tenantId!, report_id: reportId! },
+        });
+      if (error || !data) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCalculateReportCost(tenantId: number | null, reportId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } =
+        await calculateReportCostApiV1TenantsTenantIdCostingReportsReportIdCalculatePost({
+          path: { tenant_id: tenantId!, report_id: reportId! },
+        });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cost-breakdown", tenantId, reportId] }),
   });
 }
