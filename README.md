@@ -57,3 +57,4 @@ backend/
 ## Documentation
 
 - [Backend setup and commands](backend/README.md)
+- [Frontend setup and API client](frontend/README.md)
