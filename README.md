@@ -69,8 +69,8 @@ backend/
 **1. Clone and configure**
 
 ```bash
-git clone https://github.com/unaidevel/New_Portfolio.git
-cd New_Portfolio
+git clone https://github.com/unaidevel/Timewise.git
+cd TimeWise
 cp backend/.env/.env.example backend/.env/.env
 # Fill in your PostgreSQL credentials in backend/.env/.env
 ```
