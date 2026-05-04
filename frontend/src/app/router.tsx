@@ -1,0 +1,43 @@
+import { createBrowserRouter, Navigate } from "react-router";
+import ApprovalsPage from "@/features/approvals/pages/ApprovalsPage";
+import { AuthGuard } from "@/features/auth/AuthGuard";
+import LoginPage from "@/features/auth/pages/LoginPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
+import HomePage from "@/features/dashboard/pages/HomePage";
+import DepartmentsPage from "@/features/departments/pages/DepartmentsPage";
+import EmployeeDetailPage from "@/features/employees/pages/EmployeeDetailPage";
+import EmployeesPage from "@/features/employees/pages/EmployeesPage";
+import PeriodDetailPage from "@/features/periods/pages/PeriodDetailPage";
+import PeriodsPage from "@/features/periods/pages/PeriodsPage";
+import RolesPage from "@/features/roles/pages/RolesPage";
+import OnboardingPage from "@/features/tenants/pages/OnboardingPage";
+import TimeReportDetailPage from "@/features/time-reports/pages/TimeReportDetailPage";
+import TimeReportsPage from "@/features/time-reports/pages/TimeReportsPage";
+import { Layout } from "./Layout";
+
+export const router = createBrowserRouter([
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
+  {
+    element: <AuthGuard />,
+    children: [
+      {
+        element: <Layout />,
+        children: [
+          { path: "/", element: <HomePage /> },
+          { path: "/onboarding", element: <OnboardingPage /> },
+          { path: "/employees", element: <EmployeesPage /> },
+          { path: "/employees/:id", element: <EmployeeDetailPage /> },
+          { path: "/departments", element: <DepartmentsPage /> },
+          { path: "/roles", element: <RolesPage /> },
+          { path: "/periods", element: <PeriodsPage /> },
+          { path: "/periods/:id", element: <PeriodDetailPage /> },
+          { path: "/reports", element: <TimeReportsPage /> },
+          { path: "/reports/:id", element: <TimeReportDetailPage /> },
+          { path: "/approvals", element: <ApprovalsPage /> },
+        ],
+      },
+    ],
+  },
+  { path: "*", element: <Navigate to="/" replace /> },
+]);
