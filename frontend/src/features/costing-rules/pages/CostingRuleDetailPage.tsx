@@ -152,11 +152,17 @@ function EditRuleModal({
 }) {
   const tenantId = useCurrentTenantId();
   const update = useUpdateOvertimeRule(tenantId);
+  const keyCounter = useRef(0);
+  const nextKey = () => (keyCounter.current += 1);
   const [form, setForm] = useState({
     name: rule.name,
     multiplier: String(rule.multiplier),
     priority: String(rule.priority),
-    conditions: rule.conditions.map((c) => ({ condition_type: c.condition_type, value: c.value })),
+    conditions: rule.conditions.map((c) => ({
+      _key: nextKey(),
+      condition_type: c.condition_type,
+      value: c.value,
+    })),
   });
 
   function setCondition(index: number, field: keyof RuleConditionIn, value: string) {
@@ -167,7 +173,10 @@ function EditRuleModal({
   function addCondition() {
     setForm({
       ...form,
-      conditions: [...form.conditions, { condition_type: "hours_per_day", value: "8" }],
+      conditions: [
+        ...form.conditions,
+        { _key: nextKey(), condition_type: "hours_per_day", value: "8" },
+      ],
     });
   }
 
@@ -181,7 +190,7 @@ function EditRuleModal({
       name: form.name,
       multiplier: form.multiplier,
       priority: Number(form.priority),
-      conditions: form.conditions,
+      conditions: form.conditions.map(({ _key: _, ...rest }) => rest),
     };
     update.mutate({ id: ruleId, body }, { onSuccess: () => onClose() });
   }
@@ -225,7 +234,7 @@ function EditRuleModal({
             </Button>
           </div>
           {form.conditions.map((c, i) => (
-            <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
+            <div key={c._key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
               <Select
                 label={i === 0 ? "Tipo" : undefined}
                 value={c.condition_type}
