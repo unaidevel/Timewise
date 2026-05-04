@@ -16,7 +16,7 @@ React + TypeScript SPA for the TimeWise platform.
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
+pnpm dev          # http://localhost:3000
 ```
 
 ## API client
