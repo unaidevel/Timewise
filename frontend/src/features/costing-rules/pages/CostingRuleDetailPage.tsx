@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import type { OvertimeRuleUpdate, RuleConditionIn, RuleConditionOut } from "@/client";
 import { Badge } from "@/components/ui/Badge";
