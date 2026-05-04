@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "@/test/server";
 import { createWrapper } from "@/test/wrapper";
@@ -90,9 +90,8 @@ describe("useReportCostBreakdown", () => {
 describe("useCalculateReportCost", () => {
   it("posts to calculate endpoint and returns summary", async () => {
     server.use(
-      http.post(
-        `${BASE}/api/v1/tenants/${TENANT_ID}/costing/reports/${REPORT_ID}/calculate`,
-        () => HttpResponse.json(mockSummary),
+      http.post(`${BASE}/api/v1/tenants/${TENANT_ID}/costing/reports/${REPORT_ID}/calculate`, () =>
+        HttpResponse.json(mockSummary),
       ),
     );
 
@@ -110,12 +109,17 @@ describe("useCalculateReportCost", () => {
 
   it("exposes isPending while the request is in flight", async () => {
     let resolve: (v: unknown) => void;
-    const pending = new Promise((r) => { resolve = r; });
+    const pending = new Promise((r) => {
+      resolve = r;
+    });
 
     server.use(
       http.post(
         `${BASE}/api/v1/tenants/${TENANT_ID}/costing/reports/${REPORT_ID}/calculate`,
-        async () => { await pending; return HttpResponse.json(mockSummary); },
+        async () => {
+          await pending;
+          return HttpResponse.json(mockSummary);
+        },
       ),
     );
 

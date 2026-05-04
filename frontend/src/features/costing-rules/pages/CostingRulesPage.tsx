@@ -44,16 +44,11 @@ export default function CostingRulesPage() {
               </tr>
             </thead>
             <tbody>
-              {rules.length === 0 && (
-                <EmptyRow colSpan={6} message="Sin reglas de coste." />
-              )}
+              {rules.length === 0 && <EmptyRow colSpan={6} message="Sin reglas de coste." />}
               {rules.map((rule) => (
                 <tr key={rule.id}>
                   <Td className="font-medium">
-                    <Link
-                      to={`/costing-rules/${rule.id}`}
-                      className="hover:underline"
-                    >
+                    <Link to={`/costing-rules/${rule.id}`} className="hover:underline">
                       {rule.name}
                     </Link>
                   </Td>
@@ -91,13 +86,7 @@ const CONDITION_TYPES = [
   { value: "hours_per_week", label: "Horas por semana" },
 ];
 
-function CreateRuleModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const create = useCreateOvertimeRule(tenantId);
   const [form, setForm] = useState({
@@ -121,11 +110,22 @@ function CreateRuleModal({
         },
       ],
     };
-    create.mutate(body, { onSuccess: () => { onClose(); resetForm(); } });
+    create.mutate(body, {
+      onSuccess: () => {
+        onClose();
+        resetForm();
+      },
+    });
   }
 
   function resetForm() {
-    setForm({ name: "", multiplier: "1.5", priority: "1", conditionType: "hours_per_day", conditionValue: "8" });
+    setForm({
+      name: "",
+      multiplier: "1.5",
+      priority: "1",
+      conditionType: "hours_per_day",
+      conditionValue: "8",
+    });
   }
 
   return (

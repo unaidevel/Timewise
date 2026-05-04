@@ -175,7 +175,6 @@ export function useCalculateReportCost(tenantId: number | null, reportId: number
       if (error || !data) throw error;
       return data;
     },
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["cost-breakdown", tenantId, reportId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cost-breakdown", tenantId, reportId] }),
   });
 }

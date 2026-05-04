@@ -10,11 +10,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
-import {
-  useDeactivateOvertimeRule,
-  useOvertimeRule,
-  useUpdateOvertimeRule,
-} from "../hooks";
+import { useDeactivateOvertimeRule, useOvertimeRule, useUpdateOvertimeRule } from "../hooks";
 
 const CONDITION_TYPES: Record<string, string> = {
   day_of_week: "Día de la semana",
@@ -94,9 +90,7 @@ export default function CostingRuleDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {rule.conditions.length === 0 && (
-                <EmptyRow colSpan={2} message="Sin condiciones." />
-              )}
+              {rule.conditions.length === 0 && <EmptyRow colSpan={2} message="Sin condiciones." />}
               {rule.conditions.map((c) => (
                 <tr key={c.id}>
                   <Td>{CONDITION_TYPES[c.condition_type] ?? c.condition_type}</Td>
@@ -112,7 +106,12 @@ export default function CostingRuleDetailPage() {
         <EditRuleModal
           open={editOpen}
           onClose={() => setEditOpen(false)}
-          rule={{ name: rule.name, multiplier: rule.multiplier, priority: rule.priority, conditions: rule.conditions }}
+          rule={{
+            name: rule.name,
+            multiplier: rule.multiplier,
+            priority: rule.priority,
+            conditions: rule.conditions,
+          }}
           ruleId={rule.id}
         />
       )}
@@ -143,7 +142,12 @@ function EditRuleModal({
 }: {
   open: boolean;
   onClose: () => void;
-  rule: { name: string; multiplier: string; priority: number; conditions: (RuleConditionIn | RuleConditionOut)[] };
+  rule: {
+    name: string;
+    multiplier: string;
+    priority: number;
+    conditions: (RuleConditionIn | RuleConditionOut)[];
+  };
   ruleId: number;
 }) {
   const tenantId = useCurrentTenantId();
@@ -156,9 +160,7 @@ function EditRuleModal({
   });
 
   function setCondition(index: number, field: keyof RuleConditionIn, value: string) {
-    const updated = form.conditions.map((c, i) =>
-      i === index ? { ...c, [field]: value } : c,
-    );
+    const updated = form.conditions.map((c, i) => (i === index ? { ...c, [field]: value } : c));
     setForm({ ...form, conditions: updated });
   }
 

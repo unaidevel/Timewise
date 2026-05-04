@@ -8,7 +8,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
-import { formatDate, formatCurrency, formatDateTime, formatHours } from "@/lib/format";
+import { formatCurrency, formatDate, formatDateTime, formatHours } from "@/lib/format";
 import {
   useApproveReport,
   useCalculateReportCost,
@@ -313,9 +313,7 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
                   Total
                 </Td>
                 <Td></Td>
-                <Td className="font-bold text-slate-900">
-                  {formatCurrency(String(totalCost))}
-                </Td>
+                <Td className="font-bold text-slate-900">{formatCurrency(String(totalCost))}</Td>
               </tr>
             </tbody>
           </Table>
