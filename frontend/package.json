@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-client": "openapi-ts --input http://localhost:8000/openapi.json --output src/client --client @hey-api/client-fetch"
   },
   "dependencies": {
     "react": "^19.2.4",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@hey-api/openapi-ts": "^0.97.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
