@@ -257,7 +257,7 @@ class TimekeepingApiTests(TestCase):
             self.tenant.id,
             report.id,
             entry.id,
-            TimeEntryUpdate(hours=Decimal("4")),
+            TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("4")),
             self.user,
         )
         assert updated.hours == Decimal("4")

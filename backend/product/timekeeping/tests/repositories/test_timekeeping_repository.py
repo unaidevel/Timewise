@@ -13,6 +13,7 @@ from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
     TimeEntryEntity,
+    TimeEntryUpdateEntity,
 )
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
@@ -564,8 +565,8 @@ class TimekeepingRepositoryEntryTests(TestCase):
         )
 
         updated = TimekeepingRepository.update_time_entry(
-            entry.id,
-            TimeEntryEntity(
+            TimeEntryUpdateEntity(
+                entry_id=entry.id,
                 date=date(2025, 4, 1),
                 hours=Decimal("8"),
                 description="Updated",
@@ -573,18 +574,13 @@ class TimekeepingRepositoryEntryTests(TestCase):
             updated_by_id=self.user.id,
         )
 
-        assert updated is not None
         assert updated.hours == Decimal("8")
         assert updated.description == "Updated"
         assert updated.updated_by_id == self.user.id
 
-    def test_update_time_entry_returns_none_for_unknown_id(self):
-        result = TimekeepingRepository.update_time_entry(
-            99999,
-            TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
-        )
-
-        assert result is None
+    def test_update_time_entry_raises_type_error_for_non_entity_payload(self):
+        with pytest.raises(TypeError, match="Expected TimeEntryUpdateEntity"):
+            TimekeepingRepository.update_time_entry("not-an-entity")
 
     def test_delete_time_entry_returns_true_when_deleted(self):
         entry = TimekeepingRepository.create_time_entry(
