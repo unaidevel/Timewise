@@ -10,10 +10,13 @@ from product.workforce.dtos.dtos import (
 )
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
+    DepartmentUpdateEntity,
     EmployeeEntity,
     EmployeeRoleEntity,
     EmployeeUpdateEntity,
     RoleEntity,
+    RoleUpdateEntity,
+    SetEmployeeManagerEntity,
 )
 from product.workforce.models import (
     DepartmentManagerModel,
@@ -64,16 +67,22 @@ class WorkforceRepository:
 
     @staticmethod
     def update_department(
-        department_id: int,
-        name: str,
+        entity: DepartmentUpdateEntity,
         updated_by_id: int | None = None,
     ) -> DepartmentOut:
-        DepartmentModel.objects.filter(id=department_id).update(
-            name=name,
+        if not isinstance(entity, DepartmentUpdateEntity):
+            raise TypeError(
+                f"Expected DepartmentUpdateEntity, got {type(entity).__name__}"
+            )
+        model = DepartmentModel(
+            id=entity.department_id,
+            name=entity.name,
             updated_by_id=updated_by_id,
         )
-        model = DepartmentModel.objects.get(id=department_id)
-        return DepartmentOut.model_validate(model)
+        model.save(update_fields=["name", "updated_by_id", "updated_at"])
+        return DepartmentOut.model_validate(
+            DepartmentModel.objects.get(id=entity.department_id)
+        )
 
     @staticmethod
     def assign_department_manager(
@@ -182,15 +191,18 @@ class WorkforceRepository:
 
     @staticmethod
     def update_role(
-        role_id: int,
-        name: str,
+        entity: RoleUpdateEntity,
         updated_by_id: int | None = None,
     ) -> RoleOut:
-        RoleModel.objects.filter(id=role_id).update(
-            name=name, updated_by_id=updated_by_id
+        if not isinstance(entity, RoleUpdateEntity):
+            raise TypeError(f"Expected RoleUpdateEntity, got {type(entity).__name__}")
+        model = RoleModel(
+            id=entity.role_id,
+            name=entity.name,
+            updated_by_id=updated_by_id,
         )
-        model = RoleModel.objects.get(id=role_id)
-        return RoleOut.model_validate(model)
+        model.save(update_fields=["name", "updated_by_id", "updated_at"])
+        return RoleOut.model_validate(RoleModel.objects.get(id=entity.role_id))
 
     @staticmethod
     def deactivate_role(
@@ -246,33 +258,51 @@ class WorkforceRepository:
 
     @staticmethod
     def update_employee(
-        employee_id: int,
         entity: EmployeeUpdateEntity,
         updated_by_id: int | None = None,
     ) -> EmployeeOut:
-        updates: dict = {"updated_by_id": updated_by_id}
-        if entity.full_name is not None:
-            updates["full_name"] = entity.full_name
-        if entity.email is not None:
-            updates["email"] = entity.email
-        if entity.hired_at is not None:
-            updates["hired_at"] = entity.hired_at
-        EmployeeModel.objects.filter(id=employee_id).update(**updates)
-        model = EmployeeModel.objects.get(id=employee_id)
-        return EmployeeOut.model_validate(model)
+        if not isinstance(entity, EmployeeUpdateEntity):
+            raise TypeError(
+                f"Expected EmployeeUpdateEntity, got {type(entity).__name__}"
+            )
+        model = EmployeeModel(
+            id=entity.employee_id,
+            full_name=entity.full_name,
+            email=entity.email,
+            hired_at=entity.hired_at,
+            updated_by_id=updated_by_id,
+        )
+        model.save(
+            update_fields=[
+                "full_name",
+                "email",
+                "hired_at",
+                "updated_by_id",
+                "updated_at",
+            ]
+        )
+        return EmployeeOut.model_validate(
+            EmployeeModel.objects.get(id=entity.employee_id)
+        )
 
     @staticmethod
     def set_employee_manager(
-        employee_id: int,
-        manager_id: int | None,
+        entity: SetEmployeeManagerEntity,
         updated_by_id: int | None = None,
     ) -> EmployeeOut:
-        EmployeeModel.objects.filter(id=employee_id).update(
-            manager_id=manager_id,
+        if not isinstance(entity, SetEmployeeManagerEntity):
+            raise TypeError(
+                f"Expected SetEmployeeManagerEntity, got {type(entity).__name__}"
+            )
+        model = EmployeeModel(
+            id=entity.employee_id,
+            manager_id=entity.manager_id,
             updated_by_id=updated_by_id,
         )
-        model = EmployeeModel.objects.get(id=employee_id)
-        return EmployeeOut.model_validate(model)
+        model.save(update_fields=["manager_id", "updated_by_id", "updated_at"])
+        return EmployeeOut.model_validate(
+            EmployeeModel.objects.get(id=entity.employee_id)
+        )
 
     @staticmethod
     def get_direct_reports(employee_id: int) -> list[EmployeeOut]:
