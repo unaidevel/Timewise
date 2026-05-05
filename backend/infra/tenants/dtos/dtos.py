@@ -18,6 +18,13 @@ class TenantOut(TenantIn):
     created_by_id: int | None
 
 
+class TenantUpdate(BaseModel):
+    tenant_id: int
+    name: str | None = None
+    slug: str | None = None
+    is_active: bool | None = None
+
+
 class AddMemberRequest(BaseModel):
     user_id: int
     role: str = Field(pattern=r"^(owner|admin|manager|employee|freelance)$")
