@@ -194,6 +194,8 @@ class CostingApiTests(TestCase):
             rule.id,
             OvertimeRuleUpdate(
                 name="Holiday rule",
+                multiplier=Decimal("1.50"),
+                priority=1,
                 conditions=[{"condition_type": "is_holiday", "value": "true"}],
             ),
             self.user,
