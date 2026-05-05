@@ -11,6 +11,7 @@ from product.timekeeping.dtos.dtos import (
 from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
     TimeEntryEntity,
+    TimeEntryUpdateEntity,
 )
 from product.timekeeping.models import (
     PeriodModel,
@@ -209,11 +210,15 @@ class TimekeepingRepository:
 
     @staticmethod
     def update_time_entry(
-        entry_id: int,
-        entity: TimeEntryEntity,
+        entity: TimeEntryUpdateEntity,
         updated_by_id: int | None = None,
-    ) -> TimeEntryOut | None:
-        rows = TimeEntryModel.objects.filter(id=entry_id).update(
+    ) -> TimeEntryOut:
+        if not isinstance(entity, TimeEntryUpdateEntity):
+            raise TypeError(
+                f"Expected TimeEntryUpdateEntity, got {type(entity).__name__}"
+            )
+        model = TimeEntryModel(
+            id=entity.entry_id,
             date=entity.date,
             hours=entity.hours,
             start_time=entity.start_time,
@@ -221,9 +226,20 @@ class TimekeepingRepository:
             description=entity.description,
             updated_by_id=updated_by_id,
         )
-        if rows == 0:
-            return None
-        return TimeEntryOut.model_validate(TimeEntryModel.objects.get(id=entry_id))
+        model.save(
+            update_fields=[
+                "date",
+                "hours",
+                "start_time",
+                "end_time",
+                "description",
+                "updated_by_id",
+                "updated_at",
+            ]
+        )
+        return TimeEntryOut.model_validate(
+            TimeEntryModel.objects.get(id=entity.entry_id)
+        )
 
     @staticmethod
     def delete_time_entry(entry_id: int) -> bool:
