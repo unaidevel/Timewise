@@ -1,13 +1,16 @@
 from infra.common.exceptions import Conflict, NotFound
+from infra.tenants.decorators import only_admin
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
     TenantMemberResponse,
     TenantOut,
+    TenantUpdate,
 )
 from infra.tenants.entities.tenant_entities import (
     TenantEntity,
     TenantMemberEntity,
     TenantMembershipEntity,
+    TenantUpdateEntity,
 )
 from infra.tenants.repositories.tenants_repository import TenantRepository
 
@@ -18,6 +21,17 @@ class TenantService:
         if TenantRepository.find_by_slug(entity.slug):
             raise Conflict(f"A tenant with slug '{entity.slug}' already exists.")
         return TenantRepository.create(entity, created_by_id)
+
+    @staticmethod
+    @only_admin
+    def update_tenant(payload: TenantUpdate, user_id: int) -> TenantOut:
+        entity = TenantUpdateEntity(**payload.model_dump())
+        if entity.slug is not None:
+            existing = TenantService.tenant_exists_by_slug(entity.slug)
+            if existing:
+                raise Conflict(f"A tenant with slug '{entity.slug}' already exists.")
+        tenant = TenantService.get_by_id(entity.tenant_id, user_id)
+        return TenantRepository.update_tenant(entity, tenant.id)
 
     @staticmethod
     def add_membership(
@@ -31,15 +45,12 @@ class TenantService:
         )
 
     @staticmethod
-    def get_by_id(tenant_id: int) -> TenantOut:
+    @only_admin
+    def get_by_id(tenant_id: int, user_id: int) -> TenantOut:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise NotFound(f"Tenant {tenant_id} not found.")
         return tenant
-
-    @staticmethod
-    def list_all() -> list[TenantOut]:
-        return TenantRepository.list_all()
 
     @staticmethod
     def add_member(
@@ -83,3 +94,7 @@ class TenantService:
         if not membership:
             raise NotFound("Membership not found or already inactive.")
         return membership
+
+    @staticmethod
+    def tenant_exists_by_slug(slug: str) -> bool:
+        return TenantRepository.tenant_exists_by_slug(slug)

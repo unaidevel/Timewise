@@ -1,7 +1,11 @@
 from django.utils import timezone
 
 from infra.tenants.dtos.dtos import TenantMemberResponse, TenantOut
-from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
+from infra.tenants.entities.tenant_entities import (
+    TenantEntity,
+    TenantMembershipEntity,
+    TenantUpdateEntity,
+)
 from infra.tenants.models import TenantMembershipModel, TenantModel
 
 
@@ -18,6 +22,12 @@ class TenantRepository:
         return TenantOut.model_validate(model)
 
     @staticmethod
+    def update_tenant(entity: TenantUpdateEntity) -> TenantOut:
+        if not isinstance(entity, TenantEntity):
+            raise TypeError(f"Expected TenantEntity, got {type(entity).__name__}")
+        return TenantModel.objects.insert(id=entity.tenant_id).update(entity)
+
+    @staticmethod
     def get_by_id(tenant_id: int) -> TenantOut | None:
         model = TenantModel.objects.filter(id=tenant_id).first()
         return TenantOut.model_validate(model) if model else None
@@ -26,13 +36,6 @@ class TenantRepository:
     def find_by_slug(slug: str) -> TenantOut | None:
         model = TenantModel.objects.filter(slug=slug).first()
         return TenantOut.model_validate(model) if model else None
-
-    @staticmethod
-    def list_all() -> list[TenantOut]:
-        return [
-            TenantOut.model_validate(m)
-            for m in TenantModel.objects.all().order_by("name")
-        ]
 
     @staticmethod
     def add_membership(
@@ -85,3 +88,7 @@ class TenantRepository:
             return None
         model = TenantMembershipModel.objects.get(id=membership_id)
         return TenantMemberResponse.model_validate(model)
+
+    @staticmethod
+    def tenant_exists_by_slug(slug: str) -> bool:
+        return TenantModel.objects.filter(slug=slug).exists()
