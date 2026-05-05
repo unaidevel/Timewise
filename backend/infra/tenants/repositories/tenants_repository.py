@@ -23,9 +23,16 @@ class TenantRepository:
 
     @staticmethod
     def update_tenant(entity: TenantUpdateEntity) -> TenantOut:
-        if not isinstance(entity, TenantEntity):
-            raise TypeError(f"Expected TenantEntity, got {type(entity).__name__}")
-        return TenantModel.objects.insert(id=entity.tenant_id).update(entity)
+        if not isinstance(entity, TenantUpdateEntity):
+            raise TypeError(f"Expected TenantUpdateEntity, got {type(entity).__name__}")
+        tenant = TenantModel(
+            id=entity.tenant_id,
+            name=entity.name,
+            slug=entity.slug,
+            is_active=entity.is_active,
+        )
+        tenant.save(update_fields=["name", "slug", "is_active", "updated_at"])
+        return TenantOut.model_validate(tenant)
 
     @staticmethod
     def get_by_id(tenant_id: int) -> TenantOut | None:

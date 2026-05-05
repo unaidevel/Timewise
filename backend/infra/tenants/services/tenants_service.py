@@ -26,12 +26,8 @@ class TenantService:
     @only_admin
     def update_tenant(payload: TenantUpdate, user_id: int) -> TenantOut:
         entity = TenantUpdateEntity(**payload.model_dump())
-        if entity.slug is not None:
-            existing = TenantService.tenant_exists_by_slug(entity.slug)
-            if existing:
-                raise Conflict(f"A tenant with slug '{entity.slug}' already exists.")
-        tenant = TenantService.get_by_id(entity.tenant_id, user_id)
-        return TenantRepository.update_tenant(entity, tenant.id)
+        TenantService.get_by_id(entity.tenant_id, user_id)
+        return TenantRepository.update_tenant(entity)
 
     @staticmethod
     def add_membership(

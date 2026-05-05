@@ -50,15 +50,13 @@ class TenantEntity:
 @dataclass(frozen=True, slots=True)
 class TenantUpdateEntity:
     tenant_id: int
-    name: str | None
-    slug: str | None
-    is_active: bool | None
+    name: str
+    slug: str
+    is_active: bool
 
     def __post_init__(self) -> None:
-        if self.name is not None:
-            object.__setattr__(self, "name", TenantEntity._validate_name(self.name))
-        if self.slug is not None:
-            object.__setattr__(self, "slug", TenantEntity._validate_slug(self.slug))
+        object.__setattr__(self, "name", TenantEntity._validate_name(self.name))
+        object.__setattr__(self, "slug", TenantEntity._validate_slug(self.slug))
 
 
 @dataclass(frozen=True, slots=True)

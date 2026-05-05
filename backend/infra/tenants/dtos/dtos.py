@@ -18,11 +18,9 @@ class TenantOut(TenantIn):
     created_by_id: int | None
 
 
-class TenantUpdate(BaseModel):
+class TenantUpdate(TenantIn):
     tenant_id: int
-    name: str | None = None
-    slug: str | None = None
-    is_active: bool | None = None
+    is_active: bool
 
 
 class AddMemberRequest(BaseModel):
