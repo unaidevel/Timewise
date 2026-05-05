@@ -9,7 +9,10 @@ from infra.common.classes import MembershipRoles
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.common.classes import TimeReportStatus
-from product.costing.entities.costing_entities import OvertimeRuleEntity
+from product.costing.entities.costing_entities import (
+    OvertimeRuleEntity,
+    OvertimeRuleUpdateEntity,
+)
 from product.costing.repositories.costing_repository import CostingRepository
 from product.timekeeping.models import PeriodModel, TimeEntryModel, TimeReportModel
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
@@ -148,24 +151,36 @@ class CostingRepositoryRulesTests(TestCase):
         assert len(all_rules) == 1
         assert len(active_rules) == 0
 
-    def test_update_rule_replaces_conditions_when_provided(self):
+    def test_update_rule_replaces_conditions(self):
         entity = make_rule_entity()
         created = CostingRepository.create_rule(
             entity,
             weekend_conditions(),
             self.tenant.id,
         )
+        update_entity = OvertimeRuleUpdateEntity(
+            rule_id=created.id,
+            name=created.name,
+            multiplier=created.multiplier,
+            priority=created.priority,
+        )
         new_conditions = [{"condition_type": "is_holiday", "value": "true"}]
-        updated = CostingRepository.update_rule(created.id, conditions=new_conditions)
+        updated = CostingRepository.update_rule(update_entity, new_conditions)
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "is_holiday"
 
-    def test_update_rule_preserves_conditions_when_not_provided(self):
+    def test_update_rule_changes_name(self):
         entity = make_rule_entity()
         created = CostingRepository.create_rule(
             entity, weekend_conditions(), self.tenant.id
         )
-        updated = CostingRepository.update_rule(created.id, name="Updated Name")
+        update_entity = OvertimeRuleUpdateEntity(
+            rule_id=created.id,
+            name="Updated Name",
+            multiplier=created.multiplier,
+            priority=created.priority,
+        )
+        updated = CostingRepository.update_rule(update_entity, weekend_conditions())
         assert updated.name == "Updated Name"
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "day_of_week"

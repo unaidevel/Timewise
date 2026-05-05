@@ -25,10 +25,10 @@ class OvertimeRuleIn(BaseModel):
 
 
 class OvertimeRuleUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=200)
-    multiplier: Decimal | None = Field(default=None, ge=Decimal("1.0"))
-    priority: int | None = Field(default=None, ge=0)
-    conditions: list[RuleConditionIn] | None = Field(default=None, min_length=1)
+    name: str = Field(min_length=1, max_length=200)
+    multiplier: Decimal = Field(ge=Decimal("1.0"))
+    priority: int = Field(ge=0)
+    conditions: list[RuleConditionIn] = Field(min_length=1)
 
 
 class OvertimeRuleOut(BaseModel):

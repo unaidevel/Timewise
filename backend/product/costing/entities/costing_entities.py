@@ -44,3 +44,20 @@ class OvertimeRuleEntity:
         if value < 0:
             raise UnprocessableEntity("Priority must be 0 or greater.")
         return value
+
+
+@dataclass(frozen=True, slots=True)
+class OvertimeRuleUpdateEntity:
+    rule_id: int
+    name: str
+    multiplier: Decimal
+    priority: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", OvertimeRuleEntity._validate_name(self.name))
+        object.__setattr__(
+            self, "multiplier", OvertimeRuleEntity._validate_multiplier(self.multiplier)
+        )
+        object.__setattr__(
+            self, "priority", OvertimeRuleEntity._validate_priority(self.priority)
+        )

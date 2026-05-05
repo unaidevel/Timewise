@@ -510,7 +510,7 @@ class TimeEntryServiceTests(TestCase):
             self.tenant.id,
             self.report.id,
             entry.id,
-            TimeEntryUpdate(hours=Decimal("6")),
+            TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
             self.user.id,
         )
         assert updated.hours == Decimal("6")
@@ -530,7 +530,7 @@ class TimeEntryServiceTests(TestCase):
             self.tenant.id,
             self.report.id,
             entry.id,
-            TimeEntryUpdate(hours=Decimal("6")),
+            TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
             self.user.id,
         )
         history = TimekeepingRepository.list_entry_change_history(entry.id)
@@ -554,7 +554,7 @@ class TimeEntryServiceTests(TestCase):
                 self.tenant.id,
                 self.report.id,
                 entry.id,
-                TimeEntryUpdate(hours=Decimal("6")),
+                TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
                 self.user.id,
             )
 

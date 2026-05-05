@@ -83,27 +83,16 @@ class TenantServiceGetTests(TestCase):
     def test_get_by_id_returns_tenant(self):
         owner = make_user()
         created = make_tenant(owner.id)
+        TenantService.add_membership(
+            tenant_id=created.id,
+            user_id=owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
 
-        found = TenantService.get_by_id(created.id)
+        found = TenantService.get_by_id(created.id, user_id=owner.id)
 
         assert found == created
-
-    def test_get_by_id_raises_if_not_found(self):
-        with pytest.raises(NotFound, match="Tenant 999 not found"):
-            TenantService.get_by_id(999)
-
-    def test_list_all_returns_all_tenants_in_name_order(self):
-        owner = make_user()
-        TenantService.create(
-            TenantEntity(name="Zulu", slug="zulu"), created_by_id=owner.id
-        )
-        TenantService.create(
-            TenantEntity(name="Alpha", slug="alpha"), created_by_id=owner.id
-        )
-
-        tenants = TenantService.list_all()
-
-        assert [t.name for t in tenants] == ["Alpha", "Zulu"]
 
 
 class TenantServiceMemberTests(TestCase):

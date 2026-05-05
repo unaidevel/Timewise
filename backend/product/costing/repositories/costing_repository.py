@@ -7,7 +7,10 @@ from product.costing.dtos.dtos import (
     OvertimeRuleOut,
     RuleConditionOut,
 )
-from product.costing.entities.costing_entities import OvertimeRuleEntity
+from product.costing.entities.costing_entities import (
+    OvertimeRuleEntity,
+    OvertimeRuleUpdateEntity,
+)
 from product.costing.models import (
     CostCalculationModel,
     OvertimeRuleModel,
@@ -99,45 +102,45 @@ class CostingRepository:
 
     @staticmethod
     def update_rule(
-        rule_id: int,
-        name: str | None = None,
-        multiplier: Decimal | None = None,
-        priority: int | None = None,
-        conditions: list[dict] | None = None,
+        entity: OvertimeRuleUpdateEntity,
+        conditions: list[dict],
         updated_by_id: int | None = None,
-    ) -> OvertimeRuleOut | None:
+    ) -> OvertimeRuleOut:
+        if not isinstance(entity, OvertimeRuleUpdateEntity):
+            raise TypeError(
+                f"Expected OvertimeRuleUpdateEntity, got {type(entity).__name__}"
+            )
         with transaction.atomic():
-            update_fields: dict = {}
-            if name is not None:
-                update_fields["name"] = name
-            if multiplier is not None:
-                update_fields["multiplier"] = multiplier
-            if priority is not None:
-                update_fields["priority"] = priority
-            if updated_by_id is not None:
-                update_fields["updated_by_id"] = updated_by_id
-
-            if update_fields:
-                rows = OvertimeRuleModel.objects.filter(id=rule_id).update(
-                    **update_fields
-                )
-                if rows == 0:
-                    return None
-
-            if conditions is not None:
-                RuleConditionModel.objects.filter(rule_id=rule_id).delete()
-                RuleConditionModel.objects.bulk_create(
-                    [
-                        RuleConditionModel(
-                            rule_id=rule_id,
-                            condition_type=c["condition_type"],
-                            value=c["value"],
-                        )
-                        for c in conditions
-                    ]
-                )
-
-        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
+            rule = OvertimeRuleModel(
+                id=entity.rule_id,
+                name=entity.name,
+                multiplier=entity.multiplier,
+                priority=entity.priority,
+                updated_by_id=updated_by_id,
+            )
+            rule.save(
+                update_fields=[
+                    "name",
+                    "multiplier",
+                    "priority",
+                    "updated_by_id",
+                    "updated_at",
+                ]
+            )
+            RuleConditionModel.objects.filter(rule_id=entity.rule_id).delete()
+            RuleConditionModel.objects.bulk_create(
+                [
+                    RuleConditionModel(
+                        rule_id=entity.rule_id,
+                        condition_type=c["condition_type"],
+                        value=c["value"],
+                    )
+                    for c in conditions
+                ]
+            )
+        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(
+            id=entity.rule_id
+        )
         return _rule_to_dto(model)
 
     @staticmethod

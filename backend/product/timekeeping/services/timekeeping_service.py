@@ -17,6 +17,7 @@ from product.timekeeping.dtos.dtos import (
 from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
     TimeEntryEntity,
+    TimeEntryUpdateEntity,
 )
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
@@ -296,39 +297,30 @@ class TimekeepingService:
         entry = TimekeepingRepository.get_time_entry_by_id(entry_id)
         if not entry or entry.report_id != report_id:
             raise NotFound(f"Time entry {entry_id} not found.")
-        new_entity = TimeEntryEntity(
-            date=payload.date_ if payload.date_ is not None else entry.date,
-            hours=payload.hours,
-            start_time=payload.start_time,
-            end_time=payload.end_time,
-            description=payload.description,
+        entity = TimeEntryUpdateEntity(
+            entry_id=entry_id,
+            **payload.model_dump(),
         )
-        if user_id is not None:
-            for field_name, old_val, new_val in [
-                ("date", str(entry.date), str(new_entity.date)),
-                ("hours", str(entry.hours), str(new_entity.hours)),
-                (
-                    "start_time",
-                    str(entry.start_time) if entry.start_time else None,
-                    str(new_entity.start_time) if new_entity.start_time else None,
-                ),
-                (
-                    "end_time",
-                    str(entry.end_time) if entry.end_time else None,
-                    str(new_entity.end_time) if new_entity.end_time else None,
-                ),
-                ("description", entry.description, new_entity.description),
-            ]:
-                if old_val != new_val:
-                    TimekeepingRepository.create_entry_change_history(
-                        entry_id, field_name, old_val, new_val, user_id
-                    )
-        result = TimekeepingRepository.update_time_entry(
-            entry_id, new_entity, updated_by_id=user_id
-        )
-        if result is None:
-            raise NotFound(f"Time entry {entry_id} not found.")
-        return result
+        for field_name, old_val, new_val in [
+            ("date", str(entry.date), str(entity.date)),
+            ("hours", str(entry.hours), str(entity.hours)),
+            (
+                "start_time",
+                str(entry.start_time) if entry.start_time else None,
+                str(entity.start_time) if entity.start_time else None,
+            ),
+            (
+                "end_time",
+                str(entry.end_time) if entry.end_time else None,
+                str(entity.end_time) if entity.end_time else None,
+            ),
+            ("description", entry.description, entity.description),
+        ]:
+            if old_val != new_val:
+                TimekeepingRepository.create_entry_change_history(
+                    entry_id, field_name, old_val, new_val, user_id
+                )
+        return TimekeepingRepository.update_time_entry(entity, updated_by_id=user_id)
 
     @any_employee
     @staticmethod

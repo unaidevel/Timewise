@@ -311,32 +311,41 @@ class CostingServiceUpdateRuleTests(TestCase):
             self.tenant.id, make_rule_payload("Original"), user_id=self.user.id
         )
 
+    def _full_update(self, **overrides) -> OvertimeRuleUpdate:
+        base = {
+            "name": "Original",
+            "multiplier": Decimal("1.50"),
+            "priority": 1,
+            "conditions": [{"condition_type": "day_of_week", "value": "6,7"}],
+        }
+        return OvertimeRuleUpdate(**{**base, **overrides})
+
     def test_update_rule_changes_name(self):
         updated = CostingService.update_rule(
             self.tenant.id,
             self.rule.id,
-            OvertimeRuleUpdate(name="Renamed"),
+            self._full_update(name="Renamed"),
             user_id=self.user.id,
         )
 
         assert updated.name == "Renamed"
 
-    def test_update_rule_changes_multiplier_only(self):
+    def test_update_rule_changes_multiplier(self):
         updated = CostingService.update_rule(
             self.tenant.id,
             self.rule.id,
-            OvertimeRuleUpdate(multiplier=Decimal("2.00")),
+            self._full_update(multiplier=Decimal("2.00")),
             user_id=self.user.id,
         )
 
         assert updated.multiplier == Decimal("2.00")
         assert updated.name == "Original"
 
-    def test_update_rule_changes_priority_only(self):
+    def test_update_rule_changes_priority(self):
         updated = CostingService.update_rule(
             self.tenant.id,
             self.rule.id,
-            OvertimeRuleUpdate(priority=99),
+            self._full_update(priority=99),
             user_id=self.user.id,
         )
 
@@ -346,7 +355,7 @@ class CostingServiceUpdateRuleTests(TestCase):
         updated = CostingService.update_rule(
             self.tenant.id,
             self.rule.id,
-            OvertimeRuleUpdate(
+            self._full_update(
                 conditions=[{"condition_type": "day_of_week", "value": "1,2,3"}]
             ),
             user_id=self.user.id,
@@ -360,7 +369,7 @@ class CostingServiceUpdateRuleTests(TestCase):
             CostingService.update_rule(
                 self.tenant.id,
                 99999,
-                OvertimeRuleUpdate(name="New name"),
+                self._full_update(name="New name"),
                 user_id=self.user.id,
             )
 
@@ -373,7 +382,7 @@ class CostingServiceUpdateRuleTests(TestCase):
             CostingService.update_rule(
                 other_tenant.id,
                 self.rule.id,
-                OvertimeRuleUpdate(name="Hijack"),
+                self._full_update(name="Hijack"),
                 user_id=other_user.id,
             )
 
@@ -386,16 +395,15 @@ class CostingServiceUpdateRuleTests(TestCase):
             CostingService.update_rule(
                 self.tenant.id,
                 self.rule.id,
-                OvertimeRuleUpdate(name="Existing"),
+                self._full_update(name="Existing"),
                 user_id=self.user.id,
             )
 
     def test_update_rule_renaming_to_same_name_is_allowed(self):
-        # Renaming the rule to its own current name must not trigger Conflict.
         updated = CostingService.update_rule(
             self.tenant.id,
             self.rule.id,
-            OvertimeRuleUpdate(name="Original"),
+            self._full_update(name="Original"),
             user_id=self.user.id,
         )
 
@@ -409,6 +417,6 @@ class CostingServiceUpdateRuleTests(TestCase):
             CostingService.update_rule(
                 self.tenant.id,
                 self.rule.id,
-                OvertimeRuleUpdate(name="Hijack"),
+                self._full_update(name="Hijack"),
                 user_id=employee_user.id,
             )

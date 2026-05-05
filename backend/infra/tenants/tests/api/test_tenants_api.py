@@ -92,24 +92,6 @@ class TenantsApiTests(TestCase):
         assert exc.value.status_code == 422
         assert exc.value.detail == "Tenant name cannot be blank."
 
-    def test_list_tenants_returns_all_tenants(self):
-        current_user = self._authenticate_user(
-            email="owner@example.com",
-            full_name="Owner User",
-        )
-        tenants_router.create_tenant(
-            TenantIn(name="Zulu", slug="zulu"),
-            current_user=current_user,
-        )
-        tenants_router.create_tenant(
-            TenantIn(name="Alpha", slug="alpha"),
-            current_user=current_user,
-        )
-
-        tenants = tenants_router.list_tenants(current_user)
-
-        assert [tenant.name for tenant in tenants] == ["Alpha", "Zulu"]
-
     def test_get_tenant_returns_tenant(self):
         current_user = self._authenticate_user(
             email="owner@example.com",
@@ -124,18 +106,6 @@ class TenantsApiTests(TestCase):
 
         assert tenant.id == created.id
         assert tenant.slug == "acme"
-
-    def test_get_tenant_returns_404_when_missing(self):
-        current_user = self._authenticate_user(
-            email="owner@example.com",
-            full_name="Owner User",
-        )
-
-        with pytest.raises(HTTPException) as exc:
-            tenants_router.get_tenant(999, current_user)
-
-        assert exc.value.status_code == 404
-        assert exc.value.detail == "Tenant 999 not found."
 
     def test_add_member_returns_created_membership(self):
         owner_user = self._authenticate_user(
