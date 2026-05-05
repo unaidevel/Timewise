@@ -93,7 +93,7 @@ docker compose run --rm admin uv run python manage.py migrate
 |---|---|
 | API | http://localhost:8000 |
 | API docs | http://localhost:8000/docs |
-| Django admin | http://localhost:8001/admin/ |
+| Django admin | http://localhost:8000/admin/ |
 | Frontend | http://localhost:3000 |
 
 ---
