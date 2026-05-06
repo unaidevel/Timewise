@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from infra.common.exceptions import Conflict, NotFound
+from infra.common.exceptions import Conflict, InternalServerError, NotFound
 from infra.tenants.decorators import any_employee, only_manager
 from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
@@ -72,7 +72,8 @@ class ApprovalsService:
             reviewed_at,
         )
         ApprovalsRepository.create_event(approval_id, ApprovalAction.APPROVED, user_id)
-        assert updated is not None
+        if updated is None:
+            raise InternalServerError()
         return updated
 
     @only_manager
@@ -93,7 +94,8 @@ class ApprovalsService:
         ApprovalsRepository.create_event(
             approval_id, ApprovalAction.REJECTED, user_id, reason
         )
-        assert updated is not None
+        if updated is None:
+            raise InternalServerError()
         return updated
 
     @any_employee
