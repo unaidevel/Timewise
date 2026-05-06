@@ -1,4 +1,4 @@
-import subprocess
+import subprocess  # nosec B404 - dev management command, no user input in subprocess calls
 import sys
 from pathlib import Path
 
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         error_message: str,
         raise_on_error: bool = True,
     ) -> int:
-        completed = subprocess.run(command, cwd=cwd, check=False)
+        completed = subprocess.run(command, cwd=cwd, check=False)  # nosec B603 - command is a hardcoded list, not user input
         if completed.returncode != 0 and raise_on_error:
             raise CommandError(error_message)
         return completed.returncode
