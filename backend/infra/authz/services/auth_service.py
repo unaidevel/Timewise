@@ -26,7 +26,7 @@ from infra.common.exceptions import (
 )
 
 STALE_LOGIN_ATTEMPT_RETENTION_DAYS = 30
-TOKEN_TYPE_BEARER = "bearer"
+TOKEN_TYPE_BEARER = "bearer"  # nosec B105 - HTTP Authorization header prefix, not a credential
 ACCESS_TOKEN_BYTES = 48
 REFRESH_TOKEN_BYTES = 64
 FAMILY_ID_BYTES = 32

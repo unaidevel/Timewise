@@ -1,6 +1,6 @@
 import importlib
 import os
-import subprocess
+import subprocess  # nosec B404 - dev management command, no user input in subprocess calls
 import sys
 import time
 from pathlib import Path
@@ -152,7 +152,7 @@ class Command(BaseCommand):
         self.stdout.write(f"{'─' * _WIDTH}")
 
         start = time.monotonic()
-        completed = subprocess.run(command, cwd=cwd, env=env, check=False)
+        completed = subprocess.run(command, cwd=cwd, env=env, check=False)  # nosec B603 - command is a hardcoded list, not user input
         duration = time.monotonic() - start
         passed = completed.returncode == 0
 
@@ -305,6 +305,6 @@ class Command(BaseCommand):
         env: dict[str, str],
         error_message: str,
     ) -> None:
-        completed = subprocess.run(command, cwd=cwd, env=env, check=False)
+        completed = subprocess.run(command, cwd=cwd, env=env, check=False)  # nosec B603 - command is a hardcoded list, not user input
         if completed.returncode != 0:
             raise CommandError(error_message)
