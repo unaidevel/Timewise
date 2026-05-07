@@ -21,6 +21,8 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 
 ## Stack
 
+**Backend**
+
 | Layer | Technology |
 |---|---|
 | API | FastAPI |
@@ -32,6 +34,20 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 | Type checking | mypy |
 | CI | GitHub Actions |
 | Deploy | Railway |
+
+**Frontend**
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + TypeScript 6 |
+| Bundler | Vite 8 |
+| Routing | React Router 7 |
+| Server state | TanStack Query v5 |
+| UI components | shadcn/ui + Radix primitives |
+| Styling | Tailwind CSS v4 |
+| API client | @hey-api/openapi-ts (auto-generated from FastAPI schema) |
+| Linting / formatting | Biome |
+| Testing | Vitest + Testing Library + MSW |
 
 ## Modules
 
