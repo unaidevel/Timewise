@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Button } from "@/components/shadcn/button";
 import {
@@ -29,8 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/shadcn/dropdown-menu";
-import { Input } from "@/components/shadcn/input";
 import { useLogout } from "@/features/auth/hooks";
+
 import { useAuthStore } from "@/features/auth/store";
 import { useTenants } from "@/features/tenants/hooks";
 import { useTenantStore } from "@/features/tenants/store";
@@ -65,6 +66,7 @@ export function Layout() {
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const [collapsed, setCollapsed] = useState(false);
+  const palette = useCommandPalette();
 
   useEffect(() => {
     if (currentTenantId == null && tenants.length > 0) {
@@ -181,16 +183,15 @@ export function Layout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3 px-4 lg:px-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar empleados, reportes, periodos…"
-              className="pl-9 h-9 bg-muted/40 border-transparent focus-visible:bg-background"
-            />
-            <kbd className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">
-              ⌘K
-            </kbd>
-          </div>
+          <button
+            type="button"
+            onClick={() => palette.setOpen(true)}
+            className="relative flex-1 max-w-md flex items-center gap-2 h-9 rounded-md border border-transparent bg-muted/40 hover:bg-muted/60 px-3 text-left text-sm text-muted-foreground transition"
+          >
+            <Search className="size-4" />
+            <span className="flex-1 truncate">Buscar empleados, reportes, periodos…</span>
+            <kbd className="hidden sm:inline-flex text-[10px] border rounded px-1.5 py-0.5">⌘K</kbd>
+          </button>
           <div className="ml-auto flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={toggle} aria-label="Cambiar tema">
               {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -226,6 +227,8 @@ export function Layout() {
             </DropdownMenu>
           </div>
         </header>
+
+        <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
 
         <main className="flex-1 overflow-auto">
           <AnimatePresence mode="wait">
