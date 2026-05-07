@@ -1,7 +1,12 @@
+import { motion } from "framer-motion";
+import { Leaf, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { toast } from "sonner";
+import { Button } from "@/components/shadcn/button";
+import { Input } from "@/components/shadcn/input";
+import { Label } from "@/components/shadcn/label";
+import { AuthHero } from "@/features/auth/components/AuthHero";
 import { useLogin } from "../hooks";
 
 export default function LoginPage() {
@@ -12,50 +17,80 @@ export default function LoginPage() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    login.mutate({ email, password }, { onSuccess: () => navigate("/") });
+    login.mutate(
+      { email, password },
+      {
+        onSuccess: (data) => {
+          toast.success(`Bienvenido, ${data.user.full_name?.split(" ")[0] ?? data.user.email}`);
+          navigate("/");
+        },
+        onError: () => {
+          toast.error("Credenciales incorrectas");
+        },
+      },
+    );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+    <div className="min-h-screen grid lg:grid-cols-2">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-center px-6 py-12"
       >
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">TimeWise</h1>
-          <p className="text-sm text-slate-600">Inicia sesión para continuar</p>
-        </div>
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <Input
-          label="Contraseña"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
-        {login.isError && (
-          <p className="text-sm text-red-600">
-            No se ha podido iniciar sesión. Comprueba tus credenciales.
-          </p>
-        )}
-        <Button type="submit" className="w-full" disabled={login.isPending}>
-          {login.isPending ? "Entrando…" : "Entrar"}
-        </Button>
-        <p className="text-center text-sm text-slate-600">
-          ¿No tienes cuenta?{" "}
-          <Link to="/register" className="font-medium text-slate-900 underline">
-            Regístrate
+        <div className="w-full max-w-sm">
+          <Link to="/login" className="inline-flex items-center gap-2 mb-10">
+            <div className="size-9 rounded-xl bg-primary text-primary-foreground grid place-items-center">
+              <Leaf className="size-4" />
+            </div>
+            <span className="font-semibold tracking-tight">TimeWise</span>
           </Link>
-        </p>
-      </form>
+          <h1 className="text-3xl font-semibold tracking-tight">Bienvenido de nuevo</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Inicia sesión para continuar en tu workspace.
+          </p>
+
+          <form onSubmit={onSubmit} className="mt-8 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Contraseña</Label>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full h-11" disabled={login.isPending}>
+              {login.isPending ? <Loader2 className="size-4 animate-spin" /> : "Entrar"}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-sm text-muted-foreground text-center">
+            ¿No tienes cuenta?{" "}
+            <Link to="/register" className="text-foreground font-medium hover:underline">
+              Crear una cuenta
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+
+      <AuthHero />
     </div>
   );
 }
