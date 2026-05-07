@@ -8,6 +8,11 @@
   "files": {
     "includes": ["**", "!**/dist", "!src/client"]
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
