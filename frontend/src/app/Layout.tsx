@@ -13,6 +13,7 @@ import {
   Moon,
   Plus,
   Search,
+  Settings,
   Sun,
   Tag,
   Users,
@@ -51,9 +52,12 @@ const nav: NavItem[] = [
   { to: "/departments", label: "Departamentos", icon: FolderKanban },
   { to: "/roles", label: "Roles", icon: Tag },
   { to: "/periods", label: "Periodos", icon: Clock },
+  { to: "/time", label: "Fichar horas", icon: Clock },
   { to: "/reports", label: "Mis reportes", icon: Clock },
   { to: "/approvals", label: "Aprobaciones", icon: CheckSquare },
   { to: "/costing-rules", label: "Reglas de coste", icon: Calculator },
+  { to: "/costing", label: "Costing", icon: Calculator },
+  { to: "/settings", label: "Ajustes", icon: Settings },
 ];
 
 export function Layout() {
