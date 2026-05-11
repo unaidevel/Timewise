@@ -68,7 +68,7 @@ export default function TimeReportsPage() {
       if (q) {
         const needle = q.toLowerCase();
         if (
-          !r.period.name.toLowerCase().includes(needle) &&
+          !(r.period?.name?.toLowerCase().includes(needle) ?? false) &&
           !`#${r.id}`.includes(needle) &&
           !`#${r.employee_id}`.includes(needle)
         )
@@ -170,7 +170,7 @@ export default function TimeReportsPage() {
                   className="border-b hover:bg-muted/40 transition"
                 >
                   <TableCell className="font-mono text-sm">#{r.id}</TableCell>
-                  <TableCell className="font-medium">{r.period.name}</TableCell>
+                  <TableCell className="font-medium">{r.period?.name ?? "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">#{r.employee_id}</TableCell>
                   <TableCell>
                     <Badge
