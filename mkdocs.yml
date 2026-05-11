@@ -1,0 +1,60 @@
+site_name: TimeWise
+site_description: Employee time tracking and labour cost management platform
+site_url: https://unaidevel.github.io/New_Portfolio
+repo_url: https://github.com/unaidevel/New_Portfolio
+repo_name: unaidevel/New_Portfolio
+
+theme:
+  name: material
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Backend:
+      - Overview: backend/index.md
+      - Architecture: backend/architecture.md
+      - Getting Started: backend/getting-started.md
+  - Frontend:
+      - Overview: frontend/index.md
+      - Getting Started: frontend/getting-started.md
+  - Modules:
+      - Auth: modules/auth.md
+      - Tenants: modules/tenants.md
+      - Workforce: modules/workforce.md
+      - Timekeeping: modules/timekeeping.md
+      - Costing: modules/costing.md
+      - Approvals: modules/approvals.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables
+  - attr_list
