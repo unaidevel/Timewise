@@ -72,21 +72,6 @@ class TenantRepositoryTests(TestCase):
                 created_by_id=user.id,
             )
 
-    def test_list_all_returns_tenants_in_name_order(self):
-        user = make_user()
-        TenantRepository.create(
-            TenantEntity(name="Zulu", slug="zulu"),
-            created_by_id=user.id,
-        )
-        TenantRepository.create(
-            TenantEntity(name="Alpha", slug="alpha"),
-            created_by_id=user.id,
-        )
-
-        tenants = TenantRepository.list_all()
-
-        assert [tenant.name for tenant in tenants] == ["Alpha", "Zulu"]
-
     def test_add_membership_creates_and_find_active_membership_returns_it(self):
         owner = make_user()
         member = make_user("member@example.com")

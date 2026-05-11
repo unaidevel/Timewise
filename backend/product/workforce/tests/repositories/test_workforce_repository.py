@@ -10,10 +10,13 @@ from infra.tenants.entities.tenant_entities import TenantEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
+    DepartmentUpdateEntity,
     EmployeeEntity,
     EmployeeRoleEntity,
     EmployeeUpdateEntity,
     RoleEntity,
+    RoleUpdateEntity,
+    SetEmployeeManagerEntity,
 )
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
@@ -201,21 +204,19 @@ class EmployeeRepositoryTests(TestCase):
         emp = WorkforceRepository.create_employee(
             self._employee_entity(), self.tenant.id
         )
-        entity = EmployeeUpdateEntity(full_name="Bob Jones", email=None, hired_at=None)
-        updated = WorkforceRepository.update_employee(emp.id, entity)
-        assert updated.full_name == "Bob Jones"
-        assert updated.email == "alice@example.com"
-
-    def test_update_employee_partial_email_only(self):
-        emp = WorkforceRepository.create_employee(
-            self._employee_entity(), self.tenant.id
-        )
         entity = EmployeeUpdateEntity(
-            full_name=None, email="bob@example.com", hired_at=None
+            employee_id=emp.id,
+            full_name="Bob Jones",
+            email="bob@example.com",
+            hired_at=date(2024, 3, 1),
         )
-        updated = WorkforceRepository.update_employee(emp.id, entity)
+        updated = WorkforceRepository.update_employee(entity)
+        assert updated.full_name == "Bob Jones"
         assert updated.email == "bob@example.com"
-        assert updated.full_name == "Alice Smith"
+
+    def test_update_employee_raises_type_error_for_non_entity(self):
+        with pytest.raises(TypeError, match="Expected EmployeeUpdateEntity"):
+            WorkforceRepository.update_employee("not-an-entity")
 
     def test_set_employee_manager(self):
         emp = WorkforceRepository.create_employee(
@@ -229,7 +230,9 @@ class EmployeeRepositoryTests(TestCase):
             ),
             self.tenant.id,
         )
-        updated = WorkforceRepository.set_employee_manager(emp.id, manager.id)
+        updated = WorkforceRepository.set_employee_manager(
+            SetEmployeeManagerEntity(employee_id=emp.id, manager_id=manager.id)
+        )
         assert updated.manager_id == manager.id
 
     def test_set_employee_manager_to_none(self):
@@ -244,9 +247,17 @@ class EmployeeRepositoryTests(TestCase):
             ),
             self.tenant.id,
         )
-        WorkforceRepository.set_employee_manager(emp.id, manager.id)
-        updated = WorkforceRepository.set_employee_manager(emp.id, None)
+        WorkforceRepository.set_employee_manager(
+            SetEmployeeManagerEntity(employee_id=emp.id, manager_id=manager.id)
+        )
+        updated = WorkforceRepository.set_employee_manager(
+            SetEmployeeManagerEntity(employee_id=emp.id, manager_id=None)
+        )
         assert updated.manager_id is None
+
+    def test_set_employee_manager_raises_type_error_for_non_entity(self):
+        with pytest.raises(TypeError, match="Expected SetEmployeeManagerEntity"):
+            WorkforceRepository.set_employee_manager("not-an-entity")
 
     def test_get_direct_reports(self):
         manager = WorkforceRepository.create_employee(
@@ -263,8 +274,12 @@ class EmployeeRepositoryTests(TestCase):
         emp2 = WorkforceRepository.create_employee(
             self._employee_entity("bob@example.com"), self.tenant.id
         )
-        WorkforceRepository.set_employee_manager(emp1.id, manager.id)
-        WorkforceRepository.set_employee_manager(emp2.id, manager.id)
+        WorkforceRepository.set_employee_manager(
+            SetEmployeeManagerEntity(employee_id=emp1.id, manager_id=manager.id)
+        )
+        WorkforceRepository.set_employee_manager(
+            SetEmployeeManagerEntity(employee_id=emp2.id, manager_id=manager.id)
+        )
 
         reports = WorkforceRepository.get_direct_reports(manager.id)
         assert len(reports) == 2
@@ -280,17 +295,29 @@ class DepartmentUpdateRepositoryTests(TestCase):
         dept = WorkforceRepository.create_department(
             DepartmentEntity(name="Engineering"), self.tenant.id
         )
-        updated = WorkforceRepository.update_department(dept.id, "R&D")
+        updated = WorkforceRepository.update_department(
+            DepartmentUpdateEntity(department_id=dept.id, name="R&D")
+        )
         assert updated.name == "R&D"
         assert updated.id == dept.id
+
+    def test_update_department_raises_type_error_for_non_entity(self):
+        with pytest.raises(TypeError, match="Expected DepartmentUpdateEntity"):
+            WorkforceRepository.update_department("not-an-entity")
 
     def test_update_role_name(self):
         role = WorkforceRepository.create_role(
             RoleEntity(name="Developer"), self.tenant.id
         )
-        updated = WorkforceRepository.update_role(role.id, "Senior Developer")
+        updated = WorkforceRepository.update_role(
+            RoleUpdateEntity(role_id=role.id, name="Senior Developer")
+        )
         assert updated.name == "Senior Developer"
         assert updated.id == role.id
+
+    def test_update_role_raises_type_error_for_non_entity(self):
+        with pytest.raises(TypeError, match="Expected RoleUpdateEntity"):
+            WorkforceRepository.update_role("not-an-entity")
 
 
 class DepartmentManagerRepositoryTests(TestCase):

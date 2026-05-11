@@ -6,6 +6,8 @@ Employee time tracking and labour cost management platform built as a portfolio 
 
 TimeWise lets companies track employee working hours, apply configurable cost rules, and generate cost reports — with a full approval workflow and a complete audit trail.
 
+
+
 ## Technical highlights
 
 - **Hexagonal architecture** (ports & adapters) strictly separating domain, application, and infrastructure layers
@@ -14,10 +16,12 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 - **Configurable cost-rule engine** for overtime, holidays, and contract types
 - **Multi-step approval workflow** with status history and role-based access control
 - Full **CI pipeline** with linting, static type checking, architecture validation, and PostgreSQL-backed integration tests
-- **Pre-commit hooks** enforcing Ruff and conventional commit messages locally
+- **Pre-commit hooks** enforcing Ruff and conventional commit messages locally (via [czg](https://github.com/Zhengqbbb/cz-git))
 - **Docker Compose** setup for local development
 
 ## Stack
+
+**Backend**
 
 | Layer | Technology |
 |---|---|
@@ -30,6 +34,20 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 | Type checking | mypy |
 | CI | GitHub Actions |
 | Deploy | Railway |
+
+**Frontend**
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + TypeScript 6 |
+| Bundler | Vite 8 |
+| Routing | React Router 7 |
+| Server state | TanStack Query v5 |
+| UI components | shadcn/ui + Radix primitives |
+| Styling | Tailwind CSS v4 |
+| API client | @hey-api/openapi-ts (auto-generated from FastAPI schema) |
+| Linting / formatting | Biome |
+| Testing | Vitest + Testing Library + MSW |
 
 ## Modules
 
@@ -56,4 +74,44 @@ backend/
 
 ## Documentation
 
-- [Backend setup and commands](backend/README.md)
+- [Backend](backend/README.md)
+- [Frontend](frontend/README.md)
+
+
+
+## Getting started
+
+
+**1. Clone and configure**
+
+```bash
+git clone https://github.com/unaidevel/Timewise.git
+cd TimeWise
+cp backend/.env/.env.example backend/.env/.env
+# Fill in your PostgreSQL credentials in backend/.env/.env
+```
+
+**2. Start the stack**
+
+```bash
+docker compose up --build
+```
+
+**3. Run migrations**
+
+```bash
+docker compose run --rm admin uv run python manage.py migrate
+```
+
+**4. Open the app**
+
+| Service | URL |
+|---|---|
+| API | http://localhost:8000 |
+| API docs | http://localhost:8000/docs |
+| Django admin | http://localhost:8000/admin/ |
+| Frontend | http://localhost:3000 |
+
+---
+
+Without Docker, see [Backend](backend/README.md) and [Frontend](frontend/README.md) for local setup.

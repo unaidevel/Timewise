@@ -40,6 +40,49 @@ jobs:
         working-directory: backend
         run: uv run ruff format --check .
 
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync
+
+      - name: Run bandit
+        working-directory: backend
+        run: uv run bandit -r . -c pyproject.toml --severity-level medium -f json -o bandit-report.json || true
+
+      - name: Check for findings
+        working-directory: backend
+        run: |
+          python - <<'EOF'
+          import json, sys
+          data = json.load(open("bandit-report.json"))
+          issues = [r for r in data.get("results", []) if r["issue_severity"] in ("MEDIUM", "HIGH")]
+          for r in issues:
+              print(f"{r['filename']}:{r['line_number']} [{r['issue_severity']}] {r['test_id']} {r['issue_text']}")
+          if issues:
+              sys.exit(1)
+          EOF
+
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: backend/bandit-report.json
+
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest

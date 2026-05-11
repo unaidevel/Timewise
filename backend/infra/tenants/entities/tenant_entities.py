@@ -48,6 +48,18 @@ class TenantEntity:
 
 
 @dataclass(frozen=True, slots=True)
+class TenantUpdateEntity:
+    tenant_id: int
+    name: str
+    slug: str
+    is_active: bool
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", TenantEntity._validate_name(self.name))
+        object.__setattr__(self, "slug", TenantEntity._validate_slug(self.slug))
+
+
+@dataclass(frozen=True, slots=True)
 class TenantMemberEntity:
     user_id: int
     role: str

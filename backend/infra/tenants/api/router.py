@@ -12,6 +12,7 @@ from infra.tenants.dtos.dtos import (
     TenantIn,
     TenantMemberResponse,
     TenantOut,
+    TenantUpdate,
 )
 from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator
 from infra.tenants.services.tenants_service import TenantService
@@ -29,14 +30,18 @@ def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
 
 
-@router.get("", response_model=list[TenantOut])
-def list_tenants(_: CurrentUser) -> list[TenantOut]:
-    return TenantService.list_all()
+@router.put(
+    "",
+    response_model=TenantOut,
+    responses=responses_for(NotFound, Conflict, UnprocessableEntity),
+)
+def update_tenant(payload: TenantUpdate, current_user: CurrentUser) -> TenantOut:
+    return TenantService.update_tenant(payload, current_user.id)
 
 
 @router.get("/{tenant_id}", response_model=TenantOut, responses=responses_for(NotFound))
-def get_tenant(tenant_id: int, _: CurrentUser) -> TenantOut:
-    return TenantService.get_by_id(tenant_id)
+def get_tenant(tenant_id: int, current_user: CurrentUser) -> TenantOut:
+    return TenantService.get_by_id(tenant_id, current_user.id)
 
 
 @router.post(

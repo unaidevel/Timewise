@@ -62,3 +62,18 @@ class TimeEntryEntity:
             raise UnprocessableEntity(
                 f"End time ({end_time}) must be after start time ({start_time})."
             )
+
+
+@dataclass(frozen=True, slots=True)
+class TimeEntryUpdateEntity:
+    entry_id: int
+    date: date
+    hours: Decimal
+    start_time: time | None = None
+    end_time: time | None = None
+    description: str = ""
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "hours", TimeEntryEntity._validate_hours(self.hours))
+        if self.start_time is not None and self.end_time is not None:
+            TimeEntryEntity._validate_time_range(self.start_time, self.end_time)

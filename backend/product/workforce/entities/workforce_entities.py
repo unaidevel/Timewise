@@ -71,20 +71,41 @@ class EmployeeEntity:
 
 
 @dataclass(frozen=True, slots=True)
-class EmployeeUpdateEntity:
-    full_name: str | None
-    email: str | None
-    hired_at: date | None
+class DepartmentUpdateEntity:
+    department_id: int
+    name: str
 
     def __post_init__(self) -> None:
-        if self.full_name is not None:
-            object.__setattr__(
-                self, "full_name", EmployeeEntity._validate_full_name(self.full_name)
-            )
-        if self.email is not None:
-            object.__setattr__(
-                self, "email", EmployeeEntity._validate_email(self.email)
-            )
+        object.__setattr__(self, "name", DepartmentEntity._validate_name(self.name))
+
+
+@dataclass(frozen=True, slots=True)
+class RoleUpdateEntity:
+    role_id: int
+    name: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", RoleEntity._validate_name(self.name))
+
+
+@dataclass(frozen=True, slots=True)
+class EmployeeUpdateEntity:
+    employee_id: int
+    full_name: str
+    email: str
+    hired_at: date
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "full_name", EmployeeEntity._validate_full_name(self.full_name)
+        )
+        object.__setattr__(self, "email", EmployeeEntity._validate_email(self.email))
+
+
+@dataclass(frozen=True, slots=True)
+class SetEmployeeManagerEntity:
+    employee_id: int
+    manager_id: int | None
 
 
 @dataclass(frozen=True, slots=True)

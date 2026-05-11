@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "django>=6.0.4",
+    "django>=6.0.5",
     "django-unfold>=0.89.0",
     "fastapi>=0.135.3",
     "psycopg[binary]>=3.2.9",
@@ -15,8 +15,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "bandit>=1.9.4",
     "django-stubs>=6.0.3",
-    "mypy>=1.15.0",
+"mypy>=1.15.0",
     "pre-commit>=4.6.0",
     "pytest>=9.0.3",
     "pytest-cov>=6.0.0",
@@ -41,6 +42,9 @@ ignore = ["E501", "RUF012", "B008"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.bandit]
+exclude_dirs = [".venv", "migrations", "tests"]
 
 [tool.coverage.run]
 omit = [

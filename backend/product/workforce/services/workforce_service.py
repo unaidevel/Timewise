@@ -23,10 +23,13 @@ from product.workforce.dtos.dtos import (
 )
 from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
+    DepartmentUpdateEntity,
     EmployeeEntity,
     EmployeeRoleEntity,
     EmployeeUpdateEntity,
     RoleEntity,
+    RoleUpdateEntity,
+    SetEmployeeManagerEntity,
 )
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
@@ -93,15 +96,13 @@ class WorkforceService:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
             raise NotFound(f"Department {department_id} not found.")
-        entity = DepartmentEntity(name=payload.name)
+        entity = DepartmentUpdateEntity(department_id=department_id, name=payload.name)
         existing = WorkforceRepository.find_department_by_name(tenant_id, entity.name)
         if existing and existing.id != department_id:
             raise Conflict(
                 f"A department named '{entity.name}' already exists in this tenant."
             )
-        return WorkforceRepository.update_department(
-            department_id, entity.name, updated_by_id=user_id
-        )
+        return WorkforceRepository.update_department(entity, updated_by_id=user_id)
 
     @only_admin
     @staticmethod
@@ -209,15 +210,13 @@ class WorkforceService:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
             raise NotFound(f"Role {role_id} not found.")
-        entity = RoleEntity(name=payload.name)
+        entity = RoleUpdateEntity(role_id=role_id, name=payload.name)
         existing = WorkforceRepository.find_role_by_name(tenant_id, entity.name)
         if existing and existing.id != role_id:
             raise Conflict(
                 f"A role named '{entity.name}' already exists in this tenant."
             )
-        return WorkforceRepository.update_role(
-            role_id, entity.name, updated_by_id=user_id
-        )
+        return WorkforceRepository.update_role(entity, updated_by_id=user_id)
 
     # --- Employees ---
 
@@ -309,22 +308,13 @@ class WorkforceService:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
-        entity = EmployeeUpdateEntity(
-            full_name=payload.full_name,
-            email=payload.email,
-            hired_at=payload.hired_at,
-        )
-        if entity.email is not None:
-            existing = WorkforceRepository.find_employee_by_email(
-                tenant_id, entity.email
+        entity = EmployeeUpdateEntity(employee_id=employee_id, **payload.model_dump())
+        existing = WorkforceRepository.find_employee_by_email(tenant_id, entity.email)
+        if existing and existing.id != employee_id:
+            raise Conflict(
+                f"An employee with email '{entity.email}' already exists in this tenant."
             )
-            if existing and existing.id != employee_id:
-                raise Conflict(
-                    f"An employee with email '{entity.email}' already exists in this tenant."
-                )
-        return WorkforceRepository.update_employee(
-            employee_id, entity, updated_by_id=user_id
-        )
+        return WorkforceRepository.update_employee(entity, updated_by_id=user_id)
 
     @only_admin
     @staticmethod
@@ -341,9 +331,10 @@ class WorkforceService:
             manager = WorkforceRepository.get_employee_by_id(payload.manager_id)
             if not manager or manager.tenant_id != tenant_id:
                 raise NotFound(f"Employee {payload.manager_id} not found.")
-        return WorkforceRepository.set_employee_manager(
-            employee_id, payload.manager_id, updated_by_id=user_id
+        entity = SetEmployeeManagerEntity(
+            employee_id=employee_id, manager_id=payload.manager_id
         )
+        return WorkforceRepository.set_employee_manager(entity, updated_by_id=user_id)
 
     @staticmethod
     def get_direct_reports(tenant_id: int, employee_id: int) -> list[EmployeeOut]:

@@ -9,7 +9,10 @@ from product.costing.dtos.dtos import (
     OvertimeRuleUpdate,
     ReportCostSummaryOut,
 )
-from product.costing.entities.costing_entities import OvertimeRuleEntity
+from product.costing.entities.costing_entities import (
+    OvertimeRuleEntity,
+    OvertimeRuleUpdateEntity,
+)
 from product.costing.repositories.costing_repository import CostingRepository
 from product.costing.utils.rules_evaluator import (
     ConditionSpec,
@@ -73,57 +76,22 @@ class CostingService:
         payload: OvertimeRuleUpdate,
         user_id: int,
     ) -> OvertimeRuleOut:
+        entity = OvertimeRuleUpdateEntity(
+            rule_id=rule_id, **payload.model_dump(exclude={"conditions"})
+        )
         rule = CostingRepository.get_rule_by_id(rule_id)
         if not rule or rule.tenant_id != tenant_id:
             raise NotFound(f"Overtime rule {rule_id} not found.")
-
-        name = None
-        if payload.name is not None:
-            entity = OvertimeRuleEntity(
-                name=payload.name,
-                multiplier=payload.multiplier
-                if payload.multiplier is not None
-                else rule.multiplier,
-                priority=payload.priority
-                if payload.priority is not None
-                else rule.priority,
+        duplicate = CostingRepository.find_rule_by_name(tenant_id, entity.name)
+        if duplicate and duplicate.id != rule_id:
+            raise Conflict(
+                f"An overtime rule named '{entity.name}' already exists in this tenant."
             )
-            name = entity.name
-            duplicate = CostingRepository.find_rule_by_name(tenant_id, name)
-            if duplicate and duplicate.id != rule_id:
-                raise Conflict(
-                    f"An overtime rule named '{name}' already exists in this tenant."
-                )
-        elif payload.multiplier is not None or payload.priority is not None:
-            # Validate multiplier/priority even when name is not changing
-            OvertimeRuleEntity(
-                name=rule.name,
-                multiplier=payload.multiplier
-                if payload.multiplier is not None
-                else rule.multiplier,
-                priority=payload.priority
-                if payload.priority is not None
-                else rule.priority,
-            )
-
-        conditions = None
-        if payload.conditions is not None:
-            conditions = [
-                {"condition_type": c.condition_type, "value": c.value}
-                for c in payload.conditions
-            ]
-
-        result = CostingRepository.update_rule(
-            rule_id,
-            name=name,
-            multiplier=payload.multiplier,
-            priority=payload.priority,
-            conditions=conditions,
-            updated_by_id=user_id,
-        )
-        if not result:
-            raise NotFound(f"Overtime rule {rule_id} not found.")
-        return result
+        conditions = [
+            {"condition_type": c.condition_type, "value": c.value}
+            for c in payload.conditions
+        ]
+        return CostingRepository.update_rule(entity, conditions, updated_by_id=user_id)
 
     @only_admin
     @staticmethod
