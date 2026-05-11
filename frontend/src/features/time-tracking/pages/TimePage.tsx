@@ -53,10 +53,13 @@ function dayLabel(iso: string) {
 }
 
 function eachDay(startIso: string, endIso: string): string[] {
+  // Iterate in UTC so that converting back to a YYYY-MM-DD string is
+  // independent of the runtime timezone. Using local-time arithmetic would
+  // shift the date by ±1 day in some timezones when calling toISOString().
   const days: string[] = [];
-  const start = new Date(`${startIso}T00:00:00`);
-  const end = new Date(`${endIso}T00:00:00`);
-  for (let d = start; d <= end; d.setDate(d.getDate() + 1)) {
+  const start = new Date(`${startIso}T00:00:00Z`);
+  const end = new Date(`${endIso}T00:00:00Z`);
+  for (let d = start; d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     days.push(d.toISOString().slice(0, 10));
   }
   return days;
