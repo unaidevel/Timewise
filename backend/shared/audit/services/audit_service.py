@@ -57,7 +57,9 @@ class AuditService:
     ) -> AuditEventOut:
         AuditService.get_by_id(tenant_id, event_id, user_id)
         entity = AuditEventUpdateEntity(event_id=event_id, **payload.model_dump())
-        return AuditRepository.update(entity)
+        result = AuditRepository.update(entity)
+        assert result is not None
+        return result
 
     @only_admin
     @staticmethod
