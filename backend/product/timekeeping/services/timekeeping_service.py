@@ -4,20 +4,17 @@ from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.decorators import any_employee, only_admin, only_manager
 from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
-    PeriodIn,
     PeriodOut,
-    RejectReportRequest,
-    TimeEntryIn,
     TimeEntryOut,
-    TimeEntryUpdate,
-    TimeReportIn,
     TimeReportOut,
     TimeReportStatusHistoryOut,
 )
 from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
+    RejectReportEntity,
     TimeEntryEntity,
     TimeEntryUpdateEntity,
+    TimeReportEntity,
 )
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
@@ -29,14 +26,9 @@ class TimekeepingService:
     @staticmethod
     def create_period(
         tenant_id: int,
-        payload: PeriodIn,
+        entity: PeriodEntity,
         user_id: int,
     ) -> PeriodOut:
-        entity = PeriodEntity(
-            name=payload.name,
-            start_date=payload.start_date,
-            end_date=payload.end_date,
-        )
         existing = TimekeepingRepository.find_period_by_name(tenant_id, entity.name)
         if existing:
             raise Conflict(
@@ -88,7 +80,7 @@ class TimekeepingService:
     def create_time_report(
         tenant_id: int,
         period_id: int,
-        payload: TimeReportIn,
+        entity: TimeReportEntity,
         user_id: int,
     ) -> TimeReportOut:
         period = TimekeepingRepository.get_period_by_id(period_id)
@@ -97,14 +89,14 @@ class TimekeepingService:
         if period.status == PeriodStatus.LOCKED:
             raise Conflict(f"Period {period_id} is locked. Cannot create reports.")
         existing = TimekeepingRepository.find_report_by_employee_and_period(
-            payload.employee_id, period_id
+            entity.employee_id, period_id
         )
         if existing:
             raise Conflict(
-                f"Employee {payload.employee_id} already has a report for period {period_id}."
+                f"Employee {entity.employee_id} already has a report for period {period_id}."
             )
         return TimekeepingRepository.create_time_report(
-            employee_id=payload.employee_id,
+            employee_id=entity.employee_id,
             period_id=period_id,
             tenant_id=tenant_id,
             created_by_id=user_id,
@@ -203,7 +195,7 @@ class TimekeepingService:
     def reject_time_report(
         tenant_id: int,
         report_id: int,
-        payload: RejectReportRequest,
+        entity: RejectReportEntity,
         user_id: int,
     ) -> TimeReportOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
@@ -218,7 +210,7 @@ class TimekeepingService:
             report_id,
             new_status=str(TimeReportStatus.REJECTED),
             updated_by_id=user_id,
-            rejection_reason=payload.reason,
+            rejection_reason=entity.reason,
             rejected_at=timezone.now(),
         )
         if result is None:
@@ -228,7 +220,7 @@ class TimekeepingService:
             from_status=report.status,
             to_status=str(TimeReportStatus.REJECTED),
             changed_by_id=user_id,
-            reason=payload.reason,
+            reason=entity.reason,
         )
         return result
 
@@ -247,7 +239,7 @@ class TimekeepingService:
     def create_time_entry(
         tenant_id: int,
         report_id: int,
-        payload: TimeEntryIn,
+        entity: TimeEntryEntity,
         user_id: int,
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
@@ -257,13 +249,6 @@ class TimekeepingService:
             raise UnprocessableEntity(
                 f"Cannot add entries to report in status '{report.status}'."
             )
-        entity = TimeEntryEntity(
-            date=payload.date,
-            hours=payload.hours,
-            start_time=payload.start_time,
-            end_time=payload.end_time,
-            description=payload.description,
-        )
         return TimekeepingRepository.create_time_entry(
             report_id, entity, created_by_id=user_id
         )
@@ -283,8 +268,7 @@ class TimekeepingService:
     def update_time_entry(
         tenant_id: int,
         report_id: int,
-        entry_id: int,
-        payload: TimeEntryUpdate,
+        entity: TimeEntryUpdateEntity,
         user_id: int,
     ) -> TimeEntryOut:
         report = TimekeepingRepository.get_time_report_by_id(report_id)
@@ -294,13 +278,9 @@ class TimekeepingService:
             raise UnprocessableEntity(
                 f"Cannot edit entries in report with status '{report.status}'."
             )
-        entry = TimekeepingRepository.get_time_entry_by_id(entry_id)
+        entry = TimekeepingRepository.get_time_entry_by_id(entity.entry_id)
         if not entry or entry.report_id != report_id:
-            raise NotFound(f"Time entry {entry_id} not found.")
-        entity = TimeEntryUpdateEntity(
-            entry_id=entry_id,
-            **payload.model_dump(),
-        )
+            raise NotFound(f"Time entry {entity.entry_id} not found.")
         for field_name, old_val, new_val in [
             ("date", str(entry.date), str(entity.date)),
             ("hours", str(entry.hours), str(entity.hours)),
@@ -318,7 +298,7 @@ class TimekeepingService:
         ]:
             if old_val != new_val:
                 TimekeepingRepository.create_entry_change_history(
-                    entry_id, field_name, old_val, new_val, user_id
+                    entity.entry_id, field_name, old_val, new_val, user_id
                 )
         return TimekeepingRepository.update_time_entry(entity, updated_by_id=user_id)
 

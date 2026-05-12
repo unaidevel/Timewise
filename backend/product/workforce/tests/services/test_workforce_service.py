@@ -15,18 +15,18 @@ from infra.common.exceptions import (
 )
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
-from product.workforce.dtos.dtos import (
-    AssignDepartmentManagerRequest,
-    AssignDepartmentRequest,
-    AssignRoleRequest,
-    DepartmentIn,
-    DepartmentUpdate,
-    EmployeeIn,
-    EmployeeUpdate,
-    RemoveDepartmentManagerRequest,
-    RoleIn,
-    RoleUpdate,
-    SetEmployeeManagerRequest,
+from product.workforce.entities.workforce_entities import (
+    AssignDepartmentEntity,
+    AssignDepartmentManagerEntity,
+    AssignRoleEntity,
+    CreateEmployeeEntity,
+    DepartmentEntity,
+    DepartmentUpdateEntity,
+    EmployeeUpdateEntity,
+    RemoveDepartmentManagerEntity,
+    RoleEntity,
+    RoleUpdateEntity,
+    SetEmployeeManagerEntity,
 )
 from product.workforce.models import EmployeeDepartmentModel, EmployeeRoleModel
 from product.workforce.repositories.workforce_repository import WorkforceRepository
@@ -65,7 +65,7 @@ class DepartmentServiceTests(TestCase):
 
     def test_create_department_normalizes_name(self):
         dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="  Engineering  ")
+            self.tenant.id, DepartmentEntity(name="  Engineering  ")
         )
         assert dept.name == "Engineering"
         assert dept.tenant_id == self.tenant.id
@@ -73,12 +73,12 @@ class DepartmentServiceTests(TestCase):
 
     def test_create_department_raises_if_name_already_exists(self):
         WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
 
         with pytest.raises(Conflict, match="Engineering"):
             WorkforceService.create_department(
-                self.tenant.id, DepartmentIn(name="  ENGINEERING  ")
+                self.tenant.id, DepartmentEntity(name="  ENGINEERING  ")
             )
 
     def test_create_department_allows_same_name_in_different_tenants(self):
@@ -86,17 +86,17 @@ class DepartmentServiceTests(TestCase):
         other_tenant = make_tenant(other_user.id, slug="other")
 
         WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
         dept = WorkforceService.create_department(
-            other_tenant.id, DepartmentIn(name="Engineering")
+            other_tenant.id, DepartmentEntity(name="Engineering")
         )
 
         assert dept.tenant_id == other_tenant.id
 
     def test_get_department_returns_department(self):
         created = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
         found = WorkforceService.get_department(self.tenant.id, created.id)
         assert found == created
@@ -109,22 +109,26 @@ class DepartmentServiceTests(TestCase):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
         dept = WorkforceService.create_department(
-            other_tenant.id, DepartmentIn(name="HR")
+            other_tenant.id, DepartmentEntity(name="HR")
         )
 
         with pytest.raises(NotFound):
             WorkforceService.get_department(self.tenant.id, dept.id)
 
     def test_list_departments_returns_sorted_by_name(self):
-        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Zulu"))
-        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="Alpha"))
+        WorkforceService.create_department(
+            self.tenant.id, DepartmentEntity(name="Zulu")
+        )
+        WorkforceService.create_department(
+            self.tenant.id, DepartmentEntity(name="Alpha")
+        )
 
         depts = WorkforceService.list_departments(self.tenant.id)
         assert [d.name for d in depts] == ["Alpha", "Zulu"]
 
     def test_deactivate_department_marks_inactive(self):
         dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
         result = WorkforceService.deactivate_department(self.tenant.id, dept.id)
         assert result.is_active is False
@@ -141,19 +145,23 @@ class RoleServiceTests(TestCase):
 
     def test_create_role_normalizes_name(self):
         role = WorkforceService.create_role(
-            self.tenant.id, RoleIn(name="  Senior Engineer  ")
+            self.tenant.id, RoleEntity(name="  Senior Engineer  ")
         )
         assert role.name == "Senior Engineer"
         assert role.tenant_id == self.tenant.id
 
     def test_create_role_raises_if_name_already_exists(self):
-        WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+        WorkforceService.create_role(self.tenant.id, RoleEntity(name="Developer"))
 
         with pytest.raises(Conflict, match="Developer"):
-            WorkforceService.create_role(self.tenant.id, RoleIn(name="  DEVELOPER  "))
+            WorkforceService.create_role(
+                self.tenant.id, RoleEntity(name="  DEVELOPER  ")
+            )
 
     def test_get_role_returns_role(self):
-        created = WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+        created = WorkforceService.create_role(
+            self.tenant.id, RoleEntity(name="Developer")
+        )
         found = WorkforceService.get_role(self.tenant.id, created.id)
         assert found == created
 
@@ -162,7 +170,9 @@ class RoleServiceTests(TestCase):
             WorkforceService.get_role(self.tenant.id, 999)
 
     def test_deactivate_role_marks_inactive(self):
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Developer"))
+        role = WorkforceService.create_role(
+            self.tenant.id, RoleEntity(name="Developer")
+        )
         result = WorkforceService.deactivate_role(self.tenant.id, role.id)
         assert result.is_active is False
 
@@ -176,13 +186,13 @@ class EmployeeServiceTests(TestCase):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
         self.dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
         self.role = WorkforceService.create_role(
-            self.tenant.id, RoleIn(name="Developer")
+            self.tenant.id, RoleEntity(name="Developer")
         )
 
-    def _employee_payload(self, email: str = "alice@example.com", **overrides):
+    def _employee_entity(self, email: str = "alice@example.com", **overrides):
         defaults = dict(
             full_name="Alice Smith",
             email=email,
@@ -192,42 +202,42 @@ class EmployeeServiceTests(TestCase):
             contract_hours_per_week=40,
             hired_at=date(2024, 3, 1),
         )
-        return EmployeeIn(**{**defaults, **overrides})
+        return CreateEmployeeEntity(**{**defaults, **overrides})
 
     def test_create_employee_stores_normalized_data(self):
         emp = WorkforceService.create_employee(
-            self.tenant.id, self._employee_payload(email="  ALICE@Example.COM  ")
+            self.tenant.id, self._employee_entity(email="  ALICE@Example.COM  ")
         )
         assert emp.email == "alice@example.com"
         assert emp.tenant_id == self.tenant.id
         assert emp.is_active is True
 
     def test_create_employee_raises_if_email_already_exists(self):
-        WorkforceService.create_employee(self.tenant.id, self._employee_payload())
+        WorkforceService.create_employee(self.tenant.id, self._employee_entity())
 
         with pytest.raises(Conflict, match=r"alice@example\.com"):
-            WorkforceService.create_employee(self.tenant.id, self._employee_payload())
+            WorkforceService.create_employee(self.tenant.id, self._employee_entity())
 
     def test_create_employee_raises_if_department_not_found(self):
         with pytest.raises(NotFound, match="Department 999"):
             WorkforceService.create_employee(
-                self.tenant.id, self._employee_payload(department_id=999)
+                self.tenant.id, self._employee_entity(department_id=999)
             )
 
     def test_create_employee_raises_if_role_not_found(self):
         with pytest.raises(NotFound, match="Role 999"):
             WorkforceService.create_employee(
-                self.tenant.id, self._employee_payload(role_id=999)
+                self.tenant.id, self._employee_entity(role_id=999)
             )
 
     def test_create_employee_raises_on_invalid_email(self):
         with pytest.raises(UnprocessableEntity, match="Invalid email"):
             WorkforceService.create_employee(
-                self.tenant.id, self._employee_payload(email="bad-email")
+                self.tenant.id, self._employee_entity(email="bad-email")
             )
 
     def test_get_employee_returns_employee(self):
-        emp = WorkforceService.create_employee(self.tenant.id, self._employee_payload())
+        emp = WorkforceService.create_employee(self.tenant.id, self._employee_entity())
         found = WorkforceService.get_employee(self.tenant.id, emp.id)
         assert found == emp
 
@@ -238,18 +248,18 @@ class EmployeeServiceTests(TestCase):
     def test_list_employees_returns_sorted_by_name(self):
         WorkforceService.create_employee(
             self.tenant.id,
-            self._employee_payload("zara@example.com", full_name="Zara"),
+            self._employee_entity("zara@example.com", full_name="Zara"),
         )
         WorkforceService.create_employee(
             self.tenant.id,
-            self._employee_payload("alice@example.com", full_name="Alice"),
+            self._employee_entity("alice@example.com", full_name="Alice"),
         )
 
         employees = WorkforceService.list_employees(self.tenant.id)
         assert [e.full_name for e in employees] == ["Alice", "Zara"]
 
     def test_deactivate_employee_marks_inactive(self):
-        emp = WorkforceService.create_employee(self.tenant.id, self._employee_payload())
+        emp = WorkforceService.create_employee(self.tenant.id, self._employee_entity())
         result = WorkforceService.deactivate_employee(self.tenant.id, emp.id)
         assert result.is_active is False
 
@@ -291,14 +301,13 @@ class UpdateDepartmentServiceTests(TestCase):
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
         self.dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
 
     def test_update_department_renames(self):
         updated = WorkforceService.update_department(
             self.tenant.id,
-            self.dept.id,
-            DepartmentUpdate(name="R&D"),
+            DepartmentUpdateEntity(department_id=self.dept.id, name="R&D"),
             user_id=self.owner.id,
         )
         assert updated.name == "R&D"
@@ -307,8 +316,7 @@ class UpdateDepartmentServiceTests(TestCase):
     def test_update_department_normalizes_name(self):
         updated = WorkforceService.update_department(
             self.tenant.id,
-            self.dept.id,
-            DepartmentUpdate(name="  R&D  "),
+            DepartmentUpdateEntity(department_id=self.dept.id, name="  R&D  "),
             user_id=self.owner.id,
         )
         assert updated.name == "R&D"
@@ -316,24 +324,24 @@ class UpdateDepartmentServiceTests(TestCase):
     def test_update_department_raises_if_not_found(self):
         with pytest.raises(NotFound):
             WorkforceService.update_department(
-                self.tenant.id, 999, DepartmentUpdate(name="X"), user_id=self.owner.id
+                self.tenant.id,
+                DepartmentUpdateEntity(department_id=999, name="X"),
+                user_id=self.owner.id,
             )
 
     def test_update_department_raises_if_name_conflicts(self):
-        WorkforceService.create_department(self.tenant.id, DepartmentIn(name="HR"))
+        WorkforceService.create_department(self.tenant.id, DepartmentEntity(name="HR"))
         with pytest.raises(Conflict):
             WorkforceService.update_department(
                 self.tenant.id,
-                self.dept.id,
-                DepartmentUpdate(name="HR"),
+                DepartmentUpdateEntity(department_id=self.dept.id, name="HR"),
                 user_id=self.owner.id,
             )
 
     def test_update_department_allows_rename_to_same_name(self):
         updated = WorkforceService.update_department(
             self.tenant.id,
-            self.dept.id,
-            DepartmentUpdate(name="Engineering"),
+            DepartmentUpdateEntity(department_id=self.dept.id, name="Engineering"),
             user_id=self.owner.id,
         )
         assert updated.name == "Engineering"
@@ -344,8 +352,7 @@ class UpdateDepartmentServiceTests(TestCase):
         with pytest.raises(Forbidden):
             WorkforceService.update_department(
                 self.tenant.id,
-                self.dept.id,
-                DepartmentUpdate(name="X"),
+                DepartmentUpdateEntity(department_id=self.dept.id, name="X"),
                 user_id=member.id,
             )
 
@@ -356,14 +363,13 @@ class UpdateRoleServiceTests(TestCase):
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
         self.role = WorkforceService.create_role(
-            self.tenant.id, RoleIn(name="Developer")
+            self.tenant.id, RoleEntity(name="Developer")
         )
 
     def test_update_role_renames(self):
         updated = WorkforceService.update_role(
             self.tenant.id,
-            self.role.id,
-            RoleUpdate(name="Senior Developer"),
+            RoleUpdateEntity(role_id=self.role.id, name="Senior Developer"),
             user_id=self.owner.id,
         )
         assert updated.name == "Senior Developer"
@@ -371,16 +377,17 @@ class UpdateRoleServiceTests(TestCase):
     def test_update_role_raises_if_not_found(self):
         with pytest.raises(NotFound):
             WorkforceService.update_role(
-                self.tenant.id, 999, RoleUpdate(name="X"), user_id=self.owner.id
+                self.tenant.id,
+                RoleUpdateEntity(role_id=999, name="X"),
+                user_id=self.owner.id,
             )
 
     def test_update_role_raises_if_name_conflicts(self):
-        WorkforceService.create_role(self.tenant.id, RoleIn(name="QA"))
+        WorkforceService.create_role(self.tenant.id, RoleEntity(name="QA"))
         with pytest.raises(Conflict):
             WorkforceService.update_role(
                 self.tenant.id,
-                self.role.id,
-                RoleUpdate(name="QA"),
+                RoleUpdateEntity(role_id=self.role.id, name="QA"),
                 user_id=self.owner.id,
             )
 
@@ -389,8 +396,27 @@ class UpdateRoleServiceTests(TestCase):
         add_member(self.tenant.id, member.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             WorkforceService.update_role(
-                self.tenant.id, self.role.id, RoleUpdate(name="X"), user_id=member.id
+                self.tenant.id,
+                RoleUpdateEntity(role_id=self.role.id, name="X"),
+                user_id=member.id,
             )
+
+
+def _make_employee(
+    tenant_id, dept_id, role_id, email="alice@example.com", full_name="Alice Smith"
+):
+    return WorkforceService.create_employee(
+        tenant_id,
+        CreateEmployeeEntity(
+            full_name=full_name,
+            email=email,
+            department_id=dept_id,
+            role_id=role_id,
+            hourly_rate=Decimal("30.00"),
+            contract_hours_per_week=40,
+            hired_at=date(2024, 3, 1),
+        ),
+    )
 
 
 class UpdateEmployeeServiceTests(TestCase):
@@ -399,27 +425,16 @@ class UpdateEmployeeServiceTests(TestCase):
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
         dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Eng")
+            self.tenant.id, DepartmentEntity(name="Eng")
         )
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
-        self.emp = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=dept.id,
-                role_id=role.id,
-                hourly_rate="30.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
-        )
+        role = WorkforceService.create_role(self.tenant.id, RoleEntity(name="Dev"))
+        self.emp = _make_employee(self.tenant.id, dept.id, role.id)
 
     def test_update_employee_changes_name(self):
         updated = WorkforceService.update_employee(
             self.tenant.id,
-            self.emp.id,
-            EmployeeUpdate(
+            EmployeeUpdateEntity(
+                employee_id=self.emp.id,
                 full_name="Alice Jones",
                 email="alice@example.com",
                 hired_at=date(2024, 3, 1),
@@ -432,8 +447,8 @@ class UpdateEmployeeServiceTests(TestCase):
     def test_update_employee_changes_email(self):
         updated = WorkforceService.update_employee(
             self.tenant.id,
-            self.emp.id,
-            EmployeeUpdate(
+            EmployeeUpdateEntity(
+                employee_id=self.emp.id,
                 full_name="Alice Smith",
                 email="newalice@example.com",
                 hired_at=date(2024, 3, 1),
@@ -445,23 +460,14 @@ class UpdateEmployeeServiceTests(TestCase):
     def test_update_employee_raises_on_duplicate_email(self):
         dept = WorkforceService.list_departments(self.tenant.id)[0]
         role = WorkforceService.list_roles(self.tenant.id)[0]
-        WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Bob",
-                email="bob@example.com",
-                department_id=dept.id,
-                role_id=role.id,
-                hourly_rate="20.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
+        _make_employee(
+            self.tenant.id, dept.id, role.id, email="bob@example.com", full_name="Bob"
         )
         with pytest.raises(Conflict):
             WorkforceService.update_employee(
                 self.tenant.id,
-                self.emp.id,
-                EmployeeUpdate(
+                EmployeeUpdateEntity(
+                    employee_id=self.emp.id,
                     full_name="Alice Smith",
                     email="bob@example.com",
                     hired_at=date(2024, 3, 1),
@@ -473,9 +479,11 @@ class UpdateEmployeeServiceTests(TestCase):
         with pytest.raises(NotFound):
             WorkforceService.update_employee(
                 self.tenant.id,
-                999,
-                EmployeeUpdate(
-                    full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)
+                EmployeeUpdateEntity(
+                    employee_id=999,
+                    full_name="X",
+                    email="x@example.com",
+                    hired_at=date(2024, 3, 1),
                 ),
                 user_id=self.owner.id,
             )
@@ -486,9 +494,11 @@ class UpdateEmployeeServiceTests(TestCase):
         with pytest.raises(Forbidden):
             WorkforceService.update_employee(
                 self.tenant.id,
-                self.emp.id,
-                EmployeeUpdate(
-                    full_name="X", email="x@example.com", hired_at=date(2024, 3, 1)
+                EmployeeUpdateEntity(
+                    employee_id=self.emp.id,
+                    full_name="X",
+                    email="x@example.com",
+                    hired_at=date(2024, 3, 1),
                 ),
                 user_id=member.id,
             )
@@ -499,21 +509,10 @@ class DeactivateEmployeeServiceTests(TestCase):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
         dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Eng")
+            self.tenant.id, DepartmentEntity(name="Eng")
         )
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
-        self.emp = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=dept.id,
-                role_id=role.id,
-                hourly_rate="30.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
-        )
+        role = WorkforceService.create_role(self.tenant.id, RoleEntity(name="Dev"))
+        self.emp = _make_employee(self.tenant.id, dept.id, role.id)
 
     def test_deactivate_employee_also_closes_department_assignment(self):
         WorkforceService.deactivate_employee(self.tenant.id, self.emp.id)
@@ -540,27 +539,16 @@ class DepartmentManagerServiceTests(TestCase):
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
         self.dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering")
+            self.tenant.id, DepartmentEntity(name="Engineering")
         )
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
-        self.emp = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=self.dept.id,
-                role_id=role.id,
-                hourly_rate="30.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
-        )
+        role = WorkforceService.create_role(self.tenant.id, RoleEntity(name="Dev"))
+        self.emp = _make_employee(self.tenant.id, self.dept.id, role.id)
 
     def test_assign_department_manager_creates_assignment(self):
         assignment = WorkforceService.assign_department_manager(
             self.tenant.id,
             self.dept.id,
-            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            AssignDepartmentManagerEntity(employee_id=self.emp.id),
             user_id=self.owner.id,
         )
         assert assignment.department_id == self.dept.id
@@ -569,28 +557,23 @@ class DepartmentManagerServiceTests(TestCase):
 
     def test_assign_department_manager_allows_multiple_active_managers(self):
         role = WorkforceService.list_roles(self.tenant.id)[0]
-        emp2 = WorkforceService.create_employee(
+        emp2 = _make_employee(
             self.tenant.id,
-            EmployeeIn(
-                full_name="Bob Jones",
-                email="bob@example.com",
-                department_id=self.dept.id,
-                role_id=role.id,
-                hourly_rate="30.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
+            self.dept.id,
+            role.id,
+            email="bob@example.com",
+            full_name="Bob Jones",
         )
         WorkforceService.assign_department_manager(
             self.tenant.id,
             self.dept.id,
-            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            AssignDepartmentManagerEntity(employee_id=self.emp.id),
             user_id=self.owner.id,
         )
         WorkforceService.assign_department_manager(
             self.tenant.id,
             self.dept.id,
-            AssignDepartmentManagerRequest(employee_id=emp2.id),
+            AssignDepartmentManagerEntity(employee_id=emp2.id),
             user_id=self.owner.id,
         )
         managers = WorkforceService.list_department_managers(
@@ -602,14 +585,14 @@ class DepartmentManagerServiceTests(TestCase):
         WorkforceService.assign_department_manager(
             self.tenant.id,
             self.dept.id,
-            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            AssignDepartmentManagerEntity(employee_id=self.emp.id),
             user_id=self.owner.id,
         )
         with pytest.raises(Conflict):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
-                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                AssignDepartmentManagerEntity(employee_id=self.emp.id),
                 user_id=self.owner.id,
             )
 
@@ -618,7 +601,7 @@ class DepartmentManagerServiceTests(TestCase):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 999,
-                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                AssignDepartmentManagerEntity(employee_id=self.emp.id),
                 user_id=self.owner.id,
             )
 
@@ -627,7 +610,7 @@ class DepartmentManagerServiceTests(TestCase):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
-                AssignDepartmentManagerRequest(employee_id=999),
+                AssignDepartmentManagerEntity(employee_id=999),
                 user_id=self.owner.id,
             )
 
@@ -638,7 +621,7 @@ class DepartmentManagerServiceTests(TestCase):
             WorkforceService.assign_department_manager(
                 self.tenant.id,
                 self.dept.id,
-                AssignDepartmentManagerRequest(employee_id=self.emp.id),
+                AssignDepartmentManagerEntity(employee_id=self.emp.id),
                 user_id=member.id,
             )
 
@@ -646,14 +629,14 @@ class DepartmentManagerServiceTests(TestCase):
         assignment = WorkforceService.assign_department_manager(
             self.tenant.id,
             self.dept.id,
-            AssignDepartmentManagerRequest(employee_id=self.emp.id),
+            AssignDepartmentManagerEntity(employee_id=self.emp.id),
             user_id=self.owner.id,
         )
         removed = WorkforceService.remove_department_manager(
             self.tenant.id,
             self.dept.id,
             assignment.id,
-            RemoveDepartmentManagerRequest(reason="Stepping down"),
+            RemoveDepartmentManagerEntity(reason="Stepping down"),
             user_id=self.owner.id,
         )
         assert removed.left_at is not None
@@ -665,7 +648,7 @@ class DepartmentManagerServiceTests(TestCase):
                 self.tenant.id,
                 self.dept.id,
                 999,
-                RemoveDepartmentManagerRequest(),
+                RemoveDepartmentManagerEntity(),
                 user_id=self.owner.id,
             )
 
@@ -676,39 +659,24 @@ class EmployeeManagerServiceTests(TestCase):
         self.tenant = make_tenant(self.owner.id)
         add_member(self.tenant.id, self.owner.id, MembershipRoles.OWNER)
         dept = WorkforceService.create_department(
-            self.tenant.id, DepartmentIn(name="Eng")
+            self.tenant.id, DepartmentEntity(name="Eng")
         )
-        role = WorkforceService.create_role(self.tenant.id, RoleIn(name="Dev"))
-        self.manager = WorkforceService.create_employee(
+        role = WorkforceService.create_role(self.tenant.id, RoleEntity(name="Dev"))
+        self.manager = _make_employee(
             self.tenant.id,
-            EmployeeIn(
-                full_name="Manager Person",
-                email="manager@example.com",
-                department_id=dept.id,
-                role_id=role.id,
-                hourly_rate="50.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 1, 1),
-            ),
+            dept.id,
+            role.id,
+            email="manager@example.com",
+            full_name="Manager Person",
         )
-        self.emp = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=dept.id,
-                role_id=role.id,
-                hourly_rate="30.00",
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
-        )
+        self.emp = _make_employee(self.tenant.id, dept.id, role.id)
 
     def test_set_employee_manager(self):
         updated = WorkforceService.set_employee_manager(
             self.tenant.id,
-            self.emp.id,
-            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            SetEmployeeManagerEntity(
+                employee_id=self.emp.id, manager_id=self.manager.id
+            ),
             user_id=self.owner.id,
         )
         assert updated.manager_id == self.manager.id
@@ -716,14 +684,14 @@ class EmployeeManagerServiceTests(TestCase):
     def test_set_employee_manager_to_none_removes_manager(self):
         WorkforceService.set_employee_manager(
             self.tenant.id,
-            self.emp.id,
-            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            SetEmployeeManagerEntity(
+                employee_id=self.emp.id, manager_id=self.manager.id
+            ),
             user_id=self.owner.id,
         )
         updated = WorkforceService.set_employee_manager(
             self.tenant.id,
-            self.emp.id,
-            SetEmployeeManagerRequest(manager_id=None),
+            SetEmployeeManagerEntity(employee_id=self.emp.id, manager_id=None),
             user_id=self.owner.id,
         )
         assert updated.manager_id is None
@@ -732,8 +700,7 @@ class EmployeeManagerServiceTests(TestCase):
         with pytest.raises(NotFound):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
-                self.emp.id,
-                SetEmployeeManagerRequest(manager_id=999),
+                SetEmployeeManagerEntity(employee_id=self.emp.id, manager_id=999),
                 user_id=self.owner.id,
             )
 
@@ -741,8 +708,7 @@ class EmployeeManagerServiceTests(TestCase):
         with pytest.raises(NotFound):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
-                999,
-                SetEmployeeManagerRequest(manager_id=self.manager.id),
+                SetEmployeeManagerEntity(employee_id=999, manager_id=self.manager.id),
                 user_id=self.owner.id,
             )
 
@@ -752,16 +718,18 @@ class EmployeeManagerServiceTests(TestCase):
         with pytest.raises(Forbidden):
             WorkforceService.set_employee_manager(
                 self.tenant.id,
-                self.emp.id,
-                SetEmployeeManagerRequest(manager_id=self.manager.id),
+                SetEmployeeManagerEntity(
+                    employee_id=self.emp.id, manager_id=self.manager.id
+                ),
                 user_id=member.id,
             )
 
     def test_get_direct_reports(self):
         WorkforceService.set_employee_manager(
             self.tenant.id,
-            self.emp.id,
-            SetEmployeeManagerRequest(manager_id=self.manager.id),
+            SetEmployeeManagerEntity(
+                employee_id=self.emp.id, manager_id=self.manager.id
+            ),
             user_id=self.owner.id,
         )
         reports = WorkforceService.get_direct_reports(self.tenant.id, self.manager.id)
@@ -779,17 +747,17 @@ class EmployeeCreationAssignmentServiceTests(TestCase):
         self.tenant = make_tenant(self.user.id)
         self.department = WorkforceService.create_department(
             self.tenant.id,
-            DepartmentIn(name="Engineering"),
+            DepartmentEntity(name="Engineering"),
         )
         self.role = WorkforceService.create_role(
             self.tenant.id,
-            RoleIn(name="Developer"),
+            RoleEntity(name="Developer"),
         )
 
     def test_create_employee_creates_initial_department_and_role_assignments(self):
         employee = WorkforceService.create_employee(
             self.tenant.id,
-            EmployeeIn(
+            CreateEmployeeEntity(
                 full_name="Alice Smith",
                 email="alice@example.com",
                 department_id=self.department.id,
@@ -817,34 +785,25 @@ class DepartmentAssignmentServiceTests(TestCase):
         self.tenant = make_tenant(self.user.id)
         self.department_one = WorkforceService.create_department(
             self.tenant.id,
-            DepartmentIn(name="Engineering"),
+            DepartmentEntity(name="Engineering"),
         )
         self.department_two = WorkforceService.create_department(
             self.tenant.id,
-            DepartmentIn(name="People"),
+            DepartmentEntity(name="People"),
         )
         self.role = WorkforceService.create_role(
             self.tenant.id,
-            RoleIn(name="Developer"),
+            RoleEntity(name="Developer"),
         )
-        self.employee = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=self.department_one.id,
-                role_id=self.role.id,
-                hourly_rate=Decimal("30.00"),
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
+        self.employee = _make_employee(
+            self.tenant.id, self.department_one.id, self.role.id
         )
 
     def test_assign_department_replaces_active_assignment_and_preserves_history(self):
         assignment = WorkforceService.assign_department(
             self.tenant.id,
             self.employee.id,
-            AssignDepartmentRequest(
+            AssignDepartmentEntity(
                 department_id=self.department_two.id,
                 reason="Reorg",
             ),
@@ -874,7 +833,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             WorkforceService.assign_department(
                 self.tenant.id,
                 999,
-                AssignDepartmentRequest(department_id=self.department_two.id),
+                AssignDepartmentEntity(department_id=self.department_two.id),
             )
 
     def test_assign_department_raises_if_department_not_found(self):
@@ -882,7 +841,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             WorkforceService.assign_department(
                 self.tenant.id,
                 self.employee.id,
-                AssignDepartmentRequest(department_id=999),
+                AssignDepartmentEntity(department_id=999),
             )
 
     def test_assign_department_raises_if_employee_belongs_to_other_tenant(self):
@@ -890,30 +849,25 @@ class DepartmentAssignmentServiceTests(TestCase):
         other_tenant = make_tenant(other_user.id, slug="other")
         other_department = WorkforceService.create_department(
             other_tenant.id,
-            DepartmentIn(name="Other Engineering"),
+            DepartmentEntity(name="Other Engineering"),
         )
         other_role = WorkforceService.create_role(
             other_tenant.id,
-            RoleIn(name="Other Developer"),
+            RoleEntity(name="Other Developer"),
         )
-        other_employee = WorkforceService.create_employee(
+        other_employee = _make_employee(
             other_tenant.id,
-            EmployeeIn(
-                full_name="Bob Smith",
-                email="bob@example.com",
-                department_id=other_department.id,
-                role_id=other_role.id,
-                hourly_rate=Decimal("25.00"),
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
+            other_department.id,
+            other_role.id,
+            email="bob@example.com",
+            full_name="Bob Smith",
         )
 
         with pytest.raises(NotFound, match=f"Employee {other_employee.id} not found"):
             WorkforceService.assign_department(
                 self.tenant.id,
                 other_employee.id,
-                AssignDepartmentRequest(department_id=self.department_two.id),
+                AssignDepartmentEntity(department_id=self.department_two.id),
             )
 
     def test_assign_department_raises_if_department_belongs_to_other_tenant(self):
@@ -921,7 +875,7 @@ class DepartmentAssignmentServiceTests(TestCase):
         other_tenant = make_tenant(other_user.id, slug="other")
         other_department = WorkforceService.create_department(
             other_tenant.id,
-            DepartmentIn(name="Other Department"),
+            DepartmentEntity(name="Other Department"),
         )
 
         with pytest.raises(
@@ -931,7 +885,7 @@ class DepartmentAssignmentServiceTests(TestCase):
             WorkforceService.assign_department(
                 self.tenant.id,
                 self.employee.id,
-                AssignDepartmentRequest(department_id=other_department.id),
+                AssignDepartmentEntity(department_id=other_department.id),
             )
 
     def test_get_active_department_raises_if_no_active_assignment(self):
@@ -954,34 +908,25 @@ class RoleAssignmentServiceTests(TestCase):
         self.tenant = make_tenant(self.user.id)
         self.department = WorkforceService.create_department(
             self.tenant.id,
-            DepartmentIn(name="Engineering"),
+            DepartmentEntity(name="Engineering"),
         )
         self.role_one = WorkforceService.create_role(
             self.tenant.id,
-            RoleIn(name="Developer"),
+            RoleEntity(name="Developer"),
         )
         self.role_two = WorkforceService.create_role(
             self.tenant.id,
-            RoleIn(name="Manager"),
+            RoleEntity(name="Manager"),
         )
-        self.employee = WorkforceService.create_employee(
-            self.tenant.id,
-            EmployeeIn(
-                full_name="Alice Smith",
-                email="alice@example.com",
-                department_id=self.department.id,
-                role_id=self.role_one.id,
-                hourly_rate=Decimal("30.00"),
-                contract_hours_per_week=40,
-                hired_at=date(2024, 3, 1),
-            ),
+        self.employee = _make_employee(
+            self.tenant.id, self.department.id, self.role_one.id
         )
 
     def test_assign_role_replaces_active_assignment_and_preserves_history(self):
         assignment = WorkforceService.assign_role(
             self.tenant.id,
             self.employee.id,
-            AssignRoleRequest(
+            AssignRoleEntity(
                 role_id=self.role_two.id,
                 hourly_rate=Decimal("45.00"),
                 contract_hours_per_week=35,
@@ -1013,7 +958,7 @@ class RoleAssignmentServiceTests(TestCase):
             WorkforceService.assign_role(
                 self.tenant.id,
                 999,
-                AssignRoleRequest(
+                AssignRoleEntity(
                     role_id=self.role_two.id,
                     hourly_rate=Decimal("45.00"),
                     contract_hours_per_week=35,
@@ -1025,7 +970,7 @@ class RoleAssignmentServiceTests(TestCase):
             WorkforceService.assign_role(
                 self.tenant.id,
                 self.employee.id,
-                AssignRoleRequest(
+                AssignRoleEntity(
                     role_id=999,
                     hourly_rate=Decimal("45.00"),
                     contract_hours_per_week=35,
@@ -1037,14 +982,14 @@ class RoleAssignmentServiceTests(TestCase):
         other_tenant = make_tenant(other_user.id, slug="other")
         other_role = WorkforceService.create_role(
             other_tenant.id,
-            RoleIn(name="Other Manager"),
+            RoleEntity(name="Other Manager"),
         )
 
         with pytest.raises(NotFound, match=f"Role {other_role.id} not found"):
             WorkforceService.assign_role(
                 self.tenant.id,
                 self.employee.id,
-                AssignRoleRequest(
+                AssignRoleEntity(
                     role_id=other_role.id,
                     hourly_rate=Decimal("45.00"),
                     contract_hours_per_week=35,
@@ -1052,13 +997,6 @@ class RoleAssignmentServiceTests(TestCase):
             )
 
     def test_assign_role_raises_for_invalid_role_assignment_data(self):
-        invalid_payload = AssignRoleRequest.model_construct(
-            role_id=self.role_two.id,
-            hourly_rate=Decimal("0"),
-            contract_hours_per_week=35,
-            reason="Invalid",
-        )
-
         with pytest.raises(
             UnprocessableEntity,
             match="Hourly rate must be greater than zero",
@@ -1066,7 +1004,12 @@ class RoleAssignmentServiceTests(TestCase):
             WorkforceService.assign_role(
                 self.tenant.id,
                 self.employee.id,
-                invalid_payload,
+                AssignRoleEntity(
+                    role_id=self.role_two.id,
+                    hourly_rate=Decimal("0"),
+                    contract_hours_per_week=35,
+                    reason="Invalid",
+                ),
             )
 
     def test_get_active_role_raises_if_no_active_assignment(self):

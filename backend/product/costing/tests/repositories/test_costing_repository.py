@@ -15,7 +15,11 @@ from product.costing.entities.costing_entities import (
 )
 from product.costing.repositories.costing_repository import CostingRepository
 from product.timekeeping.models import PeriodModel, TimeEntryModel, TimeReportModel
-from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
+from product.workforce.entities.workforce_entities import (
+    CreateEmployeeEntity,
+    DepartmentEntity,
+    RoleEntity,
+)
 from product.workforce.services.workforce_service import WorkforceService
 
 
@@ -35,12 +39,12 @@ def make_tenant(user_id: int, slug: str = "acme"):
 
 def make_employee(tenant_id: int, email: str = "emp@example.com"):
     dept = WorkforceService.create_department(
-        tenant_id, DepartmentIn(name=f"Dept-{email}")
+        tenant_id, DepartmentEntity(name=f"Dept-{email}")
     )
-    role = WorkforceService.create_role(tenant_id, RoleIn(name=f"Role-{email}"))
+    role = WorkforceService.create_role(tenant_id, RoleEntity(name=f"Role-{email}"))
     return WorkforceService.create_employee(
         tenant_id,
-        EmployeeIn(
+        CreateEmployeeEntity(
             full_name="Test Employee",
             email=email,
             department_id=dept.id,

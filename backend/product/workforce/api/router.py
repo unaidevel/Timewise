@@ -27,6 +27,7 @@ from product.workforce.dtos.dtos import (
     RoleUpdate,
     SetEmployeeManagerRequest,
 )
+from product.workforce.orchestrators.workforce_orchestrator import WorkforceOrchestrator
 from product.workforce.services.workforce_service import WorkforceService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["workforce"])
@@ -43,7 +44,7 @@ def create_department(
     payload: DepartmentIn,
     current_user: CurrentUser,
 ) -> DepartmentOut:
-    return WorkforceService.create_department(
+    return WorkforceOrchestrator.create_department(
         tenant_id, payload, user_id=current_user.id
     )
 
@@ -70,7 +71,7 @@ def get_department(tenant_id: int, department_id: int, _: CurrentUser) -> Depart
 def deactivate_department(
     tenant_id: int, department_id: int, current_user: CurrentUser
 ) -> DepartmentOut:
-    return WorkforceService.deactivate_department(
+    return WorkforceOrchestrator.deactivate_department(
         tenant_id, department_id, user_id=current_user.id
     )
 
@@ -86,7 +87,7 @@ def update_department(
     payload: DepartmentUpdate,
     current_user: CurrentUser,
 ) -> DepartmentOut:
-    return WorkforceService.update_department(
+    return WorkforceOrchestrator.update_department(
         tenant_id, department_id, payload, user_id=current_user.id
     )
 
@@ -103,7 +104,7 @@ def assign_department_manager(
     payload: AssignDepartmentManagerRequest,
     current_user: CurrentUser,
 ) -> DepartmentManagerOut:
-    return WorkforceService.assign_department_manager(
+    return WorkforceOrchestrator.assign_department_manager(
         tenant_id, department_id, payload, user_id=current_user.id
     )
 
@@ -131,7 +132,7 @@ def remove_department_manager(
     payload: RemoveDepartmentManagerRequest,
     current_user: CurrentUser,
 ) -> DepartmentManagerOut:
-    return WorkforceService.remove_department_manager(
+    return WorkforceOrchestrator.remove_department_manager(
         tenant_id, department_id, assignment_id, payload, user_id=current_user.id
     )
 
@@ -150,7 +151,9 @@ def create_role(
     payload: RoleIn,
     current_user: CurrentUser,
 ) -> RoleOut:
-    return WorkforceService.create_role(tenant_id, payload, user_id=current_user.id)
+    return WorkforceOrchestrator.create_role(
+        tenant_id, payload, user_id=current_user.id
+    )
 
 
 @router.get("/roles", response_model=list[RoleOut])
@@ -171,7 +174,9 @@ def get_role(tenant_id: int, role_id: int, _: CurrentUser) -> RoleOut:
     responses=responses_for(NotFound),
 )
 def deactivate_role(tenant_id: int, role_id: int, current_user: CurrentUser) -> RoleOut:
-    return WorkforceService.deactivate_role(tenant_id, role_id, user_id=current_user.id)
+    return WorkforceOrchestrator.deactivate_role(
+        tenant_id, role_id, user_id=current_user.id
+    )
 
 
 @router.put(
@@ -185,7 +190,7 @@ def update_role(
     payload: RoleUpdate,
     current_user: CurrentUser,
 ) -> RoleOut:
-    return WorkforceService.update_role(
+    return WorkforceOrchestrator.update_role(
         tenant_id, role_id, payload, user_id=current_user.id
     )
 
@@ -201,7 +206,9 @@ def create_employee(
     payload: EmployeeIn,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    return WorkforceService.create_employee(tenant_id, payload, user_id=current_user.id)
+    return WorkforceOrchestrator.create_employee(
+        tenant_id, payload, user_id=current_user.id
+    )
 
 
 @router.get("/employees", response_model=list[EmployeeOut])
@@ -226,7 +233,7 @@ def get_employee(tenant_id: int, employee_id: int, _: CurrentUser) -> EmployeeOu
 def deactivate_employee(
     tenant_id: int, employee_id: int, current_user: CurrentUser
 ) -> EmployeeOut:
-    return WorkforceService.deactivate_employee(
+    return WorkforceOrchestrator.deactivate_employee(
         tenant_id, employee_id, user_id=current_user.id
     )
 
@@ -242,7 +249,7 @@ def update_employee(
     payload: EmployeeUpdate,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    return WorkforceService.update_employee(
+    return WorkforceOrchestrator.update_employee(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
 
@@ -258,7 +265,7 @@ def set_employee_manager(
     payload: SetEmployeeManagerRequest,
     current_user: CurrentUser,
 ) -> EmployeeOut:
-    return WorkforceService.set_employee_manager(
+    return WorkforceOrchestrator.set_employee_manager(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
 
@@ -289,7 +296,7 @@ def assign_department(
     payload: AssignDepartmentRequest,
     current_user: CurrentUser,
 ) -> EmployeeDepartmentOut:
-    return WorkforceService.assign_department(
+    return WorkforceOrchestrator.assign_department(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
 
@@ -328,7 +335,7 @@ def assign_role(
     payload: AssignRoleRequest,
     current_user: CurrentUser,
 ) -> EmployeeRoleOut:
-    return WorkforceService.assign_role(
+    return WorkforceOrchestrator.assign_role(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
 
