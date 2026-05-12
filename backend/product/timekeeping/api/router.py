@@ -19,6 +19,9 @@ from product.timekeeping.dtos.dtos import (
     TimeReportOut,
     TimeReportStatusHistoryOut,
 )
+from product.timekeeping.orchestrators.timekeeping_orchestrator import (
+    TimekeepingOrchestrator,
+)
 from product.timekeeping.services.timekeeping_service import TimekeepingService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["timekeeping"])
@@ -35,7 +38,7 @@ def create_period(
     payload: PeriodIn,
     current_user: CurrentUser,
 ) -> PeriodOut:
-    return TimekeepingService.create_period(tenant_id, payload, current_user.id)
+    return TimekeepingOrchestrator.create_period(tenant_id, payload, current_user.id)
 
 
 @router.get("/periods", response_model=list[PeriodOut])
@@ -60,7 +63,7 @@ def get_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> Per
     responses=responses_for(Forbidden, NotFound, Conflict),
 )
 def lock_period(tenant_id: int, period_id: int, current_user: CurrentUser) -> PeriodOut:
-    return TimekeepingService.lock_period(tenant_id, period_id, current_user.id)
+    return TimekeepingOrchestrator.lock_period(tenant_id, period_id, current_user.id)
 
 
 @router.post(
@@ -75,8 +78,8 @@ def create_time_report(
     payload: TimeReportIn,
     current_user: CurrentUser,
 ) -> TimeReportOut:
-    return TimekeepingService.create_time_report(
-        tenant_id, period_id, payload, user_id=current_user.id
+    return TimekeepingOrchestrator.create_time_report(
+        tenant_id, period_id, payload, current_user.id
     )
 
 
@@ -114,7 +117,7 @@ def create_time_entry(
     payload: TimeEntryIn,
     current_user: CurrentUser,
 ) -> TimeEntryOut:
-    return TimekeepingService.create_time_entry(
+    return TimekeepingOrchestrator.create_time_entry(
         tenant_id, report_id, payload, current_user.id
     )
 
@@ -142,8 +145,8 @@ def update_time_entry(
     payload: TimeEntryUpdate,
     current_user: CurrentUser,
 ) -> TimeEntryOut:
-    return TimekeepingService.update_time_entry(
-        tenant_id, report_id, entry_id, payload, user_id=current_user.id
+    return TimekeepingOrchestrator.update_time_entry(
+        tenant_id, report_id, entry_id, payload, current_user.id
     )
 
 
@@ -158,8 +161,8 @@ def delete_time_entry(
     entry_id: int,
     current_user: CurrentUser,
 ) -> None:
-    TimekeepingService.delete_time_entry(
-        tenant_id, report_id, entry_id, user_id=current_user.id
+    TimekeepingOrchestrator.delete_time_entry(
+        tenant_id, report_id, entry_id, current_user.id
     )
 
 
@@ -173,7 +176,9 @@ def submit_time_report(
     report_id: int,
     current_user: CurrentUser,
 ) -> TimeReportOut:
-    return TimekeepingService.submit_time_report(tenant_id, report_id, current_user.id)
+    return TimekeepingOrchestrator.submit_time_report(
+        tenant_id, report_id, current_user.id
+    )
 
 
 @router.post(
@@ -186,7 +191,9 @@ def approve_time_report(
     report_id: int,
     current_user: CurrentUser,
 ) -> TimeReportOut:
-    return TimekeepingService.approve_time_report(tenant_id, report_id, current_user.id)
+    return TimekeepingOrchestrator.approve_time_report(
+        tenant_id, report_id, current_user.id
+    )
 
 
 @router.post(
@@ -200,8 +207,8 @@ def reject_time_report(
     payload: RejectReportRequest,
     current_user: CurrentUser,
 ) -> TimeReportOut:
-    return TimekeepingService.reject_time_report(
-        tenant_id, report_id, payload, user_id=current_user.id
+    return TimekeepingOrchestrator.reject_time_report(
+        tenant_id, report_id, payload, current_user.id
     )
 
 
