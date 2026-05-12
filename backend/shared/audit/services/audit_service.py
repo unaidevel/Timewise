@@ -36,6 +36,7 @@ class AuditService:
         resource_type: str | None = None,
         resource_id: int | None = None,
         actor_id: int | None = None,
+        outcome: str | None = None,
     ) -> list[AuditEventOut]:
         return AuditRepository.get_all(
             tenant_id,
@@ -43,6 +44,7 @@ class AuditService:
             resource_type,
             resource_id,
             actor_id,
+            outcome,
         )
 
     @only_admin

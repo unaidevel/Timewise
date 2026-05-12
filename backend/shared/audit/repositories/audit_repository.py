@@ -20,6 +20,7 @@ class AuditRepository:
                 tenant_id=tenant_id,
                 actor_id=actor_id,
                 action=entity.action,
+                outcome=entity.outcome,
                 resource_type=entity.resource_type,
                 resource_id=entity.resource_id,
                 metadata=entity.metadata,
@@ -39,6 +40,7 @@ class AuditRepository:
         resource_type: str | None = None,
         resource_id: int | None = None,
         actor_id: int | None = None,
+        outcome: str | None = None,
     ) -> list[AuditEventOut]:
         qs = AuditEventModel.objects.filter(tenant_id=tenant_id)
         if action is not None:
@@ -49,6 +51,8 @@ class AuditRepository:
             qs = qs.filter(resource_id=resource_id)
         if actor_id is not None:
             qs = qs.filter(actor_id=actor_id)
+        if outcome is not None:
+            qs = qs.filter(outcome=outcome)
         return [AuditEventOut.model_validate(m) for m in qs.order_by("-occurred_at")]
 
     @staticmethod
