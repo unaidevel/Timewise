@@ -4,6 +4,30 @@ from decimal import Decimal
 
 from infra.common.exceptions import UnprocessableEntity
 
+_MAX_REJECTION_REASON_LENGTH = 1_000
+
+
+@dataclass(frozen=True, slots=True)
+class TimeReportEntity:
+    employee_id: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.employee_id, int) or self.employee_id <= 0:
+            raise UnprocessableEntity("employee_id must be a positive integer.")
+
+
+@dataclass(frozen=True, slots=True)
+class RejectReportEntity:
+    reason: str = ""
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reason, str):
+            raise UnprocessableEntity("reason must be a string.")
+        if len(self.reason) > _MAX_REJECTION_REASON_LENGTH:
+            raise UnprocessableEntity(
+                f"reason cannot exceed {_MAX_REJECTION_REASON_LENGTH} characters."
+            )
+
 
 @dataclass(frozen=True, slots=True)
 class PeriodEntity:
