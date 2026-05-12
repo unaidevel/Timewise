@@ -136,3 +136,67 @@ class EmployeeRoleEntity:
                 "Contract hours per week must be between 1 and 168."
             )
         return value
+
+
+@dataclass(frozen=True, slots=True)
+class CreateEmployeeEntity:
+    full_name: str
+    email: str
+    hired_at: date
+    department_id: int
+    role_id: int
+    hourly_rate: Decimal
+    contract_hours_per_week: int
+    user_id: int | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "full_name", EmployeeEntity._validate_full_name(self.full_name)
+        )
+        object.__setattr__(self, "email", EmployeeEntity._validate_email(self.email))
+        object.__setattr__(
+            self,
+            "hourly_rate",
+            EmployeeRoleEntity._validate_hourly_rate(self.hourly_rate),
+        )
+        object.__setattr__(
+            self,
+            "contract_hours_per_week",
+            EmployeeRoleEntity._validate_contract_hours(self.contract_hours_per_week),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class AssignDepartmentManagerEntity:
+    employee_id: int
+
+
+@dataclass(frozen=True, slots=True)
+class RemoveDepartmentManagerEntity:
+    reason: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AssignDepartmentEntity:
+    department_id: int
+    reason: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AssignRoleEntity:
+    role_id: int
+    hourly_rate: Decimal
+    contract_hours_per_week: int
+    reason: str = ""
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "hourly_rate",
+            EmployeeRoleEntity._validate_hourly_rate(self.hourly_rate),
+        )
+        object.__setattr__(
+            self,
+            "contract_hours_per_week",
+            EmployeeRoleEntity._validate_contract_hours(self.contract_hours_per_week),
+        )
