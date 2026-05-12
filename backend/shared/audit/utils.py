@@ -1,7 +1,7 @@
 import contextlib
 from typing import Any
 
-from django.db import transaction
+from django.db import models, transaction
 
 from infra.common.exceptions import (
     Conflict,
@@ -10,8 +10,12 @@ from infra.common.exceptions import (
     UnprocessableEntity,
 )
 from shared.audit.dtos.dtos import AuditEventIn
-from shared.audit.models import AuditOutcome
-from shared.audit.services.audit_service import AuditService
+
+
+class AuditOutcome(models.TextChoices):
+    SUCCESS = "success", "Success"
+    FAILURE = "failure", "Failure"
+
 
 AUDITED_FAILURES: tuple[type[Exception], ...] = (
     Conflict,
@@ -33,8 +37,12 @@ def record_failure(
     """Persist a failure audit event in its own transaction.
 
     Swallows all exceptions: losing the failure audit must not compound
-    a business error.
+    a business error. `AuditService` is imported lazily here because
+    `models.py` imports `AuditOutcome` from this module, and `AuditService`
+    transitively imports `models.py` — eager import would be circular.
     """
+    from shared.audit.services.audit_service import AuditService
+
     failure_metadata = {
         **metadata,
         "error_type": type(exc).__name__,
