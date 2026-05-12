@@ -36,12 +36,12 @@ def record_failure(
     """Persist a failure audit event in its own transaction.
 
     Swallows all exceptions: losing the failure audit must not compound
-    a business error. `AuditService` and `AuditEventEntity` are imported
+    a business error. `AuditService` and `AuditEventIn` are imported
     lazily here because `models.py` imports `AuditOutcome` from this
     module, and both of those transitively import `models.py` — eager
     imports would be circular.
     """
-    from shared.audit.entities.audit_entities import AuditEventEntity
+    from shared.audit.dtos.dtos import AuditEventIn
     from shared.audit.services.audit_service import AuditService
 
     failure_metadata = {
@@ -52,7 +52,7 @@ def record_failure(
     with contextlib.suppress(Exception), transaction.atomic():
         AuditService.create(
             tenant_id,
-            AuditEventEntity(
+            AuditEventIn(
                 action=action,
                 resource_type=resource_type,
                 outcome=AuditOutcome.FAILURE.value,

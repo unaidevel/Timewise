@@ -19,7 +19,7 @@ from product.timekeeping.entities.timekeeping_entities import (
     TimeReportEntity,
 )
 from product.timekeeping.services.timekeeping_service import TimekeepingService
-from shared.audit.entities.audit_entities import AuditEventEntity
+from shared.audit.dtos.dtos import AuditEventIn
 from shared.audit.services.audit_service import AuditService
 from shared.audit.utils import AUDITED_FAILURES, AuditOutcome, record_failure
 
@@ -38,7 +38,7 @@ class TimekeepingOrchestrator:
                 period = TimekeepingService.create_period(tenant_id, entity, user_id)
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="period.created",
                         resource_type="Period",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -76,7 +76,7 @@ class TimekeepingOrchestrator:
                 period = TimekeepingService.lock_period(tenant_id, period_id, user_id)
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="period.locked",
                         resource_type="Period",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -113,7 +113,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_report.created",
                         resource_type="TimeReport",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -153,7 +153,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_report.submitted",
                         resource_type="TimeReport",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -187,7 +187,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_report.approved",
                         resource_type="TimeReport",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -225,7 +225,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_report.rejected",
                         resource_type="TimeReport",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -266,7 +266,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_entry.created",
                         resource_type="TimeEntry",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -313,7 +313,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_entry.updated",
                         resource_type="TimeEntry",
                         outcome=AuditOutcome.SUCCESS.value,
@@ -358,7 +358,7 @@ class TimekeepingOrchestrator:
                 )
                 AuditService.create(
                     tenant_id,
-                    AuditEventEntity(
+                    AuditEventIn(
                         action="time_entry.deleted",
                         resource_type="TimeEntry",
                         outcome=AuditOutcome.SUCCESS.value,

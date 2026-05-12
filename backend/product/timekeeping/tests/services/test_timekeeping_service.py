@@ -11,12 +11,12 @@ from infra.common.exceptions import Conflict, Forbidden, NotFound, Unprocessable
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.common.classes import PeriodStatus, TimeReportStatus
-from product.timekeeping.dtos.dtos import (
-    PeriodIn,
-    RejectReportRequest,
-    TimeEntryIn,
-    TimeEntryUpdate,
-    TimeReportIn,
+from product.timekeeping.entities.timekeeping_entities import (
+    PeriodEntity,
+    RejectReportEntity,
+    TimeEntryEntity,
+    TimeEntryUpdateEntity,
+    TimeReportEntity,
 )
 from product.timekeeping.services.timekeeping_service import TimekeepingService
 from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
@@ -75,7 +75,7 @@ class PeriodServiceTests(TestCase):
         defaults = dict(
             name=name, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
         )
-        return PeriodIn(**{**defaults, **kwargs})
+        return PeriodEntity(**{**defaults, **kwargs})
 
     def test_create_period_normalizes_name(self):
         period = TimekeepingService.create_period(
@@ -139,14 +139,14 @@ class PeriodServiceTests(TestCase):
     def test_list_periods_returns_all_for_tenant(self):
         TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(
+            PeriodEntity(
                 name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user.id,
         )
         TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(
+            PeriodEntity(
                 name="Q2", start_date=date(2025, 4, 1), end_date=date(2025, 6, 30)
             ),
             self.user.id,
@@ -200,7 +200,7 @@ class TimeReportServiceTests(TestCase):
         self.employee = make_employee(self.tenant.id)
         self.period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(
+            PeriodEntity(
                 name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user.id,
@@ -210,7 +210,7 @@ class TimeReportServiceTests(TestCase):
         return TimekeepingService.create_time_entry(
             self.tenant.id,
             report_id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
 
@@ -218,7 +218,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         assert report.employee_id == self.employee.id
@@ -231,7 +231,7 @@ class TimeReportServiceTests(TestCase):
             TimekeepingService.create_time_report(
                 self.tenant.id,
                 self.period.id,
-                TimeReportIn(employee_id=self.employee.id),
+                TimeReportEntity(employee_id=self.employee.id),
                 self.user.id,
             )
 
@@ -239,14 +239,14 @@ class TimeReportServiceTests(TestCase):
         TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         with pytest.raises(Conflict):
             TimekeepingService.create_time_report(
                 self.tenant.id,
                 self.period.id,
-                TimeReportIn(employee_id=self.employee.id),
+                TimeReportEntity(employee_id=self.employee.id),
                 self.user.id,
             )
 
@@ -254,7 +254,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         found = TimekeepingService.get_time_report(
@@ -271,13 +271,13 @@ class TimeReportServiceTests(TestCase):
         TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=emp2.id),
+            TimeReportEntity(employee_id=emp2.id),
             self.user.id,
         )
         reports = TimekeepingService.list_time_reports(
@@ -289,7 +289,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         with pytest.raises(UnprocessableEntity, match="empty"):
@@ -301,7 +301,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -315,7 +315,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -329,7 +329,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -344,7 +344,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         with pytest.raises(Conflict, match="status"):
@@ -358,7 +358,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -372,7 +372,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -380,7 +380,7 @@ class TimeReportServiceTests(TestCase):
         rejected = TimekeepingService.reject_time_report(
             self.tenant.id,
             report.id,
-            RejectReportRequest(reason="Missing hours"),
+            RejectReportEntity(reason="Missing hours"),
             self.user.id,
         )
         assert rejected.status == TimeReportStatus.REJECTED
@@ -391,19 +391,19 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         with pytest.raises(Conflict, match="status"):
             TimekeepingService.reject_time_report(
-                self.tenant.id, report.id, RejectReportRequest(), self.user.id
+                self.tenant.id, report.id, RejectReportEntity(), self.user.id
             )
 
     def test_submit_creates_status_history_entry(self):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -419,7 +419,7 @@ class TimeReportServiceTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             self.period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         self._add_entry(report.id)
@@ -440,7 +440,7 @@ class TimeEntryServiceTests(TestCase):
         self.employee = make_employee(self.tenant.id)
         period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(
+            PeriodEntity(
                 name="Q1", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user.id,
@@ -448,7 +448,7 @@ class TimeEntryServiceTests(TestCase):
         self.report = TimekeepingService.create_time_report(
             self.tenant.id,
             period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
 
@@ -456,7 +456,7 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         assert entry.report_id == self.report.id
@@ -467,7 +467,7 @@ class TimeEntryServiceTests(TestCase):
         TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.submit_time_report(
@@ -477,7 +477,7 @@ class TimeEntryServiceTests(TestCase):
             TimekeepingService.create_time_entry(
                 self.tenant.id,
                 self.report.id,
-                TimeEntryIn(date=date(2025, 1, 16), hours=Decimal("8")),
+                TimeEntryEntity(date=date(2025, 1, 16), hours=Decimal("8")),
                 self.user.id,
             )
 
@@ -485,13 +485,13 @@ class TimeEntryServiceTests(TestCase):
         TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 16), hours=Decimal("6")),
+            TimeEntryEntity(date=date(2025, 1, 16), hours=Decimal("6")),
             self.user.id,
         )
         entries = TimekeepingService.list_time_entries(
@@ -503,14 +503,15 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         updated = TimekeepingService.update_time_entry(
             self.tenant.id,
             self.report.id,
-            entry.id,
-            TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
+            TimeEntryUpdateEntity(
+                entry_id=entry.id, date=date(2025, 1, 15), hours=Decimal("6")
+            ),
             self.user.id,
         )
         assert updated.hours == Decimal("6")
@@ -523,14 +524,15 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.update_time_entry(
             self.tenant.id,
             self.report.id,
-            entry.id,
-            TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
+            TimeEntryUpdateEntity(
+                entry_id=entry.id, date=date(2025, 1, 15), hours=Decimal("6")
+            ),
             self.user.id,
         )
         history = TimekeepingRepository.list_entry_change_history(entry.id)
@@ -543,7 +545,7 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.submit_time_report(
@@ -553,8 +555,9 @@ class TimeEntryServiceTests(TestCase):
             TimekeepingService.update_time_entry(
                 self.tenant.id,
                 self.report.id,
-                entry.id,
-                TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("6")),
+                TimeEntryUpdateEntity(
+                    entry_id=entry.id, date=date(2025, 1, 15), hours=Decimal("6")
+                ),
                 self.user.id,
             )
 
@@ -562,7 +565,7 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.delete_time_entry(
@@ -577,7 +580,7 @@ class TimeEntryServiceTests(TestCase):
         entry = TimekeepingService.create_time_entry(
             self.tenant.id,
             self.report.id,
-            TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
+            TimeEntryEntity(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user.id,
         )
         TimekeepingService.submit_time_report(
