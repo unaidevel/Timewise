@@ -35,6 +35,7 @@ class AuditRepositoryCreateTests(TestCase):
         defaults = dict(
             action="time_report.submitted",
             resource_type="TimeReport",
+            outcome="success",
             resource_id=10,
             metadata={"foo": "bar"},
             notes="initial",
@@ -55,7 +56,9 @@ class AuditRepositoryCreateTests(TestCase):
         assert event.occurred_at is not None
 
     def test_create_accepts_null_resource_id_and_empty_metadata(self):
-        entity = AuditEventEntity(action="user.login", resource_type="AuthUser")
+        entity = AuditEventEntity(
+            action="user.login", resource_type="AuthUser", outcome="success"
+        )
 
         event = AuditRepository.create(entity, self.tenant.id, self.user.id)
 
@@ -91,6 +94,7 @@ class AuditRepositoryReadTests(TestCase):
             AuditEventEntity(
                 action=action,
                 resource_type=resource_type,
+                outcome="success",
                 resource_id=resource_id,
             ),
             tenant_id,
@@ -169,6 +173,7 @@ class AuditRepositoryUpdateTests(TestCase):
             AuditEventEntity(
                 action="user.login",
                 resource_type="AuthUser",
+                outcome="success",
                 notes="initial",
             ),
             self.tenant.id,
@@ -206,7 +211,9 @@ class AuditRepositoryDeleteTests(TestCase):
 
     def test_delete_by_id_returns_true_when_deleted(self):
         event = AuditRepository.create(
-            AuditEventEntity(action="user.login", resource_type="AuthUser"),
+            AuditEventEntity(
+                action="user.login", resource_type="AuthUser", outcome="success"
+            ),
             self.tenant.id,
             actor_id=self.user.id,
         )

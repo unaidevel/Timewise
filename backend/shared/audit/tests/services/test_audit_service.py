@@ -38,6 +38,7 @@ def make_payload(**overrides) -> AuditEventIn:
     defaults = dict(
         action="time_report.submitted",
         resource_type="TimeReport",
+        outcome="success",
         resource_id=42,
         metadata={"ip": "127.0.0.1"},
         notes="initial",

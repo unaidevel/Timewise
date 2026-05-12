@@ -45,6 +45,7 @@ def make_payload(**overrides) -> AuditEventIn:
     defaults = dict(
         action="time_report.submitted",
         resource_type="TimeReport",
+        outcome="success",
         resource_id=42,
         metadata={"ip": "127.0.0.1"},
         notes="initial",
@@ -89,7 +90,7 @@ class AuditApiTests(TestCase):
         second = self._record(action="b")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, None, None, None
+            self.tenant.id, self.user, None, None, None, None, None
         )
 
         assert [e.id for e in events] == [second.id, first.id]
@@ -99,7 +100,7 @@ class AuditApiTests(TestCase):
         target = self._record(action="user.logout")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, "user.logout", None, None, None
+            self.tenant.id, self.user, "user.logout", None, None, None, None
         )
 
         assert [e.id for e in events] == [target.id]
@@ -109,7 +110,7 @@ class AuditApiTests(TestCase):
         self._record(resource_type="TimeReport", resource_id=8)
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, "TimeReport", 7, None
+            self.tenant.id, self.user, None, "TimeReport", 7, None, None
         )
 
         assert [e.id for e in events] == [target.id]
@@ -118,7 +119,7 @@ class AuditApiTests(TestCase):
         target = self._record(action="mine")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, None, None, self.user.id
+            self.tenant.id, self.user, None, None, None, self.user.id, None
         )
 
         assert [e.id for e in events] == [target.id]
