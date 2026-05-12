@@ -4,9 +4,7 @@ from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.decorators import any_employee, only_admin, only_manager
 from product.common.classes import TimeReportStatus
 from product.costing.dtos.dtos import (
-    OvertimeRuleIn,
     OvertimeRuleOut,
-    OvertimeRuleUpdate,
     ReportCostSummaryOut,
 )
 from product.costing.entities.costing_entities import (
@@ -30,23 +28,15 @@ class CostingService:
     @staticmethod
     def create_rule(
         tenant_id: int,
-        payload: OvertimeRuleIn,
+        entity: OvertimeRuleEntity,
+        conditions: list[dict],
         user_id: int,
     ) -> OvertimeRuleOut:
-        entity = OvertimeRuleEntity(
-            name=payload.name,
-            multiplier=payload.multiplier,
-            priority=payload.priority,
-        )
         existing = CostingRepository.find_rule_by_name(tenant_id, entity.name)
         if existing:
             raise Conflict(
                 f"An overtime rule named '{existing.name}' already exists in this tenant."
             )
-        conditions = [
-            {"condition_type": c.condition_type, "value": c.value}
-            for c in payload.conditions
-        ]
         return CostingRepository.create_rule(
             entity, conditions, tenant_id, created_by_id=user_id
         )
@@ -72,25 +62,18 @@ class CostingService:
     @staticmethod
     def update_rule(
         tenant_id: int,
-        rule_id: int,
-        payload: OvertimeRuleUpdate,
+        entity: OvertimeRuleUpdateEntity,
+        conditions: list[dict],
         user_id: int,
     ) -> OvertimeRuleOut:
-        entity = OvertimeRuleUpdateEntity(
-            rule_id=rule_id, **payload.model_dump(exclude={"conditions"})
-        )
-        rule = CostingRepository.get_rule_by_id(rule_id)
+        rule = CostingRepository.get_rule_by_id(entity.rule_id)
         if not rule or rule.tenant_id != tenant_id:
-            raise NotFound(f"Overtime rule {rule_id} not found.")
+            raise NotFound(f"Overtime rule {entity.rule_id} not found.")
         duplicate = CostingRepository.find_rule_by_name(tenant_id, entity.name)
-        if duplicate and duplicate.id != rule_id:
+        if duplicate and duplicate.id != entity.rule_id:
             raise Conflict(
                 f"An overtime rule named '{entity.name}' already exists in this tenant."
             )
-        conditions = [
-            {"condition_type": c.condition_type, "value": c.value}
-            for c in payload.conditions
-        ]
         return CostingRepository.update_rule(entity, conditions, updated_by_id=user_id)
 
     @only_admin

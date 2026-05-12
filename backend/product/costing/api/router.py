@@ -15,6 +15,7 @@ from product.costing.dtos.dtos import (
     OvertimeRuleUpdate,
     ReportCostSummaryOut,
 )
+from product.costing.orchestrators.costing_orchestrator import CostingOrchestrator
 from product.costing.services.costing_service import CostingService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}/costing", tags=["costing"])
@@ -31,7 +32,7 @@ def create_rule(
     payload: OvertimeRuleIn,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.create_rule(tenant_id, payload, current_user.id)
+    return CostingOrchestrator.create_rule(tenant_id, payload, current_user.id)
 
 
 @router.get(
@@ -71,7 +72,7 @@ def update_rule(
     payload: OvertimeRuleUpdate,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.update_rule(tenant_id, rule_id, payload, current_user.id)
+    return CostingOrchestrator.update_rule(tenant_id, rule_id, payload, current_user.id)
 
 
 @router.delete(
@@ -84,7 +85,7 @@ def deactivate_rule(
     rule_id: int,
     current_user: CurrentUser,
 ) -> OvertimeRuleOut:
-    return CostingService.deactivate_rule(tenant_id, rule_id, current_user.id)
+    return CostingOrchestrator.deactivate_rule(tenant_id, rule_id, current_user.id)
 
 
 @router.post(
@@ -97,7 +98,9 @@ def calculate_report_cost(
     report_id: int,
     current_user: CurrentUser,
 ) -> ReportCostSummaryOut:
-    return CostingService.calculate_report_cost(tenant_id, report_id, current_user.id)
+    return CostingOrchestrator.calculate_report_cost(
+        tenant_id, report_id, current_user.id
+    )
 
 
 @router.get(
