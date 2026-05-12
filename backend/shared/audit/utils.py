@@ -9,7 +9,6 @@ from infra.common.exceptions import (
     NotFound,
     UnprocessableEntity,
 )
-from shared.audit.dtos.dtos import AuditEventIn
 
 
 class AuditOutcome(models.TextChoices):
@@ -37,10 +36,12 @@ def record_failure(
     """Persist a failure audit event in its own transaction.
 
     Swallows all exceptions: losing the failure audit must not compound
-    a business error. `AuditService` is imported lazily here because
-    `models.py` imports `AuditOutcome` from this module, and `AuditService`
-    transitively imports `models.py` — eager import would be circular.
+    a business error. `AuditService` and `AuditEventEntity` are imported
+    lazily here because `models.py` imports `AuditOutcome` from this
+    module, and both of those transitively import `models.py` — eager
+    imports would be circular.
     """
+    from shared.audit.entities.audit_entities import AuditEventEntity
     from shared.audit.services.audit_service import AuditService
 
     failure_metadata = {
@@ -51,11 +52,11 @@ def record_failure(
     with contextlib.suppress(Exception), transaction.atomic():
         AuditService.create(
             tenant_id,
-            AuditEventIn(
+            AuditEventEntity(
                 action=action,
                 resource_type=resource_type,
-                resource_id=resource_id,
                 outcome=AuditOutcome.FAILURE.value,
+                resource_id=resource_id,
                 metadata=failure_metadata,
             ),
             user_id,
