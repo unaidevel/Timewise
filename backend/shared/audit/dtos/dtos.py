@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class AuditEventIn(BaseModel):
     action: str = Field(min_length=1, max_length=100)
     resource_type: str = Field(min_length=1, max_length=100)
+    outcome: str
     resource_id: int | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     notes: str = ""
@@ -23,6 +24,7 @@ class AuditEventOut(BaseModel):
     tenant_id: int
     actor_id: int
     action: str
+    outcome: str
     resource_type: str
     resource_id: int | None
     metadata: dict[str, Any]

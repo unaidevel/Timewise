@@ -35,6 +35,7 @@ def list_events(
     resource_type: str | None = Query(default=None),
     resource_id: int | None = Query(default=None),
     actor_id: int | None = Query(default=None),
+    outcome: str | None = Query(default=None),
 ) -> list[AuditEventOut]:
     return AuditService.get_all(
         tenant_id,
@@ -43,6 +44,7 @@ def list_events(
         resource_type,
         resource_id,
         actor_id,
+        outcome,
     )
 
 

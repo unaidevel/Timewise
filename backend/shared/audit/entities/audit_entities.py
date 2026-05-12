@@ -2,16 +2,19 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from infra.common.exceptions import UnprocessableEntity
+from shared.audit.utils import AuditOutcome
 
 _MAX_ACTION_LENGTH = 100
 _MAX_RESOURCE_TYPE_LENGTH = 100
 _MAX_NOTES_LENGTH = 10_000
+_VALID_OUTCOMES = frozenset(AuditOutcome.values)
 
 
 @dataclass(frozen=True, slots=True)
 class AuditEventEntity:
     action: str
     resource_type: str
+    outcome: str
     resource_id: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     notes: str = ""
@@ -29,6 +32,7 @@ class AuditEventEntity:
                 self.resource_type, "resource_type", _MAX_RESOURCE_TYPE_LENGTH
             ),
         )
+        object.__setattr__(self, "outcome", self._validate_outcome(self.outcome))
         object.__setattr__(self, "notes", self._validate_notes(self.notes))
         self._validate_metadata(self.metadata)
 
@@ -44,6 +48,16 @@ class AuditEventEntity:
                 f"{field_name} cannot exceed {max_length} characters."
             )
         return clean
+
+    @staticmethod
+    def _validate_outcome(value: str) -> str:
+        if not isinstance(value, str):
+            raise UnprocessableEntity("outcome must be a string.")
+        if value not in _VALID_OUTCOMES:
+            raise UnprocessableEntity(
+                f"outcome must be one of {sorted(_VALID_OUTCOMES)}, got '{value}'."
+            )
+        return value
 
     @staticmethod
     def _validate_notes(value: str) -> str:
