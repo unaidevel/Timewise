@@ -11,10 +11,22 @@ from infra.common.exceptions import Conflict, Forbidden, NotFound
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
 from product.costing.dtos.dtos import OvertimeRuleIn, OvertimeRuleUpdate
+from product.costing.entities.costing_entities import (
+    OvertimeRuleEntity,
+    OvertimeRuleUpdateEntity,
+)
 from product.costing.services.costing_service import CostingService
-from product.timekeeping.dtos.dtos import PeriodIn, TimeEntryIn, TimeReportIn
+from product.timekeeping.entities.timekeeping_entities import (
+    PeriodEntity,
+    TimeEntryEntity,
+    TimeReportEntity,
+)
 from product.timekeeping.services.timekeeping_service import TimekeepingService
-from product.workforce.dtos.dtos import DepartmentIn, EmployeeIn, RoleIn
+from product.workforce.entities.workforce_entities import (
+    CreateEmployeeEntity,
+    DepartmentEntity,
+    RoleEntity,
+)
 from product.workforce.services.workforce_service import WorkforceService
 
 
@@ -43,12 +55,12 @@ def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
 
 def make_employee(tenant_id: int, email: str = "emp@example.com"):
     dept = WorkforceService.create_department(
-        tenant_id, DepartmentIn(name=f"Dept-{email}")
+        tenant_id, DepartmentEntity(name=f"Dept-{email}")
     )
-    role = WorkforceService.create_role(tenant_id, RoleIn(name=f"Role-{email}"))
+    role = WorkforceService.create_role(tenant_id, RoleEntity(name=f"Role-{email}"))
     return WorkforceService.create_employee(
         tenant_id,
-        EmployeeIn(
+        CreateEmployeeEntity(
             full_name="Test Employee",
             email=email,
             department_id=dept.id,
@@ -63,18 +75,18 @@ def make_employee(tenant_id: int, email: str = "emp@example.com"):
 def make_approved_report(tenant_id: int, employee_id: int, user_id: int):
     period = TimekeepingService.create_period(
         tenant_id,
-        PeriodIn(
+        PeriodEntity(
             name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
         ),
         user_id,
     )
     report = TimekeepingService.create_time_report(
-        tenant_id, period.id, TimeReportIn(employee_id=employee_id), user_id
+        tenant_id, period.id, TimeReportEntity(employee_id=employee_id), user_id
     )
     TimekeepingService.create_time_entry(
         tenant_id,
         report.id,
-        TimeEntryIn(date=date(2025, 1, 6), hours=Decimal("8.00")),
+        TimeEntryEntity(date=date(2025, 1, 6), hours=Decimal("8.00")),
         user_id,
     )
     TimekeepingService.submit_time_report(tenant_id, report.id, user_id)
@@ -90,6 +102,30 @@ def make_rule_payload(name: str = "Weekend rule") -> OvertimeRuleIn:
     )
 
 
+def _entity_and_conditions(payload: OvertimeRuleIn):
+    entity = OvertimeRuleEntity(
+        name=payload.name,
+        multiplier=payload.multiplier,
+        priority=payload.priority,
+    )
+    conditions = [
+        {"condition_type": c.condition_type, "value": c.value}
+        for c in payload.conditions
+    ]
+    return entity, conditions
+
+
+def _update_entity_and_conditions(rule_id: int, payload: OvertimeRuleUpdate):
+    entity = OvertimeRuleUpdateEntity(
+        rule_id=rule_id, **payload.model_dump(exclude={"conditions"})
+    )
+    conditions = [
+        {"condition_type": c.condition_type, "value": c.value}
+        for c in payload.conditions
+    ]
+    return entity, conditions
+
+
 class CostingServiceRulesTests(TestCase):
     def setUp(self):
         self.user = make_user()
@@ -98,7 +134,9 @@ class CostingServiceRulesTests(TestCase):
 
     def test_create_rule_succeeds_and_returns_dto(self):
         rule = CostingService.create_rule(
-            self.tenant.id, make_rule_payload(), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload()),
+            user_id=self.user.id,
         )
         assert rule.name == "Weekend rule"
         assert rule.multiplier == Decimal("1.50")
@@ -108,12 +146,14 @@ class CostingServiceRulesTests(TestCase):
 
     def test_create_rule_raises_conflict_on_duplicate_name(self):
         CostingService.create_rule(
-            self.tenant.id, make_rule_payload("Overtime"), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload("Overtime")),
+            user_id=self.user.id,
         )
         with pytest.raises(Conflict, match="Overtime"):
             CostingService.create_rule(
                 self.tenant.id,
-                make_rule_payload("  OVERTIME  "),
+                *_entity_and_conditions(make_rule_payload("  OVERTIME  ")),
                 user_id=self.user.id,
             )
 
@@ -123,16 +163,22 @@ class CostingServiceRulesTests(TestCase):
         add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
 
         CostingService.create_rule(
-            self.tenant.id, make_rule_payload("Overtime"), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload("Overtime")),
+            user_id=self.user.id,
         )
         rule = CostingService.create_rule(
-            other_tenant.id, make_rule_payload("Overtime"), user_id=other_user.id
+            other_tenant.id,
+            *_entity_and_conditions(make_rule_payload("Overtime")),
+            user_id=other_user.id,
         )
         assert rule.tenant_id == other_tenant.id
 
     def test_get_rule_raises_not_found_for_wrong_tenant(self):
         rule = CostingService.create_rule(
-            self.tenant.id, make_rule_payload(), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload()),
+            user_id=self.user.id,
         )
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, "other")
@@ -143,13 +189,17 @@ class CostingServiceRulesTests(TestCase):
 
     def test_list_rules_returns_only_tenant_rules(self):
         CostingService.create_rule(
-            self.tenant.id, make_rule_payload("My Rule"), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload("My Rule")),
+            user_id=self.user.id,
         )
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, "other")
         add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
         CostingService.create_rule(
-            other_tenant.id, make_rule_payload("Other Rule"), user_id=other_user.id
+            other_tenant.id,
+            *_entity_and_conditions(make_rule_payload("Other Rule")),
+            user_id=other_user.id,
         )
 
         rules = CostingService.list_rules(self.tenant.id, user_id=self.user.id)
@@ -158,7 +208,9 @@ class CostingServiceRulesTests(TestCase):
 
     def test_deactivate_rule_returns_not_found_if_already_inactive(self):
         rule = CostingService.create_rule(
-            self.tenant.id, make_rule_payload(), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload()),
+            user_id=self.user.id,
         )
         CostingService.deactivate_rule(self.tenant.id, rule.id, user_id=self.user.id)
         with pytest.raises(Conflict):
@@ -171,7 +223,9 @@ class CostingServiceRulesTests(TestCase):
         add_member(self.tenant.id, employee_user.id, MembershipRoles.EMPLOYEE)
         with pytest.raises(Forbidden):
             CostingService.create_rule(
-                self.tenant.id, make_rule_payload(), user_id=employee_user.id
+                self.tenant.id,
+                *_entity_and_conditions(make_rule_payload()),
+                user_id=employee_user.id,
             )
 
 
@@ -196,7 +250,7 @@ class CostingServiceCalculationTests(TestCase):
     def test_calculate_report_raises_conflict_for_wrong_status(self):
         period = TimekeepingService.create_period(
             self.tenant.id,
-            PeriodIn(
+            PeriodEntity(
                 name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user.id,
@@ -204,7 +258,7 @@ class CostingServiceCalculationTests(TestCase):
         report = TimekeepingService.create_time_report(
             self.tenant.id,
             period.id,
-            TimeReportIn(employee_id=self.employee.id),
+            TimeReportEntity(employee_id=self.employee.id),
             self.user.id,
         )
         with pytest.raises(Conflict, match="draft"):
@@ -228,14 +282,15 @@ class CostingServiceCalculationTests(TestCase):
 
     def test_calculate_applies_rule_when_it_matches(self):
         # Create a rule for weekdays (Monday = isoweekday 1)
+        _weekday_payload = OvertimeRuleIn(
+            name="Weekday rule",
+            multiplier=Decimal("1.50"),
+            priority=1,
+            conditions=[{"condition_type": "day_of_week", "value": "1,2,3,4,5"}],
+        )
         CostingService.create_rule(
             self.tenant.id,
-            OvertimeRuleIn(
-                name="Weekday rule",
-                multiplier=Decimal("1.50"),
-                priority=1,
-                conditions=[{"condition_type": "day_of_week", "value": "1,2,3,4,5"}],
-            ),
+            *_entity_and_conditions(_weekday_payload),
             user_id=self.user.id,
         )
         approved = make_approved_report(
@@ -308,7 +363,9 @@ class CostingServiceUpdateRuleTests(TestCase):
         self.tenant = make_tenant(self.user.id)
         add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
         self.rule = CostingService.create_rule(
-            self.tenant.id, make_rule_payload("Original"), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload("Original")),
+            user_id=self.user.id,
         )
 
     def _full_update(self, **overrides) -> OvertimeRuleUpdate:
@@ -323,8 +380,9 @@ class CostingServiceUpdateRuleTests(TestCase):
     def test_update_rule_changes_name(self):
         updated = CostingService.update_rule(
             self.tenant.id,
-            self.rule.id,
-            self._full_update(name="Renamed"),
+            *_update_entity_and_conditions(
+                self.rule.id, self._full_update(name="Renamed")
+            ),
             user_id=self.user.id,
         )
 
@@ -333,8 +391,9 @@ class CostingServiceUpdateRuleTests(TestCase):
     def test_update_rule_changes_multiplier(self):
         updated = CostingService.update_rule(
             self.tenant.id,
-            self.rule.id,
-            self._full_update(multiplier=Decimal("2.00")),
+            *_update_entity_and_conditions(
+                self.rule.id, self._full_update(multiplier=Decimal("2.00"))
+            ),
             user_id=self.user.id,
         )
 
@@ -344,8 +403,9 @@ class CostingServiceUpdateRuleTests(TestCase):
     def test_update_rule_changes_priority(self):
         updated = CostingService.update_rule(
             self.tenant.id,
-            self.rule.id,
-            self._full_update(priority=99),
+            *_update_entity_and_conditions(
+                self.rule.id, self._full_update(priority=99)
+            ),
             user_id=self.user.id,
         )
 
@@ -354,9 +414,11 @@ class CostingServiceUpdateRuleTests(TestCase):
     def test_update_rule_replaces_conditions(self):
         updated = CostingService.update_rule(
             self.tenant.id,
-            self.rule.id,
-            self._full_update(
-                conditions=[{"condition_type": "day_of_week", "value": "1,2,3"}]
+            *_update_entity_and_conditions(
+                self.rule.id,
+                self._full_update(
+                    conditions=[{"condition_type": "day_of_week", "value": "1,2,3"}]
+                ),
             ),
             user_id=self.user.id,
         )
@@ -368,8 +430,9 @@ class CostingServiceUpdateRuleTests(TestCase):
         with pytest.raises(NotFound):
             CostingService.update_rule(
                 self.tenant.id,
-                99999,
-                self._full_update(name="New name"),
+                *_update_entity_and_conditions(
+                    99999, self._full_update(name="New name")
+                ),
                 user_id=self.user.id,
             )
 
@@ -381,29 +444,34 @@ class CostingServiceUpdateRuleTests(TestCase):
         with pytest.raises(NotFound):
             CostingService.update_rule(
                 other_tenant.id,
-                self.rule.id,
-                self._full_update(name="Hijack"),
+                *_update_entity_and_conditions(
+                    self.rule.id, self._full_update(name="Hijack")
+                ),
                 user_id=other_user.id,
             )
 
     def test_update_rule_raises_conflict_when_renaming_to_existing_name(self):
         CostingService.create_rule(
-            self.tenant.id, make_rule_payload("Existing"), user_id=self.user.id
+            self.tenant.id,
+            *_entity_and_conditions(make_rule_payload("Existing")),
+            user_id=self.user.id,
         )
 
         with pytest.raises(Conflict, match="Existing"):
             CostingService.update_rule(
                 self.tenant.id,
-                self.rule.id,
-                self._full_update(name="Existing"),
+                *_update_entity_and_conditions(
+                    self.rule.id, self._full_update(name="Existing")
+                ),
                 user_id=self.user.id,
             )
 
     def test_update_rule_renaming_to_same_name_is_allowed(self):
         updated = CostingService.update_rule(
             self.tenant.id,
-            self.rule.id,
-            self._full_update(name="Original"),
+            *_update_entity_and_conditions(
+                self.rule.id, self._full_update(name="Original")
+            ),
             user_id=self.user.id,
         )
 
@@ -416,7 +484,8 @@ class CostingServiceUpdateRuleTests(TestCase):
         with pytest.raises(Forbidden):
             CostingService.update_rule(
                 self.tenant.id,
-                self.rule.id,
-                self._full_update(name="Hijack"),
+                *_update_entity_and_conditions(
+                    self.rule.id, self._full_update(name="Hijack")
+                ),
                 user_id=employee_user.id,
             )
