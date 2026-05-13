@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from django.db import transaction
+
 from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
 from infra.tenants.decorators import any_employee, only_admin, only_manager
 from product.common.classes import TimeReportStatus
@@ -37,9 +39,10 @@ class CostingService:
             raise Conflict(
                 f"An overtime rule named '{existing.name}' already exists in this tenant."
             )
-        return CostingRepository.create_rule(
-            entity, conditions, tenant_id, created_by_id=user_id
-        )
+        with transaction.atomic():
+            return CostingRepository.create_rule(
+                entity, conditions, tenant_id, created_by_id=user_id
+            )
 
     @any_employee
     @staticmethod
@@ -74,7 +77,10 @@ class CostingService:
             raise Conflict(
                 f"An overtime rule named '{entity.name}' already exists in this tenant."
             )
-        return CostingRepository.update_rule(entity, conditions, updated_by_id=user_id)
+        with transaction.atomic():
+            return CostingRepository.update_rule(
+                entity, conditions, updated_by_id=user_id
+            )
 
     @only_admin
     @staticmethod
@@ -166,12 +172,14 @@ class CostingService:
             for bd in breakdowns
         ]
 
-        saved = CostingRepository.save_calculations(
-            calculations,
-            report_id=report_id,
-            tenant_id=tenant_id,
-            calculated_by_id=user_id,
-        )
+        with transaction.atomic():
+            CostingRepository.delete_calculations_for_report(report_id)
+            saved = CostingRepository.save_calculations(
+                calculations,
+                report_id=report_id,
+                tenant_id=tenant_id,
+                calculated_by_id=user_id,
+            )
 
         total_base_hours = sum((b.base_hours for b in saved), Decimal("0.00"))
         total_overtime_hours = sum((b.overtime_hours for b in saved), Decimal("0.00"))
