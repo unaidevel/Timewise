@@ -68,6 +68,14 @@ def weekend_conditions() -> list[dict]:
     return [{"condition_type": "day_of_week", "value": "6,7"}]
 
 
+def create_rule_with_conditions(entity, conditions, tenant_id, created_by_id=None):
+    model = CostingRepository.create_rule(
+        entity, tenant_id, created_by_id=created_by_id
+    )
+    CostingRepository.bulk_create_conditions(model.id, conditions)
+    return CostingRepository.get_rule_with_conditions(model.id)
+
+
 class CostingRepositoryRulesTests(TestCase):
     def setUp(self):
         self.user = make_user()
@@ -81,7 +89,7 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_create_rule_persists_rule_and_conditions(self):
         entity = make_rule_entity()
-        rule = CostingRepository.create_rule(
+        rule = create_rule_with_conditions(
             entity,
             weekend_conditions(),
             self.tenant.id,
@@ -101,7 +109,7 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_get_rule_by_id_returns_rule_with_conditions(self):
         entity = make_rule_entity()
-        created = CostingRepository.create_rule(
+        created = create_rule_with_conditions(
             entity, weekend_conditions(), self.tenant.id
         )
         fetched = CostingRepository.get_rule_by_id(created.id)
@@ -111,7 +119,7 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_find_rule_by_name_is_case_insensitive(self):
         entity = make_rule_entity("Weekend Rule")
-        CostingRepository.create_rule(entity, weekend_conditions(), self.tenant.id)
+        create_rule_with_conditions(entity, weekend_conditions(), self.tenant.id)
         found = CostingRepository.find_rule_by_name(self.tenant.id, "weekend rule")
         assert found is not None
         assert found.name == "Weekend Rule"
@@ -119,10 +127,10 @@ class CostingRepositoryRulesTests(TestCase):
     def test_list_rules_returns_only_tenant_rules(self):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, "other")
-        CostingRepository.create_rule(
+        create_rule_with_conditions(
             make_rule_entity("My Rule"), weekend_conditions(), self.tenant.id
         )
-        CostingRepository.create_rule(
+        create_rule_with_conditions(
             make_rule_entity("Other Tenant Rule"), weekend_conditions(), other_tenant.id
         )
         rules = CostingRepository.list_rules(self.tenant.id)
@@ -130,12 +138,12 @@ class CostingRepositoryRulesTests(TestCase):
         assert rules[0].name == "My Rule"
 
     def test_list_rules_ordered_by_priority_desc_then_name(self):
-        CostingRepository.create_rule(
+        create_rule_with_conditions(
             OvertimeRuleEntity(name="A rule", multiplier=Decimal("1.50"), priority=1),
             weekend_conditions(),
             self.tenant.id,
         )
-        CostingRepository.create_rule(
+        create_rule_with_conditions(
             OvertimeRuleEntity(name="B rule", multiplier=Decimal("1.50"), priority=5),
             weekend_conditions(),
             self.tenant.id,
@@ -146,7 +154,7 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_list_rules_active_only_filter(self):
         active_entity = make_rule_entity("Active Rule")
-        created = CostingRepository.create_rule(
+        created = create_rule_with_conditions(
             active_entity, weekend_conditions(), self.tenant.id
         )
         CostingRepository.deactivate_rule(created.id)
@@ -157,10 +165,8 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_update_rule_replaces_conditions(self):
         entity = make_rule_entity()
-        created = CostingRepository.create_rule(
-            entity,
-            weekend_conditions(),
-            self.tenant.id,
+        created = create_rule_with_conditions(
+            entity, weekend_conditions(), self.tenant.id
         )
         update_entity = OvertimeRuleUpdateEntity(
             rule_id=created.id,
@@ -169,13 +175,16 @@ class CostingRepositoryRulesTests(TestCase):
             priority=created.priority,
         )
         new_conditions = [{"condition_type": "is_holiday", "value": "true"}]
-        updated = CostingRepository.update_rule(update_entity, new_conditions)
+        CostingRepository.update_rule(update_entity)
+        CostingRepository.delete_conditions_for_rule(update_entity.rule_id)
+        CostingRepository.bulk_create_conditions(update_entity.rule_id, new_conditions)
+        updated = CostingRepository.get_rule_with_conditions(update_entity.rule_id)
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "is_holiday"
 
     def test_update_rule_changes_name(self):
         entity = make_rule_entity()
-        created = CostingRepository.create_rule(
+        created = create_rule_with_conditions(
             entity, weekend_conditions(), self.tenant.id
         )
         update_entity = OvertimeRuleUpdateEntity(
@@ -184,14 +193,19 @@ class CostingRepositoryRulesTests(TestCase):
             multiplier=created.multiplier,
             priority=created.priority,
         )
-        updated = CostingRepository.update_rule(update_entity, weekend_conditions())
+        CostingRepository.update_rule(update_entity)
+        CostingRepository.delete_conditions_for_rule(update_entity.rule_id)
+        CostingRepository.bulk_create_conditions(
+            update_entity.rule_id, weekend_conditions()
+        )
+        updated = CostingRepository.get_rule_with_conditions(update_entity.rule_id)
         assert updated.name == "Updated Name"
         assert len(updated.conditions) == 1
         assert updated.conditions[0].condition_type == "day_of_week"
 
     def test_deactivate_rule_sets_is_active_false(self):
         entity = make_rule_entity()
-        created = CostingRepository.create_rule(
+        created = create_rule_with_conditions(
             entity, weekend_conditions(), self.tenant.id
         )
         deactivated = CostingRepository.deactivate_rule(created.id)
@@ -200,7 +214,7 @@ class CostingRepositoryRulesTests(TestCase):
 
     def test_deactivate_rule_returns_none_when_already_inactive(self):
         entity = make_rule_entity()
-        created = CostingRepository.create_rule(
+        created = create_rule_with_conditions(
             entity, weekend_conditions(), self.tenant.id
         )
         CostingRepository.deactivate_rule(created.id)
@@ -273,7 +287,7 @@ class CostingRepositoryCalculationsTests(TestCase):
         assert saved[0].time_entry_id == self.entry.id
         assert saved[0].total_cost == Decimal("200.00")
 
-    def test_save_calculations_is_idempotent(self):
+    def test_recalculate_replaces_existing_calculations(self):
         calculations = [
             {
                 "time_entry_id": self.entry.id,
@@ -289,7 +303,7 @@ class CostingRepositoryCalculationsTests(TestCase):
         CostingRepository.save_calculations(
             calculations, report_id=self.report.id, tenant_id=self.tenant.id
         )
-        # Call again — should overwrite, not duplicate
+        CostingRepository.delete_calculations_for_report(self.report.id)
         CostingRepository.save_calculations(
             calculations, report_id=self.report.id, tenant_id=self.tenant.id
         )
