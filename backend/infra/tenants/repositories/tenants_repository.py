@@ -1,4 +1,4 @@
-from django.utils import timezone
+from datetime import datetime
 
 from infra.tenants.dtos.dtos import TenantMemberResponse, TenantOut
 from infra.tenants.entities.tenant_entities import (
@@ -85,12 +85,12 @@ class TenantRepository:
 
     @staticmethod
     def remove_membership(
-        membership_id: int, reason: str
+        membership_id: int, reason: str, left_at: datetime
     ) -> TenantMemberResponse | None:
         rows = TenantMembershipModel.objects.filter(
             id=membership_id,
             left_at__isnull=True,
-        ).update(left_at=timezone.now(), left_reason=reason)
+        ).update(left_at=left_at, left_reason=reason)
         if rows == 0:
             return None
         model = TenantMembershipModel.objects.get(id=membership_id)
