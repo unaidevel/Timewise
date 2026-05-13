@@ -1,4 +1,4 @@
-from django.utils import timezone
+from datetime import datetime
 
 from product.workforce.dtos.dtos import (
     DepartmentManagerOut,
@@ -112,13 +112,12 @@ class WorkforceRepository:
     def remove_department_manager(
         assignment_id: int,
         reason: str,
+        left_at: datetime,
         updated_by_id: int | None = None,
     ) -> DepartmentManagerOut | None:
         rows = DepartmentManagerModel.objects.filter(
             id=assignment_id, left_at__isnull=True
-        ).update(
-            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
-        )
+        ).update(left_at=left_at, left_reason=reason, updated_by_id=updated_by_id)
         if rows == 0:
             return None
         model = DepartmentManagerModel.objects.get(id=assignment_id)
@@ -182,10 +181,9 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def _create_default_roles(tenant_id: int) -> list[RoleOut]:
-        DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
+    def bulk_create_roles(tenant_id: int, names: list[str]) -> list[RoleOut]:
         models = RoleModel.objects.bulk_create(
-            [RoleModel(tenant_id=tenant_id, name=name) for name in DEFAULT_ROLE_NAMES]
+            [RoleModel(tenant_id=tenant_id, name=name) for name in names]
         )
         return [RoleOut.model_validate(m) for m in models]
 
@@ -361,14 +359,13 @@ class WorkforceRepository:
     def close_active_department(
         employee_id: int,
         reason: str,
+        left_at: datetime,
         updated_by_id: int | None = None,
     ) -> EmployeeDepartmentOut | None:
         rows = EmployeeDepartmentModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(
-            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
-        )
+        ).update(left_at=left_at, left_reason=reason, updated_by_id=updated_by_id)
         if rows == 0:
             return None
         model = (
@@ -417,14 +414,13 @@ class WorkforceRepository:
     def close_active_role(
         employee_id: int,
         reason: str,
+        left_at: datetime,
         updated_by_id: int | None = None,
     ) -> EmployeeRoleOut | None:
         rows = EmployeeRoleModel.objects.filter(
             employee_id=employee_id,
             left_at__isnull=True,
-        ).update(
-            left_at=timezone.now(), left_reason=reason, updated_by_id=updated_by_id
-        )
+        ).update(left_at=left_at, left_reason=reason, updated_by_id=updated_by_id)
         if rows == 0:
             return None
         model = (
