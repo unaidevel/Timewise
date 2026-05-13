@@ -40,9 +40,11 @@ class CostingService:
                 f"An overtime rule named '{existing.name}' already exists in this tenant."
             )
         with transaction.atomic():
-            return CostingRepository.create_rule(
-                entity, conditions, tenant_id, created_by_id=user_id
+            rule_model = CostingRepository.create_rule(
+                entity, tenant_id, created_by_id=user_id
             )
+            CostingRepository.bulk_create_conditions(rule_model.id, conditions)
+            return CostingRepository.get_rule_with_conditions(rule_model.id)
 
     @any_employee
     @staticmethod
@@ -78,9 +80,10 @@ class CostingService:
                 f"An overtime rule named '{entity.name}' already exists in this tenant."
             )
         with transaction.atomic():
-            return CostingRepository.update_rule(
-                entity, conditions, updated_by_id=user_id
-            )
+            CostingRepository.update_rule(entity, updated_by_id=user_id)
+            CostingRepository.delete_conditions_for_rule(entity.rule_id)
+            CostingRepository.bulk_create_conditions(entity.rule_id, conditions)
+            return CostingRepository.get_rule_with_conditions(entity.rule_id)
 
     @only_admin
     @staticmethod

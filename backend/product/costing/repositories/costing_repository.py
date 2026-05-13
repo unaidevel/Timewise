@@ -4,6 +4,7 @@ from product.costing.dtos.dtos import (
     HourCostBreakdownOut,
     OvertimeRuleOut,
 )
+from product.costing.dtos.mappers.mappers import overtime_rule_to_dto
 from product.costing.entities.costing_entities import (
     OvertimeRuleEntity,
     OvertimeRuleUpdateEntity,
@@ -22,31 +23,36 @@ class CostingRepository:
     @staticmethod
     def create_rule(
         entity: OvertimeRuleEntity,
-        conditions: list[dict],
         tenant_id: int,
         created_by_id: int | None = None,
-    ) -> OvertimeRuleOut:
+    ) -> OvertimeRuleModel:
         if not isinstance(entity, OvertimeRuleEntity):
             raise TypeError(f"Expected OvertimeRuleEntity, got {type(entity).__name__}")
-        model = OvertimeRuleModel.objects.create(
+        return OvertimeRuleModel.objects.create(
             tenant_id=tenant_id,
             name=entity.name,
             multiplier=entity.multiplier,
             priority=entity.priority,
             created_by_id=created_by_id,
         )
+
+    @staticmethod
+    def bulk_create_conditions(rule_id: int, conditions: list[dict]) -> None:
         RuleConditionModel.objects.bulk_create(
             [
                 RuleConditionModel(
-                    rule=model,
+                    rule_id=rule_id,
                     condition_type=c["condition_type"],
                     value=c["value"],
                 )
                 for c in conditions
             ]
         )
-        model.refresh_from_db()
-        return OvertimeRuleOut.model_validate(model)
+
+    @staticmethod
+    def get_rule_with_conditions(rule_id: int) -> OvertimeRuleOut:
+        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
+        return overtime_rule_to_dto(model)
 
     @staticmethod
     def get_rule_by_id(rule_id: int) -> OvertimeRuleOut | None:
@@ -55,7 +61,7 @@ class CostingRepository:
             .filter(id=rule_id)
             .first()
         )
-        return OvertimeRuleOut.model_validate(model) if model else None
+        return overtime_rule_to_dto(model) if model else None
 
     @staticmethod
     def find_rule_by_name(tenant_id: int, name: str) -> OvertimeRuleOut | None:
@@ -64,7 +70,7 @@ class CostingRepository:
             .filter(tenant_id=tenant_id, name__iexact=name)
             .first()
         )
-        return OvertimeRuleOut.model_validate(model) if model else None
+        return overtime_rule_to_dto(model) if model else None
 
     @staticmethod
     def list_rules(
@@ -76,16 +82,13 @@ class CostingRepository:
         )
         if active_only:
             qs = qs.filter(is_active=True)
-        return [
-            OvertimeRuleOut.model_validate(m) for m in qs.order_by("-priority", "name")
-        ]
+        return [overtime_rule_to_dto(m) for m in qs.order_by("-priority", "name")]
 
     @staticmethod
     def update_rule(
         entity: OvertimeRuleUpdateEntity,
-        conditions: list[dict],
         updated_by_id: int | None = None,
-    ) -> OvertimeRuleOut:
+    ) -> None:
         if not isinstance(entity, OvertimeRuleUpdateEntity):
             raise TypeError(
                 f"Expected OvertimeRuleUpdateEntity, got {type(entity).__name__}"
@@ -106,21 +109,10 @@ class CostingRepository:
                 "updated_at",
             ]
         )
-        RuleConditionModel.objects.filter(rule_id=entity.rule_id).delete()
-        RuleConditionModel.objects.bulk_create(
-            [
-                RuleConditionModel(
-                    rule_id=entity.rule_id,
-                    condition_type=c["condition_type"],
-                    value=c["value"],
-                )
-                for c in conditions
-            ]
-        )
-        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(
-            id=entity.rule_id
-        )
-        return OvertimeRuleOut.model_validate(model)
+
+    @staticmethod
+    def delete_conditions_for_rule(rule_id: int) -> None:
+        RuleConditionModel.objects.filter(rule_id=rule_id).delete()
 
     @staticmethod
     def deactivate_rule(
@@ -133,7 +125,7 @@ class CostingRepository:
         if rows == 0:
             return None
         model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
-        return OvertimeRuleOut.model_validate(model)
+        return overtime_rule_to_dto(model)
 
     @staticmethod
     def get_employee_hourly_rate(employee_id: int) -> Decimal | None:
