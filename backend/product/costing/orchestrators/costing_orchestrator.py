@@ -25,11 +25,7 @@ class CostingOrchestrator:
         payload: OvertimeRuleIn,
         user_id: int,
     ) -> OvertimeRuleOut:
-        entity = OvertimeRuleEntity(
-            name=payload.name,
-            multiplier=payload.multiplier,
-            priority=payload.priority,
-        )
+        entity = OvertimeRuleEntity(**payload.model_dump(exclude={"conditions"}))
         conditions = [
             {"condition_type": c.condition_type, "value": c.value}
             for c in payload.conditions
