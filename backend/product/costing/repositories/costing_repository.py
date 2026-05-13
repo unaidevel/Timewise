@@ -3,7 +3,6 @@ from decimal import Decimal
 from product.costing.dtos.dtos import (
     HourCostBreakdownOut,
     OvertimeRuleOut,
-    RuleConditionOut,
 )
 from product.costing.entities.costing_entities import (
     OvertimeRuleEntity,
@@ -17,23 +16,6 @@ from product.costing.models import (
 from product.timekeeping.dtos.dtos import TimeEntryOut, TimeReportOut
 from product.timekeeping.models import TimeEntryModel, TimeReportModel
 from product.workforce.models import EmployeeRoleModel
-
-
-def _rule_to_dto(model: OvertimeRuleModel) -> OvertimeRuleOut:
-    conditions = [RuleConditionOut.model_validate(c) for c in model.conditions.all()]
-    return OvertimeRuleOut(
-        id=model.id,
-        tenant_id=model.tenant_id,
-        name=model.name,
-        multiplier=model.multiplier,
-        priority=model.priority,
-        is_active=model.is_active,
-        conditions=conditions,
-        created_by_id=model.created_by_id,
-        updated_by_id=model.updated_by_id,
-        created_at=model.created_at,
-        updated_at=model.updated_at,
-    )
 
 
 class CostingRepository:
@@ -64,8 +46,7 @@ class CostingRepository:
             ]
         )
         model.refresh_from_db()
-        model.conditions.all()
-        return _rule_to_dto(model)
+        return OvertimeRuleOut.model_validate(model)
 
     @staticmethod
     def get_rule_by_id(rule_id: int) -> OvertimeRuleOut | None:
@@ -74,7 +55,7 @@ class CostingRepository:
             .filter(id=rule_id)
             .first()
         )
-        return _rule_to_dto(model) if model else None
+        return OvertimeRuleOut.model_validate(model) if model else None
 
     @staticmethod
     def find_rule_by_name(tenant_id: int, name: str) -> OvertimeRuleOut | None:
@@ -83,7 +64,7 @@ class CostingRepository:
             .filter(tenant_id=tenant_id, name__iexact=name)
             .first()
         )
-        return _rule_to_dto(model) if model else None
+        return OvertimeRuleOut.model_validate(model) if model else None
 
     @staticmethod
     def list_rules(
@@ -95,7 +76,9 @@ class CostingRepository:
         )
         if active_only:
             qs = qs.filter(is_active=True)
-        return [_rule_to_dto(m) for m in qs.order_by("-priority", "name")]
+        return [
+            OvertimeRuleOut.model_validate(m) for m in qs.order_by("-priority", "name")
+        ]
 
     @staticmethod
     def update_rule(
@@ -137,7 +120,7 @@ class CostingRepository:
         model = OvertimeRuleModel.objects.prefetch_related("conditions").get(
             id=entity.rule_id
         )
-        return _rule_to_dto(model)
+        return OvertimeRuleOut.model_validate(model)
 
     @staticmethod
     def deactivate_rule(
@@ -150,7 +133,7 @@ class CostingRepository:
         if rows == 0:
             return None
         model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
-        return _rule_to_dto(model)
+        return OvertimeRuleOut.model_validate(model)
 
     @staticmethod
     def get_employee_hourly_rate(employee_id: int) -> Decimal | None:

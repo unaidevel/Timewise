@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class RuleConditionIn(BaseModel):
@@ -45,6 +46,15 @@ class OvertimeRuleOut(BaseModel):
     updated_by_id: int | None
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def _materialize_conditions(cls, data: Any) -> Any:
+        if hasattr(data, "conditions"):
+            manager = data.conditions
+            if hasattr(manager, "all"):
+                data.__dict__["conditions"] = list(manager.all())
+        return data
 
 
 class HourCostBreakdownOut(BaseModel):
