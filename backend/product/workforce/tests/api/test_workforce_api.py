@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from django.test import TestCase
+from django.utils import timezone
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from starlette.requests import Request
@@ -647,7 +648,9 @@ class WorkforceApiAdditionalTests(TestCase):
 
     def test_get_active_department_returns_404_when_missing(self):
         employee = self._create_employee()
-        WorkforceRepository.close_active_department(employee.id, "Left")
+        WorkforceRepository.close_active_department(
+            employee.id, "Left", left_at=timezone.now()
+        )
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.get_active_department(
@@ -779,7 +782,9 @@ class WorkforceApiAdditionalTests(TestCase):
 
     def test_get_active_role_returns_404_when_missing(self):
         employee = self._create_employee()
-        WorkforceRepository.close_active_role(employee.id, "Left")
+        WorkforceRepository.close_active_role(
+            employee.id, "Left", left_at=timezone.now()
+        )
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.get_active_role(self.tenant.id, employee.id, self.user)

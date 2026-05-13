@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from django.test import TestCase
+from django.utils import timezone
 
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
@@ -365,7 +366,7 @@ class DepartmentManagerRepositoryTests(TestCase):
             self.dept.id, self.emp.id
         )
         result = WorkforceRepository.remove_department_manager(
-            assignment.id, "Resigned from management"
+            assignment.id, "Resigned from management", left_at=timezone.now()
         )
         assert result is not None
         assert result.left_at is not None
@@ -375,8 +376,12 @@ class DepartmentManagerRepositoryTests(TestCase):
         assignment = WorkforceRepository.assign_department_manager(
             self.dept.id, self.emp.id
         )
-        WorkforceRepository.remove_department_manager(assignment.id, "")
-        result = WorkforceRepository.remove_department_manager(assignment.id, "")
+        WorkforceRepository.remove_department_manager(
+            assignment.id, "", left_at=timezone.now()
+        )
+        result = WorkforceRepository.remove_department_manager(
+            assignment.id, "", left_at=timezone.now()
+        )
         assert result is None
 
     def test_find_active_department_manager(self):
@@ -391,7 +396,9 @@ class DepartmentManagerRepositoryTests(TestCase):
         assignment = WorkforceRepository.assign_department_manager(
             self.dept.id, self.emp.id
         )
-        WorkforceRepository.remove_department_manager(assignment.id, "")
+        WorkforceRepository.remove_department_manager(
+            assignment.id, "", left_at=timezone.now()
+        )
         found = WorkforceRepository.find_active_department_manager(
             self.dept.id, self.emp.id
         )
@@ -411,8 +418,10 @@ class RoleRepositoryAdditionalTests(TestCase):
 
         assert [role.name for role in roles] == ["Alpha", "Zulu"]
 
-    def test_create_default_roles_returns_created_roles(self):
-        roles = WorkforceRepository._create_default_roles(self.tenant.id)
+    def test_bulk_create_roles_returns_created_roles(self):
+        roles = WorkforceRepository.bulk_create_roles(
+            self.tenant.id, EXPECTED_DEFAULT_ROLE_NAMES
+        )
 
         assert len(roles) == len(EXPECTED_DEFAULT_ROLE_NAMES)
         assert {role.name for role in roles} == set(EXPECTED_DEFAULT_ROLE_NAMES)
@@ -520,7 +529,9 @@ class DepartmentAssignmentRepositoryTests(TestCase):
         first = WorkforceRepository.assign_department(
             self.employee.id, self.department_one.id
         )
-        WorkforceRepository.close_active_department(self.employee.id, "Reorg")
+        WorkforceRepository.close_active_department(
+            self.employee.id, "Reorg", left_at=timezone.now()
+        )
         second = WorkforceRepository.assign_department(
             self.employee.id, self.department_two.id
         )
@@ -539,6 +550,7 @@ class DepartmentAssignmentRepositoryTests(TestCase):
         closed_assignment = WorkforceRepository.close_active_department(
             self.employee.id,
             "Moved teams",
+            left_at=timezone.now(),
         )
 
         assert closed_assignment is not None
@@ -551,6 +563,7 @@ class DepartmentAssignmentRepositoryTests(TestCase):
         closed_assignment = WorkforceRepository.close_active_department(
             self.employee.id,
             "Nothing to close",
+            left_at=timezone.now(),
         )
 
         assert closed_assignment is None
@@ -618,7 +631,9 @@ class RoleAssignmentRepositoryTests(TestCase):
                 contract_hours_per_week=40,
             ),
         )
-        WorkforceRepository.close_active_role(self.employee.id, "Promotion")
+        WorkforceRepository.close_active_role(
+            self.employee.id, "Promotion", left_at=timezone.now()
+        )
         second = WorkforceRepository.assign_role(
             self.employee.id,
             self.role_two.id,
@@ -649,6 +664,7 @@ class RoleAssignmentRepositoryTests(TestCase):
         closed_assignment = WorkforceRepository.close_active_role(
             self.employee.id,
             "Promotion",
+            left_at=timezone.now(),
         )
 
         assert closed_assignment is not None
@@ -661,6 +677,7 @@ class RoleAssignmentRepositoryTests(TestCase):
         closed_assignment = WorkforceRepository.close_active_role(
             self.employee.id,
             "Nothing to close",
+            left_at=timezone.now(),
         )
 
         assert closed_assignment is None

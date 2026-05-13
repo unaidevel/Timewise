@@ -1,9 +1,11 @@
-from dataclasses import dataclass
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict
 
-@dataclass(slots=True, frozen=True)
-class AuthUser:
+
+class AuthUser(BaseModel):
+    model_config = ConfigDict(frozen=True, from_attributes=True)
+
     id: int
     email: str
     full_name: str
@@ -12,8 +14,9 @@ class AuthUser:
     created_at: datetime
 
 
-@dataclass(slots=True, frozen=True)
-class AuthToken:
+class AuthToken(BaseModel):
+    model_config = ConfigDict(frozen=True, from_attributes=True)
+
     id: int
     user: AuthUser
     family_id: str
@@ -27,8 +30,9 @@ class AuthToken:
     user_agent: str
 
 
-@dataclass(slots=True, frozen=True)
-class AuthSession:
+class AuthSession(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     access_token: str
     refresh_token: str
     token_type: str
@@ -37,7 +41,8 @@ class AuthSession:
     user: AuthUser
 
 
-@dataclass(slots=True, frozen=True)
-class ClientContext:
+class ClientContext(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     ip: str
     user_agent: str

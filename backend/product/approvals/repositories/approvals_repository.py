@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
 from product.approvals.models import (
     TimeReportApprovalEventModel,
@@ -46,15 +44,12 @@ class ApprovalsRepository:
         approval_id: int,
         new_status: str,
         reviewer_id: int | None = None,
-        reviewed_at: datetime | None = None,
+        reviewed_at: object | None = None,
     ) -> ApprovalOut | None:
-        update_fields: dict = {"status": new_status}
-        if reviewer_id is not None:
-            update_fields["reviewer_id"] = reviewer_id
-        if reviewed_at is not None:
-            update_fields["reviewed_at"] = reviewed_at
         rows = TimeReportApprovalModel.objects.filter(id=approval_id).update(
-            **update_fields
+            status=new_status,
+            reviewer_id=reviewer_id,
+            reviewed_at=reviewed_at,
         )
         if rows == 0:
             return None

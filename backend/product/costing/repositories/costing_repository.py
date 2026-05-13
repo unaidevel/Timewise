@@ -1,12 +1,10 @@
 from decimal import Decimal
 
-from django.db import transaction
-
 from product.costing.dtos.dtos import (
     HourCostBreakdownOut,
     OvertimeRuleOut,
-    RuleConditionOut,
 )
+from product.costing.dtos.mappers.mappers import overtime_rule_to_dto
 from product.costing.entities.costing_entities import (
     OvertimeRuleEntity,
     OvertimeRuleUpdateEntity,
@@ -21,54 +19,40 @@ from product.timekeeping.models import TimeEntryModel, TimeReportModel
 from product.workforce.models import EmployeeRoleModel
 
 
-def _rule_to_dto(model: OvertimeRuleModel) -> OvertimeRuleOut:
-    conditions = [RuleConditionOut.model_validate(c) for c in model.conditions.all()]
-    return OvertimeRuleOut(
-        id=model.id,
-        tenant_id=model.tenant_id,
-        name=model.name,
-        multiplier=model.multiplier,
-        priority=model.priority,
-        is_active=model.is_active,
-        conditions=conditions,
-        created_by_id=model.created_by_id,
-        updated_by_id=model.updated_by_id,
-        created_at=model.created_at,
-        updated_at=model.updated_at,
-    )
-
-
 class CostingRepository:
     @staticmethod
     def create_rule(
         entity: OvertimeRuleEntity,
-        conditions: list[dict],
         tenant_id: int,
         created_by_id: int | None = None,
-    ) -> OvertimeRuleOut:
+    ) -> OvertimeRuleModel:
         if not isinstance(entity, OvertimeRuleEntity):
             raise TypeError(f"Expected OvertimeRuleEntity, got {type(entity).__name__}")
-        with transaction.atomic():
-            model = OvertimeRuleModel.objects.create(
-                tenant_id=tenant_id,
-                name=entity.name,
-                multiplier=entity.multiplier,
-                priority=entity.priority,
-                created_by_id=created_by_id,
-            )
-            RuleConditionModel.objects.bulk_create(
-                [
-                    RuleConditionModel(
-                        rule=model,
-                        condition_type=c["condition_type"],
-                        value=c["value"],
-                    )
-                    for c in conditions
-                ]
-            )
-        model.refresh_from_db()
-        model.conditions.all()  # warm the related manager
-        return _rule_to_dto(model)
+        return OvertimeRuleModel.objects.create(
+            tenant_id=tenant_id,
+            name=entity.name,
+            multiplier=entity.multiplier,
+            priority=entity.priority,
+            created_by_id=created_by_id,
+        )
+
+    @staticmethod
+    def bulk_create_conditions(rule_id: int, conditions: list[dict]) -> None:
+        RuleConditionModel.objects.bulk_create(
+            [
+                RuleConditionModel(
+                    rule_id=rule_id,
+                    condition_type=c["condition_type"],
+                    value=c["value"],
+                )
+                for c in conditions
+            ]
+        )
+
+    @staticmethod
+    def get_rule_with_conditions(rule_id: int) -> OvertimeRuleOut:
+        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
+        return overtime_rule_to_dto(model)
 
     @staticmethod
     def get_rule_by_id(rule_id: int) -> OvertimeRuleOut | None:
@@ -77,7 +61,7 @@ class CostingRepository:
             .filter(id=rule_id)
             .first()
         )
-        return _rule_to_dto(model) if model else None
+        return overtime_rule_to_dto(model) if model else None
 
     @staticmethod
     def find_rule_by_name(tenant_id: int, name: str) -> OvertimeRuleOut | None:
@@ -86,7 +70,7 @@ class CostingRepository:
             .filter(tenant_id=tenant_id, name__iexact=name)
             .first()
         )
-        return _rule_to_dto(model) if model else None
+        return overtime_rule_to_dto(model) if model else None
 
     @staticmethod
     def list_rules(
@@ -98,50 +82,37 @@ class CostingRepository:
         )
         if active_only:
             qs = qs.filter(is_active=True)
-        return [_rule_to_dto(m) for m in qs.order_by("-priority", "name")]
+        return [overtime_rule_to_dto(m) for m in qs.order_by("-priority", "name")]
 
     @staticmethod
     def update_rule(
         entity: OvertimeRuleUpdateEntity,
-        conditions: list[dict],
         updated_by_id: int | None = None,
-    ) -> OvertimeRuleOut:
+    ) -> None:
         if not isinstance(entity, OvertimeRuleUpdateEntity):
             raise TypeError(
                 f"Expected OvertimeRuleUpdateEntity, got {type(entity).__name__}"
             )
-        with transaction.atomic():
-            rule = OvertimeRuleModel(
-                id=entity.rule_id,
-                name=entity.name,
-                multiplier=entity.multiplier,
-                priority=entity.priority,
-                updated_by_id=updated_by_id,
-            )
-            rule.save(
-                update_fields=[
-                    "name",
-                    "multiplier",
-                    "priority",
-                    "updated_by_id",
-                    "updated_at",
-                ]
-            )
-            RuleConditionModel.objects.filter(rule_id=entity.rule_id).delete()
-            RuleConditionModel.objects.bulk_create(
-                [
-                    RuleConditionModel(
-                        rule_id=entity.rule_id,
-                        condition_type=c["condition_type"],
-                        value=c["value"],
-                    )
-                    for c in conditions
-                ]
-            )
-        model = OvertimeRuleModel.objects.prefetch_related("conditions").get(
-            id=entity.rule_id
+        rule = OvertimeRuleModel(
+            id=entity.rule_id,
+            name=entity.name,
+            multiplier=entity.multiplier,
+            priority=entity.priority,
+            updated_by_id=updated_by_id,
         )
-        return _rule_to_dto(model)
+        rule.save(
+            update_fields=[
+                "name",
+                "multiplier",
+                "priority",
+                "updated_by_id",
+                "updated_at",
+            ]
+        )
+
+    @staticmethod
+    def delete_conditions_for_rule(rule_id: int) -> None:
+        RuleConditionModel.objects.filter(rule_id=rule_id).delete()
 
     @staticmethod
     def deactivate_rule(
@@ -154,7 +125,7 @@ class CostingRepository:
         if rows == 0:
             return None
         model = OvertimeRuleModel.objects.prefetch_related("conditions").get(id=rule_id)
-        return _rule_to_dto(model)
+        return overtime_rule_to_dto(model)
 
     @staticmethod
     def get_employee_hourly_rate(employee_id: int) -> Decimal | None:
@@ -178,32 +149,34 @@ class CostingRepository:
         ]
 
     @staticmethod
+    def delete_calculations_for_report(report_id: int) -> None:
+        CostCalculationModel.objects.filter(time_report_id=report_id).delete()
+
+    @staticmethod
     def save_calculations(
         calculations: list[dict],
         report_id: int,
         tenant_id: int,
         calculated_by_id: int | None = None,
     ) -> list[HourCostBreakdownOut]:
-        with transaction.atomic():
-            CostCalculationModel.objects.filter(time_report_id=report_id).delete()
-            models = CostCalculationModel.objects.bulk_create(
-                [
-                    CostCalculationModel(
-                        tenant_id=tenant_id,
-                        time_report_id=report_id,
-                        time_entry_id=c["time_entry_id"],
-                        employee_id=c["employee_id"],
-                        applied_rule_name=c["applied_rule_name"],
-                        multiplier=c["multiplier"],
-                        base_hours=c["base_hours"],
-                        overtime_hours=c["overtime_hours"],
-                        base_cost=c["base_cost"],
-                        total_cost=c["total_cost"],
-                        calculated_by_id=calculated_by_id,
-                    )
-                    for c in calculations
-                ]
-            )
+        models = CostCalculationModel.objects.bulk_create(
+            [
+                CostCalculationModel(
+                    tenant_id=tenant_id,
+                    time_report_id=report_id,
+                    time_entry_id=c["time_entry_id"],
+                    employee_id=c["employee_id"],
+                    applied_rule_name=c["applied_rule_name"],
+                    multiplier=c["multiplier"],
+                    base_hours=c["base_hours"],
+                    overtime_hours=c["overtime_hours"],
+                    base_cost=c["base_cost"],
+                    total_cost=c["total_cost"],
+                    calculated_by_id=calculated_by_id,
+                )
+                for c in calculations
+            ]
+        )
         return [HourCostBreakdownOut.model_validate(m) for m in models]
 
     @staticmethod

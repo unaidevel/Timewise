@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from infra.common.exceptions import Conflict, NotFound
 from infra.tenants.decorators import only_admin
 from infra.tenants.dtos.dtos import (
@@ -86,7 +88,9 @@ class TenantService:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise NotFound(f"Tenant {tenant_id} not found.")
-        membership = TenantRepository.remove_membership(membership_id, reason)
+        membership = TenantRepository.remove_membership(
+            membership_id, reason, left_at=timezone.now()
+        )
         if not membership:
             raise NotFound("Membership not found or already inactive.")
         return membership

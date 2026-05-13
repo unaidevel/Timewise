@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from django.test import TestCase
+from django.utils import timezone
 
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
@@ -889,7 +890,9 @@ class DepartmentAssignmentServiceTests(TestCase):
             )
 
     def test_get_active_department_raises_if_no_active_assignment(self):
-        WorkforceRepository.close_active_department(self.employee.id, "Left")
+        WorkforceRepository.close_active_department(
+            self.employee.id, "Left", left_at=timezone.now()
+        )
 
         with pytest.raises(
             NotFound,
@@ -1013,7 +1016,9 @@ class RoleAssignmentServiceTests(TestCase):
             )
 
     def test_get_active_role_raises_if_no_active_assignment(self):
-        WorkforceRepository.close_active_role(self.employee.id, "Left")
+        WorkforceRepository.close_active_role(
+            self.employee.id, "Left", left_at=timezone.now()
+        )
 
         with pytest.raises(
             NotFound,

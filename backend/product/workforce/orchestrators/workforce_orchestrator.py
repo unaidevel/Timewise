@@ -49,7 +49,7 @@ class WorkforceOrchestrator:
         payload: DepartmentIn,
         user_id: int,
     ) -> DepartmentOut:
-        entity = DepartmentEntity(name=payload.name)
+        entity = DepartmentEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 dept = WorkforceService.create_department(tenant_id, entity, user_id)
@@ -85,7 +85,9 @@ class WorkforceOrchestrator:
         payload: DepartmentUpdate,
         user_id: int,
     ) -> DepartmentOut:
-        entity = DepartmentUpdateEntity(department_id=department_id, name=payload.name)
+        entity = DepartmentUpdateEntity(
+            department_id=department_id, **payload.model_dump()
+        )
         try:
             with transaction.atomic():
                 dept = WorkforceService.update_department(tenant_id, entity, user_id)
@@ -156,7 +158,7 @@ class WorkforceOrchestrator:
         payload: AssignDepartmentManagerRequest,
         user_id: int,
     ) -> DepartmentManagerOut:
-        entity = AssignDepartmentManagerEntity(employee_id=payload.employee_id)
+        entity = AssignDepartmentManagerEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 assignment = WorkforceService.assign_department_manager(
@@ -195,7 +197,7 @@ class WorkforceOrchestrator:
         payload: RemoveDepartmentManagerRequest,
         user_id: int,
     ) -> DepartmentManagerOut:
-        entity = RemoveDepartmentManagerEntity(reason=payload.reason)
+        entity = RemoveDepartmentManagerEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 assignment = WorkforceService.remove_department_manager(
@@ -234,7 +236,7 @@ class WorkforceOrchestrator:
         payload: RoleIn,
         user_id: int,
     ) -> RoleOut:
-        entity = RoleEntity(name=payload.name)
+        entity = RoleEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 role = WorkforceService.create_role(tenant_id, entity, user_id)
@@ -270,7 +272,7 @@ class WorkforceOrchestrator:
         payload: RoleUpdate,
         user_id: int,
     ) -> RoleOut:
-        entity = RoleUpdateEntity(role_id=role_id, name=payload.name)
+        entity = RoleUpdateEntity(role_id=role_id, **payload.model_dump())
         try:
             with transaction.atomic():
                 role = WorkforceService.update_role(tenant_id, entity, user_id)
@@ -340,16 +342,7 @@ class WorkforceOrchestrator:
         payload: EmployeeIn,
         user_id: int,
     ) -> EmployeeOut:
-        entity = CreateEmployeeEntity(
-            full_name=payload.full_name,
-            email=payload.email,
-            hired_at=payload.hired_at,
-            department_id=payload.department_id,
-            role_id=payload.role_id,
-            hourly_rate=payload.hourly_rate,
-            contract_hours_per_week=payload.contract_hours_per_week,
-            user_id=payload.user_id,
-        )
+        entity = CreateEmployeeEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 employee = WorkforceService.create_employee(tenant_id, entity, user_id)
@@ -461,7 +454,7 @@ class WorkforceOrchestrator:
         user_id: int,
     ) -> EmployeeOut:
         entity = SetEmployeeManagerEntity(
-            employee_id=employee_id, manager_id=payload.manager_id
+            employee_id=employee_id, **payload.model_dump()
         )
         try:
             with transaction.atomic():
@@ -502,9 +495,7 @@ class WorkforceOrchestrator:
         payload: AssignDepartmentRequest,
         user_id: int,
     ) -> EmployeeDepartmentOut:
-        entity = AssignDepartmentEntity(
-            department_id=payload.department_id, reason=payload.reason
-        )
+        entity = AssignDepartmentEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 assignment = WorkforceService.assign_department(
@@ -544,12 +535,7 @@ class WorkforceOrchestrator:
         payload: AssignRoleRequest,
         user_id: int,
     ) -> EmployeeRoleOut:
-        entity = AssignRoleEntity(
-            role_id=payload.role_id,
-            hourly_rate=payload.hourly_rate,
-            contract_hours_per_week=payload.contract_hours_per_week,
-            reason=payload.reason,
-        )
+        entity = AssignRoleEntity(**payload.model_dump())
         try:
             with transaction.atomic():
                 assignment = WorkforceService.assign_role(

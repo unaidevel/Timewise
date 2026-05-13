@@ -429,7 +429,7 @@ class TimekeepingRepositoryReportTests(TestCase):
         assert len(by_employee_and_period) == 1
         assert by_employee_and_period[0].id == r1.id
 
-    def test_update_time_report_status_writes_optional_fields(self):
+    def test_submit_time_report_writes_fields(self):
         report = TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=self.period.id,
@@ -438,9 +438,8 @@ class TimekeepingRepositoryReportTests(TestCase):
         )
         submitted_at = datetime(2025, 4, 30, 10, tzinfo=UTC)
 
-        updated = TimekeepingRepository.update_time_report_status(
+        updated = TimekeepingRepository.submit_time_report(
             report.id,
-            new_status=TimeReportStatus.SUBMITTED.value,
             updated_by_id=self.user.id,
             submitted_at=submitted_at,
         )
@@ -450,14 +449,14 @@ class TimekeepingRepositoryReportTests(TestCase):
         assert updated.updated_by_id == self.user.id
         assert updated.submitted_at == submitted_at
 
-    def test_update_time_report_status_returns_none_for_unknown_report(self):
-        result = TimekeepingRepository.update_time_report_status(
-            99999, new_status=TimeReportStatus.APPROVED.value
+    def test_submit_time_report_returns_none_for_unknown_report(self):
+        result = TimekeepingRepository.submit_time_report(
+            99999, updated_by_id=1, submitted_at=django_timezone.now()
         )
 
         assert result is None
 
-    def test_update_time_report_status_writes_rejection_reason(self):
+    def test_reject_time_report_writes_rejection_reason(self):
         report = TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=self.period.id,
@@ -465,9 +464,9 @@ class TimekeepingRepositoryReportTests(TestCase):
             created_by_id=self.user.id,
         )
 
-        updated = TimekeepingRepository.update_time_report_status(
+        updated = TimekeepingRepository.reject_time_report(
             report.id,
-            new_status=TimeReportStatus.REJECTED.value,
+            updated_by_id=self.user.id,
             rejection_reason="Bad data",
             rejected_at=django_timezone.now(),
         )

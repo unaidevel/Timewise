@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 
 from infra.common.exceptions import Conflict, NotFound
 from infra.tenants.decorators import only_admin
@@ -29,9 +30,13 @@ from product.workforce.repositories.workforce_repository import WorkforceReposit
 
 
 class WorkforceService:
+    _DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
+
     @staticmethod
     def create_default_roles(tenant_id: int) -> None:
-        WorkforceRepository._create_default_roles(tenant_id)
+        WorkforceRepository.bulk_create_roles(
+            tenant_id, WorkforceService._DEFAULT_ROLE_NAMES
+        )
 
     # --- Departments ---
 
@@ -142,7 +147,7 @@ class WorkforceService:
         if not dept or dept.tenant_id != tenant_id:
             raise NotFound(f"Department {department_id} not found.")
         result = WorkforceRepository.remove_department_manager(
-            assignment_id, entity.reason, updated_by_id=user_id
+            assignment_id, entity.reason, left_at=timezone.now(), updated_by_id=user_id
         )
         if not result:
             raise NotFound(
@@ -274,12 +279,13 @@ class WorkforceService:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
+        now = timezone.now()
         with transaction.atomic():
             WorkforceRepository.close_active_department(
-                employee_id, "Employee deactivated", updated_by_id=user_id
+                employee_id, "Employee deactivated", left_at=now, updated_by_id=user_id
             )
             WorkforceRepository.close_active_role(
-                employee_id, "Employee deactivated", updated_by_id=user_id
+                employee_id, "Employee deactivated", left_at=now, updated_by_id=user_id
             )
             result = WorkforceRepository.deactivate_employee(
                 employee_id, updated_by_id=user_id
@@ -345,7 +351,10 @@ class WorkforceService:
 
         with transaction.atomic():
             WorkforceRepository.close_active_department(
-                employee_id, entity.reason, updated_by_id=user_id
+                employee_id,
+                entity.reason,
+                left_at=timezone.now(),
+                updated_by_id=user_id,
             )
             return WorkforceRepository.assign_department(
                 employee_id, entity.department_id, created_by_id=user_id
@@ -398,7 +407,10 @@ class WorkforceService:
 
         with transaction.atomic():
             WorkforceRepository.close_active_role(
-                employee_id, entity.reason, updated_by_id=user_id
+                employee_id,
+                entity.reason,
+                left_at=timezone.now(),
+                updated_by_id=user_id,
             )
             return WorkforceRepository.assign_role(
                 employee_id, entity.role_id, role_entity, created_by_id=user_id

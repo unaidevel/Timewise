@@ -145,9 +145,8 @@ class TimekeepingService:
         entries = TimekeepingRepository.list_time_entries(report_id)
         if not entries:
             raise UnprocessableEntity("Cannot submit an empty report.")
-        result = TimekeepingRepository.update_time_report_status(
+        result = TimekeepingRepository.submit_time_report(
             report_id,
-            new_status=str(TimeReportStatus.SUBMITTED),
             updated_by_id=user_id,
             submitted_at=timezone.now(),
         )
@@ -174,9 +173,8 @@ class TimekeepingService:
             TimeReportStatus.UNDER_REVIEW,
         ):
             raise Conflict(f"Cannot approve report in status '{report.status}'.")
-        result = TimekeepingRepository.update_time_report_status(
+        result = TimekeepingRepository.approve_time_report(
             report_id,
-            new_status=str(TimeReportStatus.APPROVED),
             updated_by_id=user_id,
             approved_at=timezone.now(),
         )
@@ -206,9 +204,8 @@ class TimekeepingService:
             TimeReportStatus.UNDER_REVIEW,
         ):
             raise Conflict(f"Cannot reject report in status '{report.status}'.")
-        result = TimekeepingRepository.update_time_report_status(
+        result = TimekeepingRepository.reject_time_report(
             report_id,
-            new_status=str(TimeReportStatus.REJECTED),
             updated_by_id=user_id,
             rejection_reason=entity.reason,
             rejected_at=timezone.now(),

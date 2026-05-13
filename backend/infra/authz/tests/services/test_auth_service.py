@@ -88,8 +88,13 @@ def stub_login_repo(monkeypatch, *, user: AuthUser | None) -> dict:
     )
     patch_repo(
         monkeypatch,
-        "revoke_oldest_active_user_sessions",
-        lambda user_id, keep: state.update(revoked_old_sessions=keep) or 0,
+        "list_active_session_ids",
+        lambda user_id, now: [],
+    )
+    patch_repo(
+        monkeypatch,
+        "revoke_tokens_by_ids",
+        lambda token_ids, revoked_at: 0,
     )
     patch_repo(
         monkeypatch,
@@ -178,7 +183,7 @@ def test_login_rejects_rate_limited_requests(monkeypatch):
 
 
 def test_authenticate_returns_none_for_invalid_token(monkeypatch):
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: None)
 
     assert AuthService.authenticate("invalid-token") is None
 
@@ -187,7 +192,7 @@ def test_authenticate_returns_user_for_valid_token(monkeypatch):
     user = make_user()
     token = make_token(user=user)
 
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: token)
 
     assert AuthService.authenticate("valid-token") == user
 
@@ -197,11 +202,11 @@ def test_logout_revokes_token(monkeypatch):
     user = make_user()
     token = make_token(user=user)
 
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: token)
     patch_repo(
         monkeypatch,
         "revoke_token",
-        lambda token_hash: revoked_tokens.append(token_hash) or 1,
+        lambda token_hash, revoked_at: revoked_tokens.append(token_hash) or 1,
     )
     patch_repo(monkeypatch, "record_login_event", lambda **kwargs: None)
 
@@ -220,7 +225,7 @@ def test_refresh_rotates_token_and_keeps_family(monkeypatch):
     patch_repo(
         monkeypatch,
         "revoke_token",
-        lambda token_hash: revoked_tokens.append(token_hash) or 1,
+        lambda token_hash, revoked_at: revoked_tokens.append(token_hash) or 1,
     )
     patch_repo(
         monkeypatch,
@@ -250,7 +255,7 @@ def test_refresh_detects_reuse_and_revokes_family(monkeypatch):
     patch_repo(
         monkeypatch,
         "revoke_token_family",
-        lambda family_id: revoked_families.append(family_id) or 1,
+        lambda family_id, revoked_at: revoked_families.append(family_id) or 1,
     )
     patch_repo(
         monkeypatch, "record_login_event", lambda **kwargs: events.append(kwargs)
@@ -295,7 +300,7 @@ def test_authenticate_returns_none_for_inactive_user(monkeypatch):
     user = make_user(is_active=False)
     token = make_token(user=user)
 
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: token)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: token)
 
     assert AuthService.authenticate("valid-token") is None
 
@@ -305,9 +310,9 @@ def test_logout_is_noop_for_blank_token(monkeypatch):
     patch_repo(
         monkeypatch,
         "revoke_token",
-        lambda token_hash: revoked.append(token_hash) or 1,
+        lambda token_hash, revoked_at: revoked.append(token_hash) or 1,
     )
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: None)
 
     AuthService.logout("   ")
 
@@ -316,8 +321,8 @@ def test_logout_is_noop_for_blank_token(monkeypatch):
 
 def test_logout_does_not_record_event_when_token_unknown(monkeypatch):
     events: list[dict] = []
-    patch_repo(monkeypatch, "find_valid_token", lambda token_hash: None)
-    patch_repo(monkeypatch, "revoke_token", lambda token_hash: 0)
+    patch_repo(monkeypatch, "find_valid_token", lambda token_hash, now: None)
+    patch_repo(monkeypatch, "revoke_token", lambda token_hash, revoked_at: 0)
     patch_repo(monkeypatch, "record_login_event", lambda **kw: events.append(kw))
 
     AuthService.logout("ghost-token")

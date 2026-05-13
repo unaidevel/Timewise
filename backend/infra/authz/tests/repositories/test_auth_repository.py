@@ -64,7 +64,7 @@ class AuthRepositoryTests(TestCase):
         self._create_token(user, "my-access-token", "my-refresh-token")
 
         found_token = AuthRepository.find_valid_token(
-            AuthService._hash_token("my-access-token")
+            AuthService._hash_token("my-access-token"), now=timezone.now()
         )
 
         self.assertIsNotNone(found_token)
@@ -78,15 +78,21 @@ class AuthRepositoryTests(TestCase):
         self._create_token(user, "logout-token", "logout-refresh-token")
         token_hash = AuthService._hash_token("logout-token")
 
-        revoked_count = AuthRepository.revoke_token(token_hash)
+        revoked_count = AuthRepository.revoke_token(
+            token_hash, revoked_at=timezone.now()
+        )
 
         self.assertEqual(revoked_count, 1)
-        self.assertIsNone(AuthRepository.find_valid_token(token_hash))
+        self.assertIsNone(
+            AuthRepository.find_valid_token(token_hash, now=timezone.now())
+        )
 
     def test_find_token_by_refresh_hash_returns_revoked_records(self):
         user = self._create_user()
         self._create_token(user, "access-1", "refresh-1")
-        AuthRepository.revoke_token(AuthService._hash_token("access-1"))
+        AuthRepository.revoke_token(
+            AuthService._hash_token("access-1"), revoked_at=timezone.now()
+        )
 
         token = AuthRepository.find_token_by_refresh_hash(
             AuthService._hash_token("refresh-1")
@@ -101,10 +107,14 @@ class AuthRepositoryTests(TestCase):
         self._create_token(user, "a2", "r2", family_id="family-A")
         self._create_token(user, "b1", "rb1", family_id="family-B")
 
-        revoked = AuthRepository.revoke_token_family("family-A")
+        revoked = AuthRepository.revoke_token_family(
+            "family-A", revoked_at=timezone.now()
+        )
 
         self.assertEqual(revoked, 2)
-        family_b = AuthRepository.find_valid_token(AuthService._hash_token("b1"))
+        family_b = AuthRepository.find_valid_token(
+            AuthService._hash_token("b1"), now=timezone.now()
+        )
         self.assertIsNotNone(family_b)
 
     def test_revoke_oldest_active_user_sessions_caps_active(self):
@@ -112,10 +122,13 @@ class AuthRepositoryTests(TestCase):
         for index in range(4):
             self._create_token(user, f"a-{index}", f"r-{index}", family_id=f"f-{index}")
 
-        revoked = AuthRepository.revoke_oldest_active_user_sessions(user.id, keep=2)
+        now = timezone.now()
+        active_ids = AuthRepository.list_active_session_ids(user.id, now=now)
+        to_revoke = active_ids[2:]
+        revoked = AuthRepository.revoke_tokens_by_ids(to_revoke, revoked_at=now)
 
         self.assertEqual(revoked, 2)
-        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 2)
+        self.assertEqual(AuthRepository.count_active_user_sessions(user.id, now=now), 2)
 
     def test_record_login_event_persists(self):
         user = self._create_user()
@@ -167,13 +180,17 @@ class AuthRepositoryTests(TestCase):
         self._create_token(user, "active-1", "ra-1")
         self._create_token(user, "active-2", "ra-2")
         self._create_token(user, "rev-1", "rr-1")
-        AuthRepository.revoke_token(AuthService._hash_token("rev-1"))
+        AuthRepository.revoke_token(
+            AuthService._hash_token("rev-1"), revoked_at=timezone.now()
+        )
         # Expire one token by manipulating refresh_expires_at directly.
         AuthTokenModel.objects.filter(
             refresh_token_hash=AuthService._hash_token("ra-2")
         ).update(refresh_expires_at=timezone.now() - timedelta(days=1))
 
-        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 1)
+        self.assertEqual(
+            AuthRepository.count_active_user_sessions(user.id, now=timezone.now()), 1
+        )
 
     def test_find_user_by_email_returns_none_when_not_found(self):
         self.assertIsNone(AuthRepository.find_user_by_email("ghost@example.com"))
@@ -198,11 +215,15 @@ class AuthRepositoryTests(TestCase):
         ).update(expires_at=timezone.now() - timedelta(seconds=1))
 
         self.assertIsNone(
-            AuthRepository.find_valid_token(AuthService._hash_token("expiring"))
+            AuthRepository.find_valid_token(
+                AuthService._hash_token("expiring"), now=timezone.now()
+            )
         )
 
     def test_find_valid_token_returns_none_for_unknown_hash(self):
-        self.assertIsNone(AuthRepository.find_valid_token("does-not-exist"))
+        self.assertIsNone(
+            AuthRepository.find_valid_token("does-not-exist", now=timezone.now())
+        )
 
     def test_find_token_by_refresh_hash_returns_none_when_unknown(self):
         self.assertIsNone(AuthRepository.find_token_by_refresh_hash("unknown"))
@@ -210,9 +231,13 @@ class AuthRepositoryTests(TestCase):
     def test_revoke_token_returns_zero_when_already_revoked(self):
         user = self._create_user()
         self._create_token(user, "once", "once-r")
-        AuthRepository.revoke_token(AuthService._hash_token("once"))
+        AuthRepository.revoke_token(
+            AuthService._hash_token("once"), revoked_at=timezone.now()
+        )
 
-        revoked_again = AuthRepository.revoke_token(AuthService._hash_token("once"))
+        revoked_again = AuthRepository.revoke_token(
+            AuthService._hash_token("once"), revoked_at=timezone.now()
+        )
 
         self.assertEqual(revoked_again, 0)
 
@@ -220,21 +245,27 @@ class AuthRepositoryTests(TestCase):
         user = self._create_user()
         self._create_token(user, "a", "ra")
 
-        revoked = AuthRepository.revoke_oldest_active_user_sessions(user.id, keep=2)
+        now = timezone.now()
+        active_ids = AuthRepository.list_active_session_ids(user.id, now=now)
+        to_revoke = active_ids[2:]
+        revoked = AuthRepository.revoke_tokens_by_ids(to_revoke, revoked_at=now)
 
         self.assertEqual(revoked, 0)
-        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 1)
+        self.assertEqual(
+            AuthRepository.count_active_user_sessions(user.id, now=timezone.now()), 1
+        )
 
     def test_revoke_all_user_tokens_revokes_only_unrevoked(self):
         user = self._create_user()
         self._create_token(user, "t1", "r1")
         self._create_token(user, "t2", "r2")
-        AuthRepository.revoke_token(AuthService._hash_token("t1"))
+        now = timezone.now()
+        AuthRepository.revoke_token(AuthService._hash_token("t1"), revoked_at=now)
 
-        revoked = AuthRepository.revoke_all_user_tokens(user.id)
+        revoked = AuthRepository.revoke_all_user_tokens(user.id, revoked_at=now)
 
         self.assertEqual(revoked, 1)
-        self.assertEqual(AuthRepository.count_active_user_sessions(user.id), 0)
+        self.assertEqual(AuthRepository.count_active_user_sessions(user.id, now=now), 0)
 
     def test_record_login_event_with_no_user_id(self):
         AuthRepository.record_login_event(

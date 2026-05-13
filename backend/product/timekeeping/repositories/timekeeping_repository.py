@@ -148,34 +148,66 @@ class TimekeepingRepository:
         return TimeReportOut.model_validate(model) if model else None
 
     @staticmethod
-    def update_time_report_status(
+    def submit_time_report(
         report_id: int,
-        new_status: str,
-        updated_by_id: int | None = None,
-        rejection_reason: str | None = None,
-        submitted_at: datetime | None = None,
-        approved_at: datetime | None = None,
-        rejected_at: datetime | None = None,
-        locked_at: datetime | None = None,
+        updated_by_id: int,
+        submitted_at: datetime,
     ) -> TimeReportOut | None:
-        update_fields: dict = {"status": new_status}
-        if updated_by_id is not None:
-            update_fields["updated_by_id"] = updated_by_id
-        if rejection_reason is not None:
-            update_fields["rejection_reason"] = rejection_reason
-        if submitted_at is not None:
-            update_fields["submitted_at"] = submitted_at
-        if approved_at is not None:
-            update_fields["approved_at"] = approved_at
-        if rejected_at is not None:
-            update_fields["rejected_at"] = rejected_at
-        if locked_at is not None:
-            update_fields["locked_at"] = locked_at
-        rows = TimeReportModel.objects.filter(id=report_id).update(**update_fields)
+        rows = TimeReportModel.objects.filter(id=report_id).update(
+            status=TimeReportStatus.SUBMITTED,
+            updated_by_id=updated_by_id,
+            submitted_at=submitted_at,
+        )
         if rows == 0:
             return None
-        model = TimeReportModel.objects.get(id=report_id)
-        return TimeReportOut.model_validate(model)
+        return TimeReportOut.model_validate(TimeReportModel.objects.get(id=report_id))
+
+    @staticmethod
+    def approve_time_report(
+        report_id: int,
+        updated_by_id: int,
+        approved_at: datetime,
+    ) -> TimeReportOut | None:
+        rows = TimeReportModel.objects.filter(id=report_id).update(
+            status=TimeReportStatus.APPROVED,
+            updated_by_id=updated_by_id,
+            approved_at=approved_at,
+        )
+        if rows == 0:
+            return None
+        return TimeReportOut.model_validate(TimeReportModel.objects.get(id=report_id))
+
+    @staticmethod
+    def reject_time_report(
+        report_id: int,
+        updated_by_id: int,
+        rejection_reason: str,
+        rejected_at: datetime,
+    ) -> TimeReportOut | None:
+        rows = TimeReportModel.objects.filter(id=report_id).update(
+            status=TimeReportStatus.REJECTED,
+            updated_by_id=updated_by_id,
+            rejection_reason=rejection_reason,
+            rejected_at=rejected_at,
+        )
+        if rows == 0:
+            return None
+        return TimeReportOut.model_validate(TimeReportModel.objects.get(id=report_id))
+
+    @staticmethod
+    def lock_time_report(
+        report_id: int,
+        updated_by_id: int,
+        locked_at: datetime,
+    ) -> TimeReportOut | None:
+        rows = TimeReportModel.objects.filter(id=report_id).update(
+            status=TimeReportStatus.LOCKED,
+            updated_by_id=updated_by_id,
+            locked_at=locked_at,
+        )
+        if rows == 0:
+            return None
+        return TimeReportOut.model_validate(TimeReportModel.objects.get(id=report_id))
 
     @staticmethod
     def create_time_entry(

@@ -15,6 +15,7 @@ from product.approvals.orchestrators.approvals_orchestrator import ApprovalsOrch
 from product.approvals.services.approvals_service import ApprovalsService
 from product.common.classes import ApprovalStatus, TimeReportStatus
 from product.timekeeping.entities.timekeeping_entities import PeriodEntity
+from product.timekeeping.models import TimeReportModel
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
 )
@@ -166,8 +167,8 @@ class ApprovalsServiceSubmitTests(TestCase):
         ApprovalsOrchestrator.submit_report_for_approval(
             self.tenant.id, self.report.id, user_id=self.employee_user.id
         )
-        TimekeepingRepository.update_time_report_status(
-            self.report.id, new_status=str(TimeReportStatus.DRAFT)
+        TimeReportModel.objects.filter(id=self.report.id).update(
+            status=str(TimeReportStatus.DRAFT)
         )
         with pytest.raises(Conflict, match="already exists"):
             ApprovalsOrchestrator.submit_report_for_approval(
