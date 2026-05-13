@@ -143,7 +143,9 @@ class TenantRepositoryTests(TestCase):
             entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
-        TenantRepository.remove_membership(membership.id, "Removed")
+        TenantRepository.remove_membership(
+            membership.id, "Removed", left_at=timezone.now()
+        )
 
         assert TenantRepository.find_active_membership(tenant.id, member.id) is None
         assert TenantRepository.find_active_membership(tenant.id, 999) is None
@@ -193,7 +195,9 @@ class TenantRepositoryTests(TestCase):
             invited_by_id=owner.id,
         )
 
-        removed = TenantRepository.remove_membership(membership.id, "Resigned")
+        removed = TenantRepository.remove_membership(
+            membership.id, "Resigned", left_at=timezone.now()
+        )
 
         assert removed is not None
         assert removed.left_at is not None
@@ -212,7 +216,16 @@ class TenantRepositoryTests(TestCase):
             entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
             invited_by_id=owner.id,
         )
-        TenantRepository.remove_membership(membership.id, "Resigned")
+        TenantRepository.remove_membership(
+            membership.id, "Resigned", left_at=timezone.now()
+        )
 
-        assert TenantRepository.remove_membership(999, "") is None
-        assert TenantRepository.remove_membership(membership.id, "") is None
+        assert (
+            TenantRepository.remove_membership(999, "", left_at=timezone.now()) is None
+        )
+        assert (
+            TenantRepository.remove_membership(
+                membership.id, "", left_at=timezone.now()
+            )
+            is None
+        )
