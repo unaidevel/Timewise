@@ -124,10 +124,10 @@ class AuthService:
             raise Unauthorized("Invalid credentials")
 
         AuthRepository.clear_failed_logins(email_entity.value)
-        AuthRepository.revoke_oldest_active_user_sessions(
-            user.id,
-            keep=auth_settings.max_active_sessions_per_user - 1,
-        )
+        now = timezone.now()
+        active_ids = AuthRepository.list_active_session_ids(user.id, now=now)
+        to_revoke = active_ids[auth_settings.max_active_sessions_per_user - 1 :]
+        AuthRepository.revoke_tokens_by_ids(to_revoke, revoked_at=now)
 
         session = AuthService._issue_session(
             user=user,
@@ -152,7 +152,7 @@ class AuthService:
             return None
 
         token_record = AuthRepository.find_valid_token(
-            AuthService._hash_token(clean_token)
+            AuthService._hash_token(clean_token), now=timezone.now()
         )
         if not token_record or not token_record.user.is_active:
             return None
@@ -166,8 +166,9 @@ class AuthService:
             return
 
         token_hash = AuthService._hash_token(clean_token)
-        token_record = AuthRepository.find_valid_token(token_hash)
-        AuthRepository.revoke_token(token_hash)
+        now = timezone.now()
+        token_record = AuthRepository.find_valid_token(token_hash, now=now)
+        AuthRepository.revoke_token(token_hash, revoked_at=now)
         if token_record:
             AuthRepository.record_login_event(
                 event_type=AuthLoginEventModel.EVENT_LOGOUT,
@@ -193,7 +194,9 @@ class AuthService:
         # Reuse detection: a previously-revoked refresh token being replayed
         # signals compromise. Revoke the entire token family.
         if token_record.revoked_at is not None:
-            AuthRepository.revoke_token_family(token_record.family_id)
+            AuthRepository.revoke_token_family(
+                token_record.family_id, revoked_at=timezone.now()
+            )
             AuthRepository.record_login_event(
                 event_type=AuthLoginEventModel.EVENT_REFRESH_REUSE,
                 user_id=token_record.user.id,
@@ -210,7 +213,7 @@ class AuthService:
             raise Unauthorized("Invalid or expired refresh token")
 
         auth_settings = get_auth_security_settings()
-        AuthRepository.revoke_token(token_record.token_hash)
+        AuthRepository.revoke_token(token_record.token_hash, revoked_at=timezone.now())
         session = AuthService._issue_session(
             user=token_record.user,
             family_id=token_record.family_id,

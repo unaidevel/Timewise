@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from django.db import IntegrityError
-from django.utils import timezone
 
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
 from infra.authz.models import (
@@ -65,41 +64,43 @@ class AuthRepository:
         return _to_auth_user(user_model)
 
     @staticmethod
-    def revoke_all_user_tokens(user_id: int) -> int:
+    def revoke_all_user_tokens(user_id: int, revoked_at: datetime) -> int:
         return AuthTokenModel.objects.filter(
             user_id=user_id, revoked_at__isnull=True
-        ).update(revoked_at=timezone.now())
+        ).update(revoked_at=revoked_at)
 
     @staticmethod
-    def revoke_token_family(family_id: str) -> int:
+    def revoke_token_family(family_id: str, revoked_at: datetime) -> int:
         return AuthTokenModel.objects.filter(
             family_id=family_id, revoked_at__isnull=True
-        ).update(revoked_at=timezone.now())
+        ).update(revoked_at=revoked_at)
 
     @staticmethod
-    def count_active_user_sessions(user_id: int) -> int:
+    def count_active_user_sessions(user_id: int, now: datetime) -> int:
         return AuthTokenModel.objects.filter(
             user_id=user_id,
             revoked_at__isnull=True,
-            refresh_expires_at__gt=timezone.now(),
+            refresh_expires_at__gt=now,
         ).count()
 
     @staticmethod
-    def revoke_oldest_active_user_sessions(user_id: int, keep: int) -> int:
-        active_ids = list(
+    def list_active_session_ids(user_id: int, now: datetime) -> list[int]:
+        return list(
             AuthTokenModel.objects.filter(
                 user_id=user_id,
                 revoked_at__isnull=True,
-                refresh_expires_at__gt=timezone.now(),
+                refresh_expires_at__gt=now,
             )
             .order_by("-created_at")
             .values_list("id", flat=True)
         )
-        to_revoke = active_ids[keep:]
-        if not to_revoke:
+
+    @staticmethod
+    def revoke_tokens_by_ids(token_ids: list[int], revoked_at: datetime) -> int:
+        if not token_ids:
             return 0
-        return AuthTokenModel.objects.filter(id__in=to_revoke).update(
-            revoked_at=timezone.now()
+        return AuthTokenModel.objects.filter(id__in=token_ids).update(
+            revoked_at=revoked_at
         )
 
     @staticmethod
@@ -138,13 +139,13 @@ class AuthRepository:
         )
 
     @staticmethod
-    def find_valid_token(token_hash: str) -> AuthToken | None:
+    def find_valid_token(token_hash: str, now: datetime) -> AuthToken | None:
         token_model = (
             AuthTokenModel.objects.select_related("user")
             .filter(
                 token_hash=token_hash,
                 revoked_at__isnull=True,
-                expires_at__gt=timezone.now(),
+                expires_at__gt=now,
             )
             .first()
         )
@@ -161,10 +162,10 @@ class AuthRepository:
         return _to_auth_token(token_model) if token_model else None
 
     @staticmethod
-    def revoke_token(token_hash: str) -> int:
+    def revoke_token(token_hash: str, revoked_at: datetime) -> int:
         return AuthTokenModel.objects.filter(
             token_hash=token_hash, revoked_at__isnull=True
-        ).update(revoked_at=timezone.now())
+        ).update(revoked_at=revoked_at)
 
     @staticmethod
     def record_failed_login(email: str, ip_address: str) -> None:
