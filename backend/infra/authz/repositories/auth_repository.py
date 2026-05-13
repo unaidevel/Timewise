@@ -12,43 +12,16 @@ from infra.authz.models import (
 from infra.common.exceptions import Conflict
 
 
-def _to_auth_user(user_model: AuthUserModel) -> AuthUser:
-    return AuthUser(
-        id=user_model.id,
-        email=user_model.email,
-        full_name=user_model.full_name,
-        password_hash=user_model.password_hash,
-        is_active=user_model.is_active,
-        created_at=user_model.created_at,
-    )
-
-
-def _to_auth_token(token_model: AuthTokenModel) -> AuthToken:
-    return AuthToken(
-        id=token_model.id,
-        user=_to_auth_user(token_model.user),
-        family_id=token_model.family_id,
-        token_hash=token_model.token_hash,
-        expires_at=token_model.expires_at,
-        refresh_token_hash=token_model.refresh_token_hash,
-        refresh_expires_at=token_model.refresh_expires_at,
-        revoked_at=token_model.revoked_at,
-        created_at=token_model.created_at,
-        client_ip=token_model.client_ip,
-        user_agent=token_model.user_agent,
-    )
-
-
 class AuthRepository:
     @staticmethod
     def find_user_by_email(email: str) -> AuthUser | None:
         user_model = AuthUserModel.objects.filter(email=email).first()
-        return _to_auth_user(user_model) if user_model else None
+        return AuthUser.model_validate(user_model) if user_model else None
 
     @staticmethod
     def find_user_by_id(user_id: int) -> AuthUser | None:
         user_model = AuthUserModel.objects.filter(id=user_id).first()
-        return _to_auth_user(user_model) if user_model else None
+        return AuthUser.model_validate(user_model) if user_model else None
 
     @staticmethod
     def create_user(email: str, full_name: str, password_hash: str) -> AuthUser:
@@ -61,7 +34,7 @@ class AuthRepository:
         except IntegrityError as exc:
             raise Conflict("A user with this email already exists") from exc
 
-        return _to_auth_user(user_model)
+        return AuthUser.model_validate(user_model)
 
     @staticmethod
     def revoke_all_user_tokens(user_id: int, revoked_at: datetime) -> int:
@@ -124,19 +97,7 @@ class AuthRepository:
             client_ip=client_ip,
             user_agent=user_agent,
         )
-        return AuthToken(
-            id=token_model.id,
-            user=user,
-            family_id=token_model.family_id,
-            token_hash=token_model.token_hash,
-            expires_at=token_model.expires_at,
-            refresh_token_hash=token_model.refresh_token_hash,
-            refresh_expires_at=token_model.refresh_expires_at,
-            revoked_at=token_model.revoked_at,
-            created_at=token_model.created_at,
-            client_ip=token_model.client_ip,
-            user_agent=token_model.user_agent,
-        )
+        return AuthToken.model_validate(token_model, update={"user": user})
 
     @staticmethod
     def find_valid_token(token_hash: str, now: datetime) -> AuthToken | None:
@@ -149,7 +110,7 @@ class AuthRepository:
             )
             .first()
         )
-        return _to_auth_token(token_model) if token_model else None
+        return AuthToken.model_validate(token_model) if token_model else None
 
     @staticmethod
     def find_token_by_refresh_hash(refresh_token_hash: str) -> AuthToken | None:
@@ -159,7 +120,7 @@ class AuthRepository:
             .filter(refresh_token_hash=refresh_token_hash)
             .first()
         )
-        return _to_auth_token(token_model) if token_model else None
+        return AuthToken.model_validate(token_model) if token_model else None
 
     @staticmethod
     def revoke_token(token_hash: str, revoked_at: datetime) -> int:
