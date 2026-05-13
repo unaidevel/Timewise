@@ -97,7 +97,21 @@ class AuthRepository:
             client_ip=client_ip,
             user_agent=user_agent,
         )
-        return AuthToken.model_validate(token_model, update={"user": user})
+        return AuthToken.model_validate(
+            {
+                "id": token_model.id,
+                "user": user,
+                "family_id": token_model.family_id,
+                "token_hash": token_model.token_hash,
+                "expires_at": token_model.expires_at,
+                "refresh_token_hash": token_model.refresh_token_hash,
+                "refresh_expires_at": token_model.refresh_expires_at,
+                "revoked_at": token_model.revoked_at,
+                "created_at": token_model.created_at,
+                "client_ip": token_model.client_ip,
+                "user_agent": token_model.user_agent,
+            }
+        )
 
     @staticmethod
     def find_valid_token(token_hash: str, now: datetime) -> AuthToken | None:
