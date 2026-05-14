@@ -48,6 +48,7 @@ nav:
       - Timekeeping: modules/timekeeping.md
       - Costing: modules/costing.md
       - Approvals: modules/approvals.md
+      - Audit: modules/audit.md
 
 markdown_extensions:
   - pymdownx.highlight:

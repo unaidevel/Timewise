@@ -24,25 +24,31 @@ Every domain module follows the same internal layout:
 product/timekeeping/
 ├── api/
 │   └── router.py
+├── orchestrators/       # only if cross-module calls are needed
+│   └── timekeeping_orchestrator.py
 ├── services/
 │   └── timekeeping_service.py
 ├── repositories/
 │   └── timekeeping_repository.py
-├── orchestrators/       # only if cross-module calls are needed
-│   └── timekeeping_orchestrator.py
-├── models.py
-└── dtos.py
+├── entities/            # plain dataclasses with input validation
+│   └── timekeeping_entities.py
+├── dtos/
+│   ├── dtos.py
+│   └── mappers/         # only when a DTO can't be built via from_attributes
+├── tests/
+├── admin.py
+└── models.py
 ```
 
 ## DTO conventions
 
-DTOs follow the `In / Out / Update` naming pattern:
+DTOs follow the `In / Out / Update` naming pattern, prefixed with the resource name:
 
-- `TimeIn` — creation payload
-- `TimeOut` — response shape
-- `TimeUpdate` — partial update payload
+- `<Resource>In` — creation payload (e.g. `AuditEventIn`)
+- `<Resource>Out` — response shape (e.g. `AuditEventOut`)
+- `<Resource>Update` — partial update payload (e.g. `AuditEventUpdate`)
 
-DTOs use `from_attributes=True` for ORM output. Entities validate all input at construction time.
+DTOs use `from_attributes=True` for ORM output so repositories can return them directly via `model_validate(model)`. Entities validate all input at construction time and are constructed in the service layer with `Entity(**payload.model_dump())`.
 
 ## Key design decisions
 
