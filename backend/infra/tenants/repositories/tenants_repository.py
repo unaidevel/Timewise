@@ -11,13 +11,13 @@ from infra.tenants.models import TenantMembershipModel, TenantModel
 
 class TenantRepository:
     @staticmethod
-    def create(entity: TenantEntity, created_by_id: int) -> TenantOut:
+    def create(entity: TenantEntity, user_id: int) -> TenantOut:
         if not isinstance(entity, TenantEntity):
             raise TypeError(f"Expected TenantEntity, got {type(entity).__name__}")
         model = TenantModel.objects.create(
             name=entity.name,
             slug=entity.slug,
-            created_by_id=created_by_id,
+            created_by_id=user_id,
         )
         return TenantOut.model_validate(model)
 

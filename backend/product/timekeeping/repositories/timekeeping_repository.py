@@ -27,7 +27,7 @@ class TimekeepingRepository:
     def create_period(
         entity: PeriodEntity,
         tenant_id: int,
-        created_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> PeriodOut:
         if not isinstance(entity, PeriodEntity):
             raise TypeError(f"Expected PeriodEntity, got {type(entity).__name__}")
@@ -38,7 +38,7 @@ class TimekeepingRepository:
                 start_date=entity.start_date,
                 end_date=entity.end_date,
                 status=PeriodStatus.OPEN,
-                created_by_id=created_by_id,
+                created_by_id=user_id,
             )
         )
 
@@ -81,14 +81,14 @@ class TimekeepingRepository:
     @staticmethod
     def lock_period(
         period_id: int,
-        locked_by_id: int,
+        user_id: int,
         locked_at: datetime,
     ) -> PeriodOut | None:
         rows = PeriodModel.objects.filter(
             id=period_id, status=PeriodStatus.OPEN
         ).update(
             status=PeriodStatus.LOCKED,
-            locked_by_id=locked_by_id,
+            locked_by_id=user_id,
             locked_at=locked_at,
         )
         if rows == 0:
@@ -100,14 +100,14 @@ class TimekeepingRepository:
         employee_id: int,
         period_id: int,
         tenant_id: int,
-        created_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> TimeReportOut:
         return TimeReportOut.model_validate(
             TimeReportModel.objects.create(
                 tenant_id=tenant_id,
                 employee_id=employee_id,
                 period_id=period_id,
-                created_by_id=created_by_id,
+                created_by_id=user_id,
             )
         )
 
@@ -150,12 +150,12 @@ class TimekeepingRepository:
     @staticmethod
     def submit_time_report(
         report_id: int,
-        updated_by_id: int,
+        user_id: int,
         submitted_at: datetime,
     ) -> TimeReportOut | None:
         rows = TimeReportModel.objects.filter(id=report_id).update(
             status=TimeReportStatus.SUBMITTED,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
             submitted_at=submitted_at,
         )
         if rows == 0:
@@ -165,12 +165,12 @@ class TimekeepingRepository:
     @staticmethod
     def approve_time_report(
         report_id: int,
-        updated_by_id: int,
+        user_id: int,
         approved_at: datetime,
     ) -> TimeReportOut | None:
         rows = TimeReportModel.objects.filter(id=report_id).update(
             status=TimeReportStatus.APPROVED,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
             approved_at=approved_at,
         )
         if rows == 0:
@@ -180,13 +180,13 @@ class TimekeepingRepository:
     @staticmethod
     def reject_time_report(
         report_id: int,
-        updated_by_id: int,
+        user_id: int,
         rejection_reason: str,
         rejected_at: datetime,
     ) -> TimeReportOut | None:
         rows = TimeReportModel.objects.filter(id=report_id).update(
             status=TimeReportStatus.REJECTED,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
             rejection_reason=rejection_reason,
             rejected_at=rejected_at,
         )
@@ -197,12 +197,12 @@ class TimekeepingRepository:
     @staticmethod
     def lock_time_report(
         report_id: int,
-        updated_by_id: int,
+        user_id: int,
         locked_at: datetime,
     ) -> TimeReportOut | None:
         rows = TimeReportModel.objects.filter(id=report_id).update(
             status=TimeReportStatus.LOCKED,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
             locked_at=locked_at,
         )
         if rows == 0:
@@ -213,7 +213,7 @@ class TimekeepingRepository:
     def create_time_entry(
         report_id: int,
         entity: TimeEntryEntity,
-        created_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> TimeEntryOut:
         if not isinstance(entity, TimeEntryEntity):
             raise TypeError(f"Expected TimeEntryEntity, got {type(entity).__name__}")
@@ -224,7 +224,7 @@ class TimekeepingRepository:
             start_time=entity.start_time,
             end_time=entity.end_time,
             description=entity.description,
-            created_by_id=created_by_id,
+            created_by_id=user_id,
         )
         return TimeEntryOut.model_validate(model)
 
@@ -243,7 +243,7 @@ class TimekeepingRepository:
     @staticmethod
     def update_time_entry(
         entity: TimeEntryUpdateEntity,
-        updated_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> TimeEntryOut:
         if not isinstance(entity, TimeEntryUpdateEntity):
             raise TypeError(
@@ -256,7 +256,7 @@ class TimekeepingRepository:
             start_time=entity.start_time,
             end_time=entity.end_time,
             description=entity.description,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
         )
         model.save(
             update_fields=[
@@ -283,7 +283,7 @@ class TimekeepingRepository:
         report_id: int,
         from_status: str | None,
         to_status: str,
-        changed_by_id: int,
+        user_id: int,
         reason: str = "",
     ) -> TimeReportStatusHistoryOut:
         return TimeReportStatusHistoryOut.model_validate(
@@ -291,7 +291,7 @@ class TimekeepingRepository:
                 report_id=report_id,
                 from_status=from_status,
                 to_status=to_status,
-                changed_by_id=changed_by_id,
+                changed_by_id=user_id,
                 reason=reason,
             )
         )
@@ -311,7 +311,7 @@ class TimekeepingRepository:
         field_name: str,
         old_value: str | None,
         new_value: str | None,
-        changed_by_id: int,
+        user_id: int,
     ) -> TimeEntryChangeHistoryOut:
         return TimeEntryChangeHistoryOut.model_validate(
             TimeEntryChangeHistoryModel.objects.create(
@@ -319,7 +319,7 @@ class TimekeepingRepository:
                 field_name=field_name,
                 old_value=old_value,
                 new_value=new_value,
-                changed_by_id=changed_by_id,
+                changed_by_id=user_id,
             )
         )
 

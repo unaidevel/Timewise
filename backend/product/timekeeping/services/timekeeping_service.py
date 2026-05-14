@@ -41,9 +41,7 @@ class TimekeepingService:
             raise Conflict(
                 f"Period '{overlapping.name}' overlaps with the requested dates."
             )
-        return TimekeepingRepository.create_period(
-            entity, tenant_id, created_by_id=user_id
-        )
+        return TimekeepingRepository.create_period(entity, tenant_id, user_id)
 
     @any_employee
     @staticmethod
@@ -58,7 +56,7 @@ class TimekeepingService:
     def list_periods(
         tenant_id: int, user_id: int, status: str | None = None
     ) -> list[PeriodOut]:
-        return TimekeepingRepository.list_periods(tenant_id, status=status)
+        return TimekeepingRepository.list_periods(tenant_id, status)
 
     @only_admin
     @staticmethod
@@ -69,7 +67,7 @@ class TimekeepingService:
         if period.status == PeriodStatus.LOCKED:
             raise Conflict(f"Period {period_id} is already locked.")
         result = TimekeepingRepository.lock_period(
-            period_id, locked_by_id=user_id, locked_at=timezone.now()
+            period_id, user_id, locked_at=timezone.now()
         )
         if not result:
             raise Conflict(f"Period {period_id} could not be locked.")
@@ -96,10 +94,10 @@ class TimekeepingService:
                 f"Employee {entity.employee_id} already has a report for period {period_id}."
             )
         return TimekeepingRepository.create_time_report(
-            employee_id=entity.employee_id,
-            period_id=period_id,
-            tenant_id=tenant_id,
-            created_by_id=user_id,
+            entity.employee_id,
+            period_id,
+            tenant_id,
+            user_id,
         )
 
     @any_employee
@@ -129,7 +127,7 @@ class TimekeepingService:
         employee_id: int | None = None,
     ) -> list[TimeReportOut]:
         return TimekeepingRepository.list_time_reports(
-            tenant_id, period_id=period_id, employee_id=employee_id
+            tenant_id, period_id, employee_id
         )
 
     @any_employee
@@ -147,7 +145,7 @@ class TimekeepingService:
             raise UnprocessableEntity("Cannot submit an empty report.")
         result = TimekeepingRepository.submit_time_report(
             report_id,
-            updated_by_id=user_id,
+            user_id=user_id,
             submitted_at=timezone.now(),
         )
         if result is None:
@@ -156,7 +154,7 @@ class TimekeepingService:
             report_id,
             from_status=report.status,
             to_status=str(TimeReportStatus.SUBMITTED),
-            changed_by_id=user_id,
+            user_id=user_id,
         )
         return result
 
@@ -175,7 +173,7 @@ class TimekeepingService:
             raise Conflict(f"Cannot approve report in status '{report.status}'.")
         result = TimekeepingRepository.approve_time_report(
             report_id,
-            updated_by_id=user_id,
+            user_id=user_id,
             approved_at=timezone.now(),
         )
         if result is None:
@@ -184,7 +182,7 @@ class TimekeepingService:
             report_id,
             from_status=report.status,
             to_status=str(TimeReportStatus.APPROVED),
-            changed_by_id=user_id,
+            user_id=user_id,
         )
         return result
 
@@ -206,7 +204,7 @@ class TimekeepingService:
             raise Conflict(f"Cannot reject report in status '{report.status}'.")
         result = TimekeepingRepository.reject_time_report(
             report_id,
-            updated_by_id=user_id,
+            user_id=user_id,
             rejection_reason=entity.reason,
             rejected_at=timezone.now(),
         )
@@ -216,7 +214,7 @@ class TimekeepingService:
             report_id,
             from_status=report.status,
             to_status=str(TimeReportStatus.REJECTED),
-            changed_by_id=user_id,
+            user_id=user_id,
             reason=entity.reason,
         )
         return result
@@ -247,7 +245,7 @@ class TimekeepingService:
                 f"Cannot add entries to report in status '{report.status}'."
             )
         return TimekeepingRepository.create_time_entry(
-            report_id, entity, created_by_id=user_id
+            report_id, entity, user_id=user_id
         )
 
     @any_employee
@@ -297,7 +295,7 @@ class TimekeepingService:
                 TimekeepingRepository.create_entry_change_history(
                     entity.entry_id, field_name, old_val, new_val, user_id
                 )
-        return TimekeepingRepository.update_time_entry(entity, updated_by_id=user_id)
+        return TimekeepingRepository.update_time_entry(entity, user_id=user_id)
 
     @any_employee
     @staticmethod

@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
     status_code=status.HTTP_201_CREATED,
 )
 def create(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
-    return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
+    return TenantOrchestrator.create(payload, current_user.id)
 
 
 @router.put(

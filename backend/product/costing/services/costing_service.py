@@ -40,9 +40,7 @@ class CostingService:
                 f"An overtime rule named '{existing.name}' already exists in this tenant."
             )
         with transaction.atomic():
-            rule_model = CostingRepository.create_rule(
-                entity, tenant_id, created_by_id=user_id
-            )
+            rule_model = CostingRepository.create_rule(entity, tenant_id, user_id)
             CostingRepository.bulk_create_conditions(rule_model.id, conditions)
             return CostingRepository.get_rule_with_conditions(rule_model.id)
 
@@ -61,7 +59,7 @@ class CostingService:
         user_id: int,
         active_only: bool = False,
     ) -> list[OvertimeRuleOut]:
-        return CostingRepository.list_rules(tenant_id, active_only=active_only)
+        return CostingRepository.list_rules(tenant_id, active_only)
 
     @only_admin
     @staticmethod
@@ -80,7 +78,7 @@ class CostingService:
                 f"An overtime rule named '{entity.name}' already exists in this tenant."
             )
         with transaction.atomic():
-            CostingRepository.update_rule(entity, updated_by_id=user_id)
+            CostingRepository.update_rule(entity, user_id)
             CostingRepository.delete_conditions_for_rule(entity.rule_id)
             CostingRepository.bulk_create_conditions(entity.rule_id, conditions)
             return CostingRepository.get_rule_with_conditions(entity.rule_id)
@@ -95,7 +93,7 @@ class CostingService:
         rule = CostingRepository.get_rule_by_id(rule_id)
         if not rule or rule.tenant_id != tenant_id:
             raise NotFound(f"Overtime rule {rule_id} not found.")
-        result = CostingRepository.deactivate_rule(rule_id, updated_by_id=user_id)
+        result = CostingRepository.deactivate_rule(rule_id, user_id)
         if not result:
             raise Conflict(f"Overtime rule {rule_id} is already inactive.")
         return result
@@ -181,7 +179,7 @@ class CostingService:
                 calculations,
                 report_id=report_id,
                 tenant_id=tenant_id,
-                calculated_by_id=user_id,
+                user_id=user_id,
             )
 
         total_base_hours = sum((b.base_hours for b in saved), Decimal("0.00"))

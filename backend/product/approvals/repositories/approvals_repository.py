@@ -10,12 +10,12 @@ class ApprovalsRepository:
     def create_approval(
         tenant_id: int,
         report_id: int,
-        created_by_id: int,
+        user_id: int,
     ) -> ApprovalOut:
         model = TimeReportApprovalModel.objects.create(
             tenant_id=tenant_id,
             report_id=report_id,
-            created_by_id=created_by_id,
+            created_by_id=user_id,
         )
         return ApprovalOut.model_validate(model)
 
@@ -43,12 +43,12 @@ class ApprovalsRepository:
     def update_approval_status(
         approval_id: int,
         new_status: str,
-        reviewer_id: int | None = None,
+        user_id: int | None = None,
         reviewed_at: object | None = None,
     ) -> ApprovalOut | None:
         rows = TimeReportApprovalModel.objects.filter(id=approval_id).update(
             status=new_status,
-            reviewer_id=reviewer_id,
+            reviewer_id=user_id,
             reviewed_at=reviewed_at,
         )
         if rows == 0:
@@ -60,14 +60,14 @@ class ApprovalsRepository:
     def create_event(
         approval_id: int,
         action: str,
-        actor_id: int,
+        user_id: int,
         reason: str = "",
     ) -> ApprovalEventOut:
         return ApprovalEventOut.model_validate(
             TimeReportApprovalEventModel.objects.create(
                 approval_id=approval_id,
                 action=action,
-                actor_id=actor_id,
+                actor_id=user_id,
                 reason=reason,
             )
         )

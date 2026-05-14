@@ -33,7 +33,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -69,7 +69,7 @@ def make_period(tenant_id: int, user_id: int, name: str = "April 2025"):
     entity = PeriodEntity(
         name=name, start_date=date(2025, 4, 1), end_date=date(2025, 4, 30)
     )
-    return TimekeepingRepository.create_period(entity, tenant_id, created_by_id=user_id)
+    return TimekeepingRepository.create_period(entity, tenant_id, user_id=user_id)
 
 
 def make_report(tenant_id: int, employee_id: int, period_id: int, user_id: int):
@@ -77,7 +77,7 @@ def make_report(tenant_id: int, employee_id: int, period_id: int, user_id: int):
         employee_id=employee_id,
         period_id=period_id,
         tenant_id=tenant_id,
-        created_by_id=user_id,
+        user_id=user_id,
     )
 
 
@@ -96,7 +96,7 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         self.assertEqual(approval.tenant_id, self.tenant.id)
@@ -109,7 +109,7 @@ class ApprovalsRepositoryTests(TestCase):
         created = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = ApprovalsRepository.find_by_report_id(self.report.id)
@@ -124,7 +124,7 @@ class ApprovalsRepositoryTests(TestCase):
         created = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = ApprovalsRepository.get_by_id(created.id)
@@ -147,12 +147,12 @@ class ApprovalsRepositoryTests(TestCase):
         ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         ApprovalsRepository.create_approval(
             tenant_id=other_tenant.id,
             report_id=other_report.id,
-            created_by_id=other_user.id,
+            user_id=other_user.id,
         )
 
         result = ApprovalsRepository.list_by_tenant(self.tenant.id)
@@ -164,12 +164,12 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         ApprovalsRepository.update_approval_status(
             approval.id,
             new_status=ApprovalStatus.APPROVED.value,
-            reviewer_id=self.user.id,
+            user_id=self.user.id,
         )
 
         pending = ApprovalsRepository.list_by_tenant(
@@ -186,14 +186,14 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         reviewed_at = timezone.now()
 
         updated = ApprovalsRepository.update_approval_status(
             approval.id,
             new_status=ApprovalStatus.APPROVED.value,
-            reviewer_id=self.user.id,
+            user_id=self.user.id,
             reviewed_at=reviewed_at,
         )
 
@@ -211,13 +211,13 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         event = ApprovalsRepository.create_event(
             approval_id=approval.id,
             action=ApprovalAction.SUBMITTED.value,
-            actor_id=self.user.id,
+            user_id=self.user.id,
         )
 
         self.assertEqual(event.approval_id, approval.id)
@@ -229,17 +229,17 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         ApprovalsRepository.create_event(
             approval_id=approval.id,
             action=ApprovalAction.SUBMITTED.value,
-            actor_id=self.user.id,
+            user_id=self.user.id,
         )
         ApprovalsRepository.create_event(
             approval_id=approval.id,
             action=ApprovalAction.APPROVED.value,
-            actor_id=self.user.id,
+            user_id=self.user.id,
         )
 
         events = ApprovalsRepository.list_events(approval.id)
@@ -255,13 +255,13 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         event = ApprovalsRepository.create_event(
             approval_id=approval.id,
             action=ApprovalAction.REJECTED.value,
-            actor_id=self.user.id,
+            user_id=self.user.id,
             reason="Missing entries",
         )
 
@@ -271,7 +271,7 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         events = ApprovalsRepository.list_events(approval.id)
@@ -282,7 +282,7 @@ class ApprovalsRepositoryTests(TestCase):
         approval = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         updated = ApprovalsRepository.update_approval_status(
@@ -297,7 +297,7 @@ class ApprovalsRepositoryTests(TestCase):
         first = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=self.report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         # Second approval requires a separate report.
@@ -308,7 +308,7 @@ class ApprovalsRepositoryTests(TestCase):
         second = ApprovalsRepository.create_approval(
             tenant_id=self.tenant.id,
             report_id=other_report.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         result = ApprovalsRepository.list_by_tenant(self.tenant.id)

@@ -24,7 +24,7 @@ class CostingRepository:
     def create_rule(
         entity: OvertimeRuleEntity,
         tenant_id: int,
-        created_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> OvertimeRuleModel:
         if not isinstance(entity, OvertimeRuleEntity):
             raise TypeError(f"Expected OvertimeRuleEntity, got {type(entity).__name__}")
@@ -33,7 +33,7 @@ class CostingRepository:
             name=entity.name,
             multiplier=entity.multiplier,
             priority=entity.priority,
-            created_by_id=created_by_id,
+            created_by_id=user_id,
         )
 
     @staticmethod
@@ -87,7 +87,7 @@ class CostingRepository:
     @staticmethod
     def update_rule(
         entity: OvertimeRuleUpdateEntity,
-        updated_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> None:
         if not isinstance(entity, OvertimeRuleUpdateEntity):
             raise TypeError(
@@ -98,7 +98,7 @@ class CostingRepository:
             name=entity.name,
             multiplier=entity.multiplier,
             priority=entity.priority,
-            updated_by_id=updated_by_id,
+            updated_by_id=user_id,
         )
         rule.save(
             update_fields=[
@@ -117,10 +117,10 @@ class CostingRepository:
     @staticmethod
     def deactivate_rule(
         rule_id: int,
-        updated_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> OvertimeRuleOut | None:
         rows = OvertimeRuleModel.objects.filter(id=rule_id, is_active=True).update(
-            is_active=False, updated_by_id=updated_by_id
+            is_active=False, updated_by_id=user_id
         )
         if rows == 0:
             return None
@@ -157,7 +157,7 @@ class CostingRepository:
         calculations: list[dict],
         report_id: int,
         tenant_id: int,
-        calculated_by_id: int | None = None,
+        user_id: int | None = None,
     ) -> list[HourCostBreakdownOut]:
         models = CostCalculationModel.objects.bulk_create(
             [
@@ -172,7 +172,7 @@ class CostingRepository:
                     overtime_hours=c["overtime_hours"],
                     base_cost=c["base_cost"],
                     total_cost=c["total_cost"],
-                    calculated_by_id=calculated_by_id,
+                    calculated_by_id=user_id,
                 )
                 for c in calculations
             ]

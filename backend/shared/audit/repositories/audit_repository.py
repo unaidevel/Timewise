@@ -11,14 +11,14 @@ class AuditRepository:
     def create(
         entity: AuditEventEntity,
         tenant_id: int,
-        actor_id: int,
+        user_id: int,
     ) -> AuditEventOut:
         if not isinstance(entity, AuditEventEntity):
             raise TypeError(f"Expected AuditEventEntity, got {type(entity).__name__}")
         return AuditEventOut.model_validate(
             AuditEventModel.objects.create(
                 tenant_id=tenant_id,
-                actor_id=actor_id,
+                actor_id=user_id,
                 action=entity.action,
                 outcome=entity.outcome,
                 resource_type=entity.resource_type,

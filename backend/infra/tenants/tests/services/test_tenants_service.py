@@ -21,7 +21,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme") -> TenantOut:
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -30,7 +30,7 @@ class TenantServiceCreateTests(TestCase):
         owner = make_user()
 
         tenant = TenantService.create(
-            TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantEntity(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         assert tenant.name == "Acme Corp"
@@ -42,7 +42,7 @@ class TenantServiceCreateTests(TestCase):
         owner = make_user()
 
         TenantService.create(
-            TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantEntity(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         assert TenantMembershipModel.objects.count() == 0
@@ -50,12 +50,12 @@ class TenantServiceCreateTests(TestCase):
     def test_create_raises_if_slug_already_exists(self):
         owner = make_user()
         TenantService.create(
-            TenantEntity(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantEntity(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         with pytest.raises(Conflict, match="slug 'acme'"):
             TenantService.create(
-                TenantEntity(name="Another Acme", slug="acme"), created_by_id=owner.id
+                TenantEntity(name="Another Acme", slug="acme"), user_id=owner.id
             )
 
 
