@@ -32,7 +32,8 @@ class AuthApiTests(TestCase):
                 email="USER@example.com",
                 full_name="  Test User  ",
                 password="SecurePass123!",
-            )
+            ),
+            build_request("/api/v1/auth/register"),
         )
 
         self.assertEqual(response.email, "user@example.com")
@@ -45,7 +46,8 @@ class AuthApiTests(TestCase):
                     email="user@example.com",
                     full_name="Test User",
                     password="password",
-                )
+                ),
+                build_request("/api/v1/auth/register"),
             )
 
         self.assertEqual(exc.exception.status_code, 422)
@@ -68,7 +70,10 @@ class AuthApiTests(TestCase):
             credentials=login_response.access_token,
         )
         current_user = get_current_user(credentials)
-        me_response = auth_router.get_me(current_user=current_user)
+        me_response = auth_router.get_me(
+            request=build_request("/api/v1/auth/me"),
+            current_user=current_user,
+        )
 
         self.assertEqual(me_response.email, "user@example.com")
 
@@ -245,7 +250,8 @@ class AuthApiAdditionalTests(TestCase):
                     email="user@example.com",
                     full_name="Other User",
                     password="SecurePass123!",
-                )
+                ),
+                build_request("/api/v1/auth/register"),
             )
 
         self.assertEqual(exc.exception.status_code, 409)
