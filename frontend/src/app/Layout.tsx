@@ -11,7 +11,6 @@ import {
   Leaf,
   LogOut,
   Moon,
-  Plus,
   Search,
   Settings,
   Sun,
@@ -19,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Button } from "@/components/shadcn/button";
@@ -62,7 +61,6 @@ const nav: NavItem[] = [
 
 export function Layout() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
@@ -139,11 +137,6 @@ export function Layout() {
                     {t.id === currentTenantId && <Check className="size-4 text-primary" />}
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/onboarding")}>
-                  <Plus className="size-4 mr-2" />
-                  Nuevo workspace
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
