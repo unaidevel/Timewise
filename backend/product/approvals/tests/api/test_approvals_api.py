@@ -54,7 +54,7 @@ class ApprovalsApiTests(TestCase):
             email="emp@example.com", full_name="Employee"
         )
 
-        self.tenant = tenants_router.create_tenant(
+        self.tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"), current_user=self.manager
         )
         tenants_router.add_member(
@@ -231,7 +231,7 @@ class ApprovalsApiTests(TestCase):
         approval = self._submit()
 
         other_manager = self._authenticate(email="other@example.com", full_name="Other")
-        other_tenant = tenants_router.create_tenant(
+        other_tenant = tenants_router.create(
             TenantIn(name="Other Corp", slug="other"), current_user=other_manager
         )
 

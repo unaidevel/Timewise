@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
     responses=responses_for(Conflict, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
-def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
+def create(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
 
 

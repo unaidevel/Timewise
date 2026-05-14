@@ -56,7 +56,7 @@ class TimekeepingApiTests(TestCase):
         self.user = self._authenticate_user(
             email="owner@example.com", full_name="Owner"
         )
-        self.tenant = tenants_router.create_tenant(
+        self.tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
         )
         dept = workforce_router.create_department(
