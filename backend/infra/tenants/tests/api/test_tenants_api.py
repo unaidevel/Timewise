@@ -102,7 +102,7 @@ class TenantsApiTests(TestCase):
             current_user=current_user,
         )
 
-        tenant = tenants_router.get_tenant(created.id, current_user)
+        tenant = tenants_router.get_by_id(created.id, current_user)
 
         assert tenant.id == created.id
         assert tenant.slug == "acme"
