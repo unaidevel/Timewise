@@ -27,7 +27,7 @@ class TenantRepositoryTests(TestCase):
 
         created = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme-corp"),
-            created_by_id=user.id,
+            user_id=user.id,
         )
         found = TenantRepository.get_by_id(created.id)
 
@@ -40,7 +40,7 @@ class TenantRepositoryTests(TestCase):
         user = make_user()
 
         with pytest.raises(TypeError, match="Expected TenantEntity"):
-            TenantRepository.create("not-an-entity", created_by_id=user.id)
+            TenantRepository.create("not-an-entity", user_id=user.id)
 
     def test_get_by_id_returns_none_for_unknown_tenant(self):
         assert TenantRepository.get_by_id(999) is None
@@ -49,7 +49,7 @@ class TenantRepositoryTests(TestCase):
         user = make_user()
         created = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme-corp"),
-            created_by_id=user.id,
+            user_id=user.id,
         )
 
         found = TenantRepository.find_by_slug("acme-corp")
@@ -63,13 +63,13 @@ class TenantRepositoryTests(TestCase):
         user = make_user()
         TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme-corp"),
-            created_by_id=user.id,
+            user_id=user.id,
         )
 
         with pytest.raises(IntegrityError):
             TenantRepository.create(
                 TenantEntity(name="Another Acme", slug="acme-corp"),
-                created_by_id=user.id,
+                user_id=user.id,
             )
 
     def test_add_membership_creates_and_find_active_membership_returns_it(self):
@@ -77,7 +77,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
 
         created = TenantRepository.add_membership(
@@ -97,7 +97,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
 
         with pytest.raises(TypeError, match="Expected TenantMembershipEntity"):
@@ -113,7 +113,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
         TenantRepository.add_membership(
             tenant_id=tenant.id,
@@ -135,7 +135,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,
@@ -156,7 +156,7 @@ class TenantRepositoryTests(TestCase):
         second_member = make_user("second@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
         first = TenantRepository.add_membership(
             tenant_id=tenant.id,
@@ -186,7 +186,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,
@@ -208,7 +208,7 @@ class TenantRepositoryTests(TestCase):
         member = make_user("member@example.com")
         tenant = TenantRepository.create(
             TenantEntity(name="Acme Corp", slug="acme"),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
         membership = TenantRepository.add_membership(
             tenant_id=tenant.id,

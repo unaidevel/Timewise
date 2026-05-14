@@ -29,7 +29,7 @@ class TenantOrchestratorCreateTests(TestCase):
 
         tenant = TenantOrchestrator.create(
             TenantIn(name="  Acme Corp  ", slug="  Acme-Corp  "),
-            created_by_id=owner.id,
+            user_id=owner.id,
         )
 
         assert tenant.name == "Acme Corp"
@@ -40,7 +40,7 @@ class TenantOrchestratorCreateTests(TestCase):
         owner = make_user()
 
         tenant = TenantOrchestrator.create(
-            TenantIn(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantIn(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         memberships = TenantMembershipModel.objects.filter(tenant_id=tenant.id)
@@ -55,7 +55,7 @@ class TenantOrchestratorCreateTests(TestCase):
         owner = make_user()
 
         tenant = TenantOrchestrator.create(
-            TenantIn(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantIn(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         roles = RoleModel.objects.filter(tenant_id=tenant.id).order_by("name")
@@ -68,12 +68,12 @@ class TenantOrchestratorCreateTests(TestCase):
     def test_create_raises_if_slug_already_exists(self):
         owner = make_user()
         TenantOrchestrator.create(
-            TenantIn(name="Acme Corp", slug="acme"), created_by_id=owner.id
+            TenantIn(name="Acme Corp", slug="acme"), user_id=owner.id
         )
 
         with pytest.raises(Conflict, match="slug 'acme'"):
             TenantOrchestrator.create(
-                TenantIn(name="Another Acme", slug="acme"), created_by_id=owner.id
+                TenantIn(name="Another Acme", slug="acme"), user_id=owner.id
             )
 
     def test_create_raises_on_blank_name(self):
@@ -81,7 +81,7 @@ class TenantOrchestratorCreateTests(TestCase):
 
         with pytest.raises(UnprocessableEntity):
             TenantOrchestrator.create(
-                TenantIn(name="   ", slug="acme"), created_by_id=owner.id
+                TenantIn(name="   ", slug="acme"), user_id=owner.id
             )
 
     def test_create_raises_on_invalid_slug(self):
@@ -89,7 +89,7 @@ class TenantOrchestratorCreateTests(TestCase):
 
         with pytest.raises(UnprocessableEntity):
             TenantOrchestrator.create(
-                TenantIn(name="Acme Corp", slug="-invalid"), created_by_id=owner.id
+                TenantIn(name="Acme Corp", slug="-invalid"), user_id=owner.id
             )
 
     def test_create_rolls_back_if_default_roles_fail(self):
@@ -102,7 +102,7 @@ class TenantOrchestratorCreateTests(TestCase):
 
             with pytest.raises(Exception, match="DB error"):
                 TenantOrchestrator.create(
-                    TenantIn(name="Acme Corp", slug="acme"), created_by_id=owner.id
+                    TenantIn(name="Acme Corp", slug="acme"), user_id=owner.id
                 )
 
         assert not TenantModel.objects.filter(slug="acme").exists()

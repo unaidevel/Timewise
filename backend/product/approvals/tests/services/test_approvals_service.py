@@ -37,7 +37,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -73,7 +73,7 @@ def make_period(tenant_id: int, user_id: int):
     entity = PeriodEntity(
         name="April 2025", start_date=date(2025, 4, 1), end_date=date(2025, 4, 30)
     )
-    return TimekeepingRepository.create_period(entity, tenant_id, created_by_id=user_id)
+    return TimekeepingRepository.create_period(entity, tenant_id, user_id=user_id)
 
 
 def make_report_with_entry(
@@ -83,7 +83,7 @@ def make_report_with_entry(
         employee_id=employee_id,
         period_id=period_id,
         tenant_id=tenant_id,
-        created_by_id=user_id,
+        user_id=user_id,
     )
     from product.timekeeping.entities.timekeeping_entities import TimeEntryEntity
 
@@ -94,7 +94,7 @@ def make_report_with_entry(
         end_time=None,
         description="",
     )
-    TimekeepingRepository.create_time_entry(report.id, entry, created_by_id=user_id)
+    TimekeepingRepository.create_time_entry(report.id, entry, user_id=user_id)
     return report
 
 
@@ -156,7 +156,7 @@ class ApprovalsServiceSubmitTests(TestCase):
             employee_id=other_employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.employee_user.id,
+            user_id=self.employee_user.id,
         )
         with pytest.raises(Conflict, match="empty"):
             ApprovalsOrchestrator.submit_report_for_approval(

@@ -33,7 +33,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -68,10 +68,8 @@ def weekend_conditions() -> list[dict]:
     return [{"condition_type": "day_of_week", "value": "6,7"}]
 
 
-def create_rule_with_conditions(entity, conditions, tenant_id, created_by_id=None):
-    model = CostingRepository.create_rule(
-        entity, tenant_id, created_by_id=created_by_id
-    )
+def create_rule_with_conditions(entity, conditions, tenant_id, user_id=None):
+    model = CostingRepository.create_rule(entity, tenant_id, user_id=user_id)
     CostingRepository.bulk_create_conditions(model.id, conditions)
     return CostingRepository.get_rule_with_conditions(model.id)
 
@@ -93,7 +91,7 @@ class CostingRepositoryRulesTests(TestCase):
             entity,
             weekend_conditions(),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         assert rule.name == "Weekend rule"
         assert rule.multiplier == Decimal("1.50")
@@ -281,7 +279,7 @@ class CostingRepositoryCalculationsTests(TestCase):
             calculations,
             report_id=self.report.id,
             tenant_id=self.tenant.id,
-            calculated_by_id=self.user.id,
+            user_id=self.user.id,
         )
         assert len(saved) == 1
         assert saved[0].time_entry_id == self.entry.id

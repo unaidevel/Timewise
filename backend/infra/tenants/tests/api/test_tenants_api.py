@@ -49,7 +49,7 @@ class TenantsApiTests(TestCase):
             full_name="Owner User",
         )
 
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="  Acme Corp  ", slug="  Acme-Corp  "),
             current_user=current_user,
         )
@@ -63,13 +63,13 @@ class TenantsApiTests(TestCase):
             email="owner@example.com",
             full_name="Owner User",
         )
-        tenants_router.create_tenant(
+        tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=current_user,
         )
 
         with pytest.raises(HTTPException) as exc:
-            tenants_router.create_tenant(
+            tenants_router.create(
                 TenantIn(name="Another Acme", slug="  ACME  "),
                 current_user=current_user,
             )
@@ -84,7 +84,7 @@ class TenantsApiTests(TestCase):
         )
 
         with pytest.raises(HTTPException) as exc:
-            tenants_router.create_tenant(
+            tenants_router.create(
                 TenantIn(name="   ", slug="acme"),
                 current_user=current_user,
             )
@@ -97,12 +97,12 @@ class TenantsApiTests(TestCase):
             email="owner@example.com",
             full_name="Owner User",
         )
-        created = tenants_router.create_tenant(
+        created = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=current_user,
         )
 
-        tenant = tenants_router.get_tenant(created.id, current_user)
+        tenant = tenants_router.get_by_id(created.id, current_user)
 
         assert tenant.id == created.id
         assert tenant.slug == "acme"
@@ -116,7 +116,7 @@ class TenantsApiTests(TestCase):
             email="member@example.com",
             full_name="Member User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )
@@ -167,7 +167,7 @@ class TenantsApiTests(TestCase):
             email="member@example.com",
             full_name="Member User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )
@@ -202,7 +202,7 @@ class TenantsApiTests(TestCase):
             email="member@example.com",
             full_name="Member User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )
@@ -230,7 +230,7 @@ class TenantsApiTests(TestCase):
             email="member@example.com",
             full_name="Member User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )
@@ -272,7 +272,7 @@ class TenantsApiTests(TestCase):
             email="member@example.com",
             full_name="Member User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )
@@ -316,7 +316,7 @@ class TenantsApiTests(TestCase):
             email="owner@example.com",
             full_name="Owner User",
         )
-        tenant = tenants_router.create_tenant(
+        tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
         )

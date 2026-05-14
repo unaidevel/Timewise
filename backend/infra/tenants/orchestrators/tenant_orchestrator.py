@@ -11,14 +11,14 @@ from product.workforce.services.workforce_service import WorkforceService
 class TenantOrchestrator:
     @only_owner
     @staticmethod
-    def create(payload: TenantIn, created_by_id: int) -> TenantOut:
+    def create(payload: TenantIn, user_id: int) -> TenantOut:
         entity = TenantEntity(**payload.model_dump())
 
         with transaction.atomic():
-            created_tenant = TenantService.create(entity, created_by_id)
+            created_tenant = TenantService.create(entity, user_id)
             TenantService.add_membership(
                 tenant_id=created_tenant.id,
-                user_id=created_by_id,
+                user_id=user_id,
                 entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
                 invited_by_id=None,
             )

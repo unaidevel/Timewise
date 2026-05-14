@@ -22,7 +22,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -215,11 +215,11 @@ class AuditRepositoryDeleteTests(TestCase):
                 action="user.login", resource_type="AuthUser", outcome="success"
             ),
             self.tenant.id,
-            actor_id=self.user.id,
+            user_id=self.user.id,
         )
 
-        assert AuditRepository.delete(event.id) is True
+        assert AuditRepository.delete(event.id) == 1
         assert AuditRepository.get_by_id(event.id) is None
 
-    def test_delete_by_id_returns_false_when_not_found(self):
-        assert AuditRepository.delete(999_999) is False
+    def test_delete_by_id_returns_zero_when_not_found(self):
+        assert AuditRepository.delete(999_999) == 0

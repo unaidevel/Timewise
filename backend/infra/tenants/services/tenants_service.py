@@ -19,10 +19,10 @@ from infra.tenants.repositories.tenants_repository import TenantRepository
 
 class TenantService:
     @staticmethod
-    def create(entity: TenantEntity, created_by_id: int) -> TenantOut:
+    def create(entity: TenantEntity, user_id: int) -> TenantOut:
         if TenantRepository.find_by_slug(entity.slug):
             raise Conflict(f"A tenant with slug '{entity.slug}' already exists.")
-        return TenantRepository.create(entity, created_by_id)
+        return TenantRepository.create(entity, user_id)
 
     @staticmethod
     @only_admin

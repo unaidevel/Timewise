@@ -36,7 +36,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -72,7 +72,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
         )
 
         period = TimekeepingRepository.create_period(
-            entity, self.tenant.id, created_by_id=self.user.id
+            entity, self.tenant.id, user_id=self.user.id
         )
 
         assert period.id is not None
@@ -84,7 +84,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
     def test_create_period_raises_for_non_entity_payload(self):
         with pytest.raises(TypeError, match="Expected PeriodEntity"):
             TimekeepingRepository.create_period(
-                "not-an-entity", self.tenant.id, created_by_id=self.user.id
+                "not-an-entity", self.tenant.id, user_id=self.user.id
             )
 
     def test_get_period_by_id_returns_period(self):
@@ -95,7 +95,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = TimekeepingRepository.get_period_by_id(created.id)
@@ -112,7 +112,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 name="January", start_date=date(2025, 1, 1), end_date=date(2025, 1, 31)
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_period(
             PeriodEntity(
@@ -121,7 +121,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 2, 28),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         periods = TimekeepingRepository.list_periods(self.tenant.id)
@@ -134,7 +134,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 name="A", start_date=date(2025, 1, 1), end_date=date(2025, 1, 31)
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.lock_period(
             open_period.id, self.user.id, django_timezone.now()
@@ -145,7 +145,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 name="B", start_date=date(2025, 2, 1), end_date=date(2025, 2, 28)
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         locked = TimekeepingRepository.list_periods(
@@ -164,7 +164,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 name="Mine", start_date=date(2025, 1, 1), end_date=date(2025, 1, 31)
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
@@ -175,7 +175,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 1, 31),
             ),
             other_tenant.id,
-            created_by_id=other_user.id,
+            user_id=other_user.id,
         )
 
         mine = TimekeepingRepository.list_periods(self.tenant.id)
@@ -190,7 +190,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = TimekeepingRepository.find_period_by_name(self.tenant.id, "april 2025")
@@ -211,7 +211,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         overlap = TimekeepingRepository.find_overlapping_period(
@@ -231,7 +231,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         assert (
@@ -251,7 +251,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         result = TimekeepingRepository.find_overlapping_period(
@@ -271,7 +271,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         locked_at = datetime(2025, 5, 1, tzinfo=UTC)
 
@@ -289,7 +289,7 @@ class TimekeepingRepositoryPeriodTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.lock_period(
             period.id, self.user.id, django_timezone.now()
@@ -314,7 +314,7 @@ class TimekeepingRepositoryReportTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
     def test_create_time_report_persists(self):
@@ -322,7 +322,7 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         assert report.id is not None
@@ -335,7 +335,7 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = TimekeepingRepository.get_time_report_by_id(created.id)
@@ -351,7 +351,7 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         status = TimekeepingRepository.get_report_status(created.id)
@@ -366,7 +366,7 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = TimekeepingRepository.find_report_by_employee_and_period(
@@ -394,26 +394,26 @@ class TimekeepingRepositoryReportTests(TestCase):
                 end_date=date(2025, 5, 31),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         r1 = TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_time_report(
             employee_id=other_employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=other_period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         by_employee = TimekeepingRepository.list_time_reports(
@@ -434,13 +434,13 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         submitted_at = datetime(2025, 4, 30, 10, tzinfo=UTC)
 
         updated = TimekeepingRepository.submit_time_report(
             report.id,
-            updated_by_id=self.user.id,
+            user_id=self.user.id,
             submitted_at=submitted_at,
         )
 
@@ -451,7 +451,7 @@ class TimekeepingRepositoryReportTests(TestCase):
 
     def test_submit_time_report_returns_none_for_unknown_report(self):
         result = TimekeepingRepository.submit_time_report(
-            99999, updated_by_id=1, submitted_at=django_timezone.now()
+            99999, user_id=1, submitted_at=django_timezone.now()
         )
 
         assert result is None
@@ -461,12 +461,12 @@ class TimekeepingRepositoryReportTests(TestCase):
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         updated = TimekeepingRepository.reject_time_report(
             report.id,
-            updated_by_id=self.user.id,
+            user_id=self.user.id,
             rejection_reason="Bad data",
             rejected_at=django_timezone.now(),
         )
@@ -487,13 +487,13 @@ class TimekeepingRepositoryEntryTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         self.report = TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
     def test_create_time_entry_persists(self):
@@ -506,7 +506,7 @@ class TimekeepingRepositoryEntryTests(TestCase):
         )
 
         entry = TimekeepingRepository.create_time_entry(
-            self.report.id, entity, created_by_id=self.user.id
+            self.report.id, entity, user_id=self.user.id
         )
 
         assert entry.id is not None
@@ -517,14 +517,14 @@ class TimekeepingRepositoryEntryTests(TestCase):
     def test_create_time_entry_raises_for_non_entity(self):
         with pytest.raises(TypeError, match="Expected TimeEntryEntity"):
             TimekeepingRepository.create_time_entry(
-                self.report.id, "not-an-entity", created_by_id=self.user.id
+                self.report.id, "not-an-entity", user_id=self.user.id
             )
 
     def test_get_time_entry_by_id_returns_entry(self):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("8.00")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         found = TimekeepingRepository.get_time_entry_by_id(entry.id)
@@ -539,17 +539,17 @@ class TimekeepingRepositoryEntryTests(TestCase):
         TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 3), hours=Decimal("8")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("8")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 2), hours=Decimal("8")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         entries = TimekeepingRepository.list_time_entries(self.report.id)
@@ -564,7 +564,7 @@ class TimekeepingRepositoryEntryTests(TestCase):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         updated = TimekeepingRepository.update_time_entry(
@@ -574,7 +574,7 @@ class TimekeepingRepositoryEntryTests(TestCase):
                 hours=Decimal("8"),
                 description="Updated",
             ),
-            updated_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         assert updated.hours == Decimal("8")
@@ -585,18 +585,18 @@ class TimekeepingRepositoryEntryTests(TestCase):
         with pytest.raises(TypeError, match="Expected TimeEntryUpdateEntity"):
             TimekeepingRepository.update_time_entry("not-an-entity")
 
-    def test_delete_time_entry_returns_true_when_deleted(self):
+    def test_delete_time_entry_returns_row_count_when_deleted(self):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
-        assert TimekeepingRepository.delete_time_entry(entry.id) is True
+        assert TimekeepingRepository.delete_time_entry(entry.id) == 1
         assert TimekeepingRepository.get_time_entry_by_id(entry.id) is None
 
-    def test_delete_time_entry_returns_false_when_missing(self):
-        assert TimekeepingRepository.delete_time_entry(99999) is False
+    def test_delete_time_entry_returns_zero_when_missing(self):
+        assert TimekeepingRepository.delete_time_entry(99999) == 0
 
 
 class TimekeepingRepositoryHistoryTests(TestCase):
@@ -611,13 +611,13 @@ class TimekeepingRepositoryHistoryTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         self.report = TimekeepingRepository.create_time_report(
             employee_id=self.employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
     def test_create_status_history_persists(self):
@@ -625,7 +625,7 @@ class TimekeepingRepositoryHistoryTests(TestCase):
             report_id=self.report.id,
             from_status=TimeReportStatus.DRAFT.value,
             to_status=TimeReportStatus.SUBMITTED.value,
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
             reason="Submitting",
         )
 
@@ -639,13 +639,13 @@ class TimekeepingRepositoryHistoryTests(TestCase):
             report_id=self.report.id,
             from_status=None,
             to_status=TimeReportStatus.DRAFT.value,
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_status_history(
             report_id=self.report.id,
             from_status=TimeReportStatus.DRAFT.value,
             to_status=TimeReportStatus.SUBMITTED.value,
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         history = TimekeepingRepository.list_status_history(self.report.id)
@@ -658,7 +658,7 @@ class TimekeepingRepositoryHistoryTests(TestCase):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         history = TimekeepingRepository.create_entry_change_history(
@@ -666,7 +666,7 @@ class TimekeepingRepositoryHistoryTests(TestCase):
             field_name="hours",
             old_value="4",
             new_value="8",
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         assert history.id is not None
@@ -678,21 +678,21 @@ class TimekeepingRepositoryHistoryTests(TestCase):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
-            created_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_entry_change_history(
             entry_id=entry.id,
             field_name="hours",
             old_value="4",
             new_value="6",
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
         )
         TimekeepingRepository.create_entry_change_history(
             entry_id=entry.id,
             field_name="hours",
             old_value="6",
             new_value="8",
-            changed_by_id=self.user.id,
+            user_id=self.user.id,
         )
 
         history = TimekeepingRepository.list_entry_change_history(entry.id)

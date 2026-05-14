@@ -26,8 +26,8 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
     responses=responses_for(Conflict, UnprocessableEntity),
     status_code=status.HTTP_201_CREATED,
 )
-def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
-    return TenantOrchestrator.create(payload=payload, created_by_id=current_user.id)
+def create(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
+    return TenantOrchestrator.create(payload, current_user.id)
 
 
 @router.put(
@@ -35,12 +35,12 @@ def create_tenant(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     response_model=TenantOut,
     responses=responses_for(NotFound, Conflict, UnprocessableEntity),
 )
-def update_tenant(payload: TenantUpdate, current_user: CurrentUser) -> TenantOut:
+def update(payload: TenantUpdate, current_user: CurrentUser) -> TenantOut:
     return TenantService.update_tenant(payload, current_user.id)
 
 
 @router.get("/{tenant_id}", response_model=TenantOut, responses=responses_for(NotFound))
-def get_tenant(tenant_id: int, current_user: CurrentUser) -> TenantOut:
+def get_by_id(tenant_id: int, current_user: CurrentUser) -> TenantOut:
     return TenantService.get_by_id(tenant_id, current_user.id)
 
 

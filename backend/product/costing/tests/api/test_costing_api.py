@@ -55,7 +55,7 @@ class CostingApiTests(TestCase):
         self.user = self._authenticate_user(
             email="owner@example.com", full_name="Owner"
         )
-        self.tenant = tenants_router.create_tenant(
+        self.tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
         )
         dept = workforce_router.create_department(
@@ -238,7 +238,7 @@ class CostingApiTests(TestCase):
         other_user = self._authenticate_user(
             email="other@example.com", full_name="Other"
         )
-        other_tenant = tenants_router.create_tenant(
+        other_tenant = tenants_router.create(
             TenantIn(name="Other Corp", slug="other"), current_user=other_user
         )
         with pytest.raises(HTTPException) as exc:

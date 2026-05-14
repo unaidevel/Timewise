@@ -40,7 +40,7 @@ def make_user(email: str = "owner@example.com"):
 
 def make_tenant(user_id: int, slug: str = "acme"):
     return TenantService.create(
-        TenantEntity(name="Acme Corp", slug=slug), created_by_id=user_id
+        TenantEntity(name="Acme Corp", slug=slug), user_id=user_id
     )
 
 
@@ -80,7 +80,7 @@ def make_period(tenant_id: int, user_id: int):
             end_date=date(2025, 4, 30),
         ),
         tenant_id,
-        created_by_id=user_id,
+        user_id=user_id,
     )
 
 
@@ -91,7 +91,7 @@ def make_report_with_entry(
         employee_id=employee_id,
         period_id=period_id,
         tenant_id=tenant_id,
-        created_by_id=user_id,
+        user_id=user_id,
     )
     TimekeepingRepository.create_time_entry(
         report.id,
@@ -102,7 +102,7 @@ def make_report_with_entry(
             end_time=None,
             description="",
         ),
-        created_by_id=user_id,
+        user_id=user_id,
     )
     return report
 
