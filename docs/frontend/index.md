@@ -35,9 +35,15 @@ React + TypeScript SPA for the TimeWise platform.
 
 ## Features
 
+- **Dashboard** — entry view with quick navigation to the rest of the app
 - **Employees** — searchable table with status filter, slide-over detail sheet, and inline create form
-- **Time reports** — cross-period list with search and status filter
+- **Departments & Roles** — directory views for the organisational structure
+- **Time reports & Time tracking** — cross-period list with search and status filter; per-user logging view
+- **Periods** — period definition and lifecycle (open / closed)
 - **Approvals** — tabbed inbox (pending / approved / rejected) with inline approve and reject actions
+- **Costing & Costing rules** — cost breakdowns and editor for the rule engine
+- **Tenants & Settings** — tenant management and per-tenant preferences
+- **Auth** — login and account flows
 - **Command palette** — ⌘K / Ctrl+K global search wired to real employee data and navigation shortcuts
 - **Empty state** — reusable component with optional action slot used across all pages
 
@@ -52,9 +58,18 @@ frontend/
 │   │   └── shadcn/       # Radix-based primitives
 │   ├── features/
 │   │   ├── approvals/
+│   │   ├── auth/
+│   │   ├── costing/
+│   │   ├── costing-rules/
+│   │   ├── dashboard/
+│   │   ├── departments/
 │   │   ├── employees/
+│   │   ├── periods/
+│   │   ├── roles/
+│   │   ├── settings/
 │   │   ├── tenants/
-│   │   └── time-reports/
+│   │   ├── time-reports/
+│   │   └── time-tracking/
 │   └── test/             # MSW server + test wrapper helpers
 ├── package.json
 └── vite.config.ts

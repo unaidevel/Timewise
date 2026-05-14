@@ -59,7 +59,7 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 | `product/timekeeping` | Done | Time reports, shift entries, overtime detection, approval flow |
 | `product/costing` | Done | Configurable rule engine mapping hours to costs |
 | `product/approvals` | Done | Multi-step approval workflow with full status history |
-| `shared/audit` | Planned | Domain event sourcing for full audit trail |
+| `shared/audit` | Done | Append-only audit log with admin-only update/delete |
 
 ## Project structure
 
