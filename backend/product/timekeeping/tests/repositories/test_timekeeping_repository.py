@@ -585,18 +585,18 @@ class TimekeepingRepositoryEntryTests(TestCase):
         with pytest.raises(TypeError, match="Expected TimeEntryUpdateEntity"):
             TimekeepingRepository.update_time_entry("not-an-entity")
 
-    def test_delete_time_entry_returns_true_when_deleted(self):
+    def test_delete_time_entry_returns_row_count_when_deleted(self):
         entry = TimekeepingRepository.create_time_entry(
             self.report.id,
             TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("4")),
             user_id=self.user.id,
         )
 
-        assert TimekeepingRepository.delete_time_entry(entry.id) is True
+        assert TimekeepingRepository.delete_time_entry(entry.id) == 1
         assert TimekeepingRepository.get_time_entry_by_id(entry.id) is None
 
-    def test_delete_time_entry_returns_false_when_missing(self):
-        assert TimekeepingRepository.delete_time_entry(99999) is False
+    def test_delete_time_entry_returns_zero_when_missing(self):
+        assert TimekeepingRepository.delete_time_entry(99999) == 0
 
 
 class TimekeepingRepositoryHistoryTests(TestCase):

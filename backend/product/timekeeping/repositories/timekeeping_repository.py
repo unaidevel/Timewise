@@ -274,9 +274,9 @@ class TimekeepingRepository:
         )
 
     @staticmethod
-    def delete_time_entry(entry_id: int) -> bool:
+    def delete_time_entry(entry_id: int) -> int:
         rows, _ = TimeEntryModel.objects.filter(id=entry_id).delete()
-        return rows > 0
+        return rows
 
     @staticmethod
     def create_status_history(

@@ -111,8 +111,9 @@ class CostingRepository:
         )
 
     @staticmethod
-    def delete_conditions_for_rule(rule_id: int) -> None:
-        RuleConditionModel.objects.filter(rule_id=rule_id).delete()
+    def delete_conditions_for_rule(rule_id: int) -> int:
+        rows, _ = RuleConditionModel.objects.filter(rule_id=rule_id).delete()
+        return rows
 
     @staticmethod
     def deactivate_rule(
@@ -149,8 +150,9 @@ class CostingRepository:
         ]
 
     @staticmethod
-    def delete_calculations_for_report(report_id: int) -> None:
-        CostCalculationModel.objects.filter(time_report_id=report_id).delete()
+    def delete_calculations_for_report(report_id: int) -> int:
+        rows, _ = CostCalculationModel.objects.filter(time_report_id=report_id).delete()
+        return rows
 
     @staticmethod
     def save_calculations(

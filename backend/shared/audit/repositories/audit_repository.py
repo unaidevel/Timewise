@@ -71,6 +71,6 @@ class AuditRepository:
         )
 
     @staticmethod
-    def delete(event_id: int) -> bool:
+    def delete(event_id: int) -> int:
         rows, _ = AuditEventModel.objects.filter(id=event_id).delete()
-        return rows > 0
+        return rows
