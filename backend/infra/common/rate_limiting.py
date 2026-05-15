@@ -26,14 +26,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from fastapi.responses import JSONResponse
 from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
 
 from infra.authz.api.dependencies import _resolve_client_ip
-from infra.common.exceptions import TooManyRequests
 
 if TYPE_CHECKING:
     from fastapi import Request
-    from slowapi.errors import RateLimitExceeded
 
 
 def client_ip_key(request: Request) -> str:
@@ -56,8 +56,12 @@ limiter = Limiter(
 )
 
 
-def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> None:
-    raise TooManyRequests(f"Rate limit exceeded: {exc.detail}")
+def rate_limit_exceeded_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, RateLimitExceeded)
+    return JSONResponse(
+        status_code=429,
+        content={"detail": f"Rate limit exceeded: {exc.detail}"},
+    )
 
 
 AUTH_RATE_LIMIT = getattr(settings, "RATE_LIMIT_AUTH", "5/minute")
