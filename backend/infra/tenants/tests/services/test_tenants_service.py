@@ -95,6 +95,34 @@ class TenantServiceGetTests(TestCase):
         assert found == created
 
 
+class TenantServiceListForUserTests(TestCase):
+    def test_list_for_user_returns_tenants_user_is_member_of(self):
+        owner = make_user()
+        other = make_user("other@example.com")
+        mine = make_tenant(owner.id, slug="acme")
+        theirs = make_tenant(other.id, slug="beta")
+        TenantService.add_membership(
+            tenant_id=mine.id,
+            user_id=owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+        TenantService.add_membership(
+            tenant_id=theirs.id,
+            user_id=other.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+
+        tenants = TenantService.list_for_user(owner.id)
+
+        assert [t.slug for t in tenants] == ["acme"]
+
+    def test_list_for_user_returns_empty_when_user_has_no_memberships(self):
+        loner = make_user("loner@example.com")
+        assert TenantService.list_for_user(loner.id) == []
+
+
 class TenantServiceMemberTests(TestCase):
     def setUp(self):
         self.owner = make_user()
