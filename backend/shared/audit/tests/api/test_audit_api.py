@@ -29,7 +29,8 @@ def build_request(
 
 def authenticate(email: str, full_name: str = "User"):
     auth_router.register(
-        RegisterRequest(email=email, full_name=full_name, password="SecurePass123!")
+        RegisterRequest(email=email, full_name=full_name, password="SecurePass123!"),
+        build_request("/api/v1/auth/register"),
     )
     login_response = auth_router.login_user(
         LoginRequest(email=email, password="SecurePass123!"),

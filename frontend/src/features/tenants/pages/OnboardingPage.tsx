@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Leaf, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
 import { Label } from "@/components/shadcn/label";
 import { useAuthStore } from "@/features/auth/store";
-import { useCreateTenant } from "../hooks";
+import { useCreateTenant, useTenants } from "../hooks";
 import { useTenantStore } from "../store";
 
 export default function OnboardingPage() {
@@ -15,8 +15,16 @@ export default function OnboardingPage() {
   const create = useCreateTenant();
   const setCurrent = useTenantStore((s) => s.setCurrentTenantId);
   const user = useAuthStore((s) => s.user);
+  const { data: tenants, isPending: tenantsLoading } = useTenants();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+
+  useEffect(() => {
+    if (tenants && tenants.length > 0) {
+      setCurrent(tenants[0].id);
+      navigate("/", { replace: true });
+    }
+  }, [tenants, setCurrent, navigate]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,6 +38,14 @@ export default function OnboardingPage() {
         },
         onError: () => toast.error("No se pudo crear el workspace"),
       },
+    );
+  }
+
+  if (tenantsLoading || (tenants && tenants.length > 0)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 

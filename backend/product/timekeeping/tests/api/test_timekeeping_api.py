@@ -41,7 +41,10 @@ def build_request(
 class TimekeepingApiTests(TestCase):
     def _authenticate_user(self, *, email: str, full_name: str):
         auth_router.register(
-            RegisterRequest(email=email, full_name=full_name, password="SecurePass123!")
+            RegisterRequest(
+                email=email, full_name=full_name, password="SecurePass123!"
+            ),
+            build_request(),
         )
         login_response = auth_router.login_user(
             LoginRequest(email=email, password="SecurePass123!"),

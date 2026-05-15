@@ -70,13 +70,60 @@ def env_int(name: str, default: int, minimum: int = 0) -> int:
     return value
 
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-a9g6w35*pkp_q0%4op83%k8@zr=(_a@-ipn%5y1hwv0-(+df*n",
-)
 DEBUG = env_bool("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "*")
+_INSECURE_DEV_SECRET_KEY = (
+    "django-insecure-a9g6w35*pkp_q0%4op83%k8@zr=(_a@-ipn%5y1hwv0-(+df*n"
+)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", _INSECURE_DEV_SECRET_KEY)
+
+if not DEBUG and SECRET_KEY == _INSECURE_DEV_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is False."
+    )
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "*" if DEBUG else "")
+
+if not DEBUG and (not ALLOWED_HOSTS or ALLOWED_HOSTS == ["*"]):
+    raise ImproperlyConfigured(
+        "DJANGO_ALLOWED_HOSTS must list explicit hostnames when DJANGO_DEBUG is False."
+    )
+
+CORS_ALLOWED_ORIGINS = env_list(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000" if DEBUG else "",
+)
+CORS_ALLOWED_METHODS = env_list(
+    "CORS_ALLOWED_METHODS",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+)
+CORS_ALLOWED_HEADERS = env_list(
+    "CORS_ALLOWED_HEADERS",
+    "Accept,Accept-Language,Content-Language,Content-Type,Authorization",
+)
+
+if not DEBUG and not CORS_ALLOWED_ORIGINS:
+    raise ImproperlyConfigured(
+        "CORS_ALLOWED_ORIGINS must list explicit origins when DJANGO_DEBUG is False."
+    )
+
+RATE_LIMIT_STORAGE_URI = os.getenv("RATE_LIMIT_STORAGE_URI", "memory://")
+RATE_LIMIT_AUTH = os.getenv("RATE_LIMIT_AUTH", "5/minute")
+RATE_LIMIT_AUTHENTICATED = os.getenv("RATE_LIMIT_AUTHENTICATED", "1000/hour")
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
+    SECURE_HSTS_SECONDS = env_int("DJANGO_SECURE_HSTS_SECONDS", 31536000, minimum=0)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
+        "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", True
+    )
+    SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", True)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = "DENY"
 
 INSTALLED_APPS = [
     "config",

@@ -9,6 +9,7 @@ dependencies = [
     "django-unfold>=0.89.0",
     "fastapi>=0.135.3",
     "psycopg[binary]>=3.2.9",
+    "slowapi>=0.1.9",
     "uvicorn[standard]>=0.44.0",
     "whitenoise>=6.9.0",
 ]

@@ -47,7 +47,10 @@ def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
 class WorkforceApiTests(TestCase):
     def _authenticate_user(self, *, email: str, full_name: str):
         auth_router.register(
-            RegisterRequest(email=email, full_name=full_name, password="SecurePass123!")
+            RegisterRequest(
+                email=email, full_name=full_name, password="SecurePass123!"
+            ),
+            build_request("/api/v1/auth/register"),
         )
         login_response = auth_router.login_user(
             LoginRequest(email=email, password="SecurePass123!"),
@@ -375,7 +378,8 @@ class WorkforceApiAdditionalTests(TestCase):
                 email=email,
                 full_name=full_name,
                 password="SecurePass123!",
-            )
+            ),
+            build_request("/api/v1/auth/register"),
         )
         login_response = auth_router.login_user(
             LoginRequest(email=email, password="SecurePass123!"),

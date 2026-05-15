@@ -70,5 +70,15 @@ def get_client_context(request: Request) -> ClientContext:
     )
 
 
+def get_current_user_stamped(
+    request: Request,
+    user: AuthUser = Depends(get_current_user),
+) -> AuthUser:
+    """get_current_user + stamps user id on request.state for per-user rate limits."""
+    request.state.rate_limit_user_id = user.id
+    return user
+
+
 CurrentUser = Annotated[AuthUser, Depends(get_current_user)]
+RateLimitedUser = Annotated[AuthUser, Depends(get_current_user_stamped)]
 CurrentClient = Annotated[ClientContext, Depends(get_client_context)]
