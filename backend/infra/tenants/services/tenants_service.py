@@ -51,6 +51,10 @@ class TenantService:
         return tenant
 
     @staticmethod
+    def list_for_user(user_id: int) -> list[TenantOut]:
+        return TenantRepository.list_for_user(user_id)
+
+    @staticmethod
     def add_member(
         tenant_id: int,
         payload: AddMemberRequest,
