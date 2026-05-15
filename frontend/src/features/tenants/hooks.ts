@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TenantIn } from "@/client";
 import {
-  createTenantApiV1TenantsPost,
-  getTenantApiV1TenantsTenantIdGet,
+  createApiV1TenantsPost,
+  getByIdApiV1TenantsTenantIdGet,
+  listForUserApiV1TenantsGet,
   listMembersApiV1TenantsTenantIdMembersGet,
-  listTenantsApiV1TenantsGet,
 } from "@/client";
 import { useTenantStore } from "./store";
 
@@ -12,7 +12,7 @@ export function useTenants() {
   return useQuery({
     queryKey: ["tenants"],
     queryFn: async () => {
-      const { data, error } = await listTenantsApiV1TenantsGet({});
+      const { data, error } = await listForUserApiV1TenantsGet({});
       if (error || !data) throw error;
       return data;
     },
@@ -24,7 +24,7 @@ export function useTenant(tenantId: number | null) {
     queryKey: ["tenants", tenantId],
     enabled: tenantId != null,
     queryFn: async () => {
-      const { data, error } = await getTenantApiV1TenantsTenantIdGet({
+      const { data, error } = await getByIdApiV1TenantsTenantIdGet({
         path: { tenant_id: tenantId! },
       });
       if (error || !data) throw error;
@@ -37,7 +37,7 @@ export function useCreateTenant() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (body: TenantIn) => {
-      const { data, error } = await createTenantApiV1TenantsPost({ body });
+      const { data, error } = await createApiV1TenantsPost({ body });
       if (error || !data) throw error;
       return data;
     },
