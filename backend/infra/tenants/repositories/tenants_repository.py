@@ -45,6 +45,18 @@ class TenantRepository:
         return TenantOut.model_validate(model) if model else None
 
     @staticmethod
+    def list_for_user(user_id: int) -> list[TenantOut]:
+        return [
+            TenantOut.model_validate(t)
+            for t in TenantModel.objects.filter(
+                memberships__user_id=user_id,
+                memberships__left_at__isnull=True,
+            )
+            .distinct()
+            .order_by("name")
+        ]
+
+    @staticmethod
     def add_membership(
         tenant_id: int,
         user_id: int,

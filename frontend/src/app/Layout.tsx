@@ -11,6 +11,7 @@ import {
   Leaf,
   LogOut,
   Moon,
+  ScrollText,
   Search,
   Settings,
   Sun,
@@ -56,6 +57,7 @@ const nav: NavItem[] = [
   { to: "/approvals", label: "Aprobaciones", icon: CheckSquare },
   { to: "/costing-rules", label: "Reglas de coste", icon: Calculator },
   { to: "/costing", label: "Costing", icon: Calculator },
+  { to: "/audit", label: "Auditoría", icon: ScrollText },
   { to: "/settings", label: "Ajustes", icon: Settings },
 ];
 

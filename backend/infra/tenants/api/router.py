@@ -30,6 +30,11 @@ def create(payload: TenantIn, current_user: CurrentUser) -> TenantOut:
     return TenantOrchestrator.create(payload, current_user.id)
 
 
+@router.get("", response_model=list[TenantOut])
+def list_for_user(current_user: CurrentUser) -> list[TenantOut]:
+    return TenantService.list_for_user(current_user.id)
+
+
 @router.put(
     "",
     response_model=TenantOut,

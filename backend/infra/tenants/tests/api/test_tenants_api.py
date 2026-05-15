@@ -93,6 +93,36 @@ class TenantsApiTests(TestCase):
         assert exc.value.status_code == 422
         assert exc.value.detail == "Tenant name cannot be blank."
 
+    def test_list_for_user_returns_only_caller_tenants(self):
+        owner_user = self._authenticate_user(
+            email="owner@example.com",
+            full_name="Owner User",
+        )
+        other_user = self._authenticate_user(
+            email="other@example.com",
+            full_name="Other User",
+        )
+        tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner_user,
+        )
+        tenants_router.create(
+            TenantIn(name="Beta Corp", slug="beta"),
+            current_user=other_user,
+        )
+
+        tenants = tenants_router.list_for_user(owner_user)
+
+        assert [t.slug for t in tenants] == ["acme"]
+
+    def test_list_for_user_returns_empty_when_user_has_no_tenants(self):
+        current_user = self._authenticate_user(
+            email="loner@example.com",
+            full_name="Loner User",
+        )
+
+        assert tenants_router.list_for_user(current_user) == []
+
     def test_get_tenant_returns_tenant(self):
         current_user = self._authenticate_user(
             email="owner@example.com",

@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import ApprovalsPage from "@/features/approvals/pages/ApprovalsPage";
+import AuditPage from "@/features/audit/pages/AuditPage";
 import { AuthGuard } from "@/features/auth/AuthGuard";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
           { path: "/costing", element: <CostingPage /> },
           { path: "/settings", element: <SettingsPage /> },
           { path: "/time", element: <TimePage /> },
+          { path: "/audit", element: <AuditPage /> },
         ],
       },
     ],

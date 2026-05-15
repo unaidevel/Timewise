@@ -137,6 +137,96 @@ export type AssignRoleRequest = {
 };
 
 /**
+ * AuditEventIn
+ */
+export type AuditEventIn = {
+    /**
+     * Action
+     */
+    action: string;
+    /**
+     * Resource Type
+     */
+    resource_type: string;
+    /**
+     * Outcome
+     */
+    outcome: string;
+    /**
+     * Resource Id
+     */
+    resource_id?: number | null;
+    /**
+     * Metadata
+     */
+    metadata?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Notes
+     */
+    notes?: string;
+};
+
+/**
+ * AuditEventOut
+ */
+export type AuditEventOut = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Tenant Id
+     */
+    tenant_id: number;
+    /**
+     * Actor Id
+     */
+    actor_id: number;
+    /**
+     * Action
+     */
+    action: string;
+    /**
+     * Outcome
+     */
+    outcome: string;
+    /**
+     * Resource Type
+     */
+    resource_type: string;
+    /**
+     * Resource Id
+     */
+    resource_id: number | null;
+    /**
+     * Metadata
+     */
+    metadata: {
+        [key: string]: unknown;
+    };
+    /**
+     * Notes
+     */
+    notes: string;
+    /**
+     * Occurred At
+     */
+    occurred_at: string;
+};
+
+/**
+ * AuditEventUpdate
+ */
+export type AuditEventUpdate = {
+    /**
+     * Notes
+     */
+    notes?: string;
+};
+
+/**
  * DepartmentIn
  */
 export type DepartmentIn = {
@@ -594,19 +684,19 @@ export type OvertimeRuleUpdate = {
     /**
      * Name
      */
-    name?: string | null;
+    name: string;
     /**
      * Multiplier
      */
-    multiplier?: number | string | null;
+    multiplier: number | string;
     /**
      * Priority
      */
-    priority?: number | null;
+    priority: number;
     /**
      * Conditions
      */
-    conditions?: Array<RuleConditionIn> | null;
+    conditions: Array<RuleConditionIn>;
 };
 
 /**
@@ -960,6 +1050,28 @@ export type TenantOut = {
 };
 
 /**
+ * TenantUpdate
+ */
+export type TenantUpdate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Slug
+     */
+    slug: string;
+    /**
+     * Tenant Id
+     */
+    tenant_id: number;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+};
+
+/**
  * TimeEntryIn
  */
 export type TimeEntryIn = {
@@ -1042,7 +1154,7 @@ export type TimeEntryUpdate = {
     /**
      * Date
      */
-    date_?: string | null;
+    date: string;
     /**
      * Hours
      */
@@ -1224,26 +1336,6 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
-
-export type HealthcheckHealthGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/health';
-};
-
-export type HealthcheckHealthGetResponses = {
-    /**
-     * Response Healthcheck Health Get
-     *
-     * Successful Response
-     */
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type HealthcheckHealthGetResponse = HealthcheckHealthGetResponses[keyof HealthcheckHealthGetResponses];
 
 export type SubmitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPostData = {
     body?: never;
@@ -3402,6 +3494,10 @@ export type RegisterApiV1AuthRegisterPostErrors = {
      * Unprocessable Entity
      */
     422: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
 };
 
 export type RegisterApiV1AuthRegisterPostResponses = {
@@ -3451,6 +3547,17 @@ export type GetMeApiV1AuthMeGetData = {
     url: '/api/v1/auth/me';
 };
 
+export type GetMeApiV1AuthMeGetErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
 export type GetMeApiV1AuthMeGetResponses = {
     /**
      * Successful Response
@@ -3476,6 +3583,10 @@ export type RefreshTokenApiV1AuthRefreshPostErrors = {
      * Validation Error
      */
     422: HttpValidationError;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
 };
 
 export type RefreshTokenApiV1AuthRefreshPostError = RefreshTokenApiV1AuthRefreshPostErrors[keyof RefreshTokenApiV1AuthRefreshPostErrors];
@@ -3505,32 +3616,32 @@ export type LogoutUserApiV1AuthLogoutPostResponses = {
 
 export type LogoutUserApiV1AuthLogoutPostResponse = LogoutUserApiV1AuthLogoutPostResponses[keyof LogoutUserApiV1AuthLogoutPostResponses];
 
-export type ListTenantsApiV1TenantsGetData = {
+export type ListForUserApiV1TenantsGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/v1/tenants';
 };
 
-export type ListTenantsApiV1TenantsGetResponses = {
+export type ListForUserApiV1TenantsGetResponses = {
     /**
-     * Response List Tenants Api V1 Tenants Get
+     * Response List For User Api V1 Tenants Get
      *
      * Successful Response
      */
     200: Array<TenantOut>;
 };
 
-export type ListTenantsApiV1TenantsGetResponse = ListTenantsApiV1TenantsGetResponses[keyof ListTenantsApiV1TenantsGetResponses];
+export type ListForUserApiV1TenantsGetResponse = ListForUserApiV1TenantsGetResponses[keyof ListForUserApiV1TenantsGetResponses];
 
-export type CreateTenantApiV1TenantsPostData = {
+export type CreateApiV1TenantsPostData = {
     body: TenantIn;
     path?: never;
     query?: never;
     url: '/api/v1/tenants';
 };
 
-export type CreateTenantApiV1TenantsPostErrors = {
+export type CreateApiV1TenantsPostErrors = {
     /**
      * Conflict
      */
@@ -3541,16 +3652,47 @@ export type CreateTenantApiV1TenantsPostErrors = {
     422: unknown;
 };
 
-export type CreateTenantApiV1TenantsPostResponses = {
+export type CreateApiV1TenantsPostResponses = {
     /**
      * Successful Response
      */
     201: TenantOut;
 };
 
-export type CreateTenantApiV1TenantsPostResponse = CreateTenantApiV1TenantsPostResponses[keyof CreateTenantApiV1TenantsPostResponses];
+export type CreateApiV1TenantsPostResponse = CreateApiV1TenantsPostResponses[keyof CreateApiV1TenantsPostResponses];
 
-export type GetTenantApiV1TenantsTenantIdGetData = {
+export type UpdateApiV1TenantsPutData = {
+    body: TenantUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tenants';
+};
+
+export type UpdateApiV1TenantsPutErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Conflict
+     */
+    409: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+};
+
+export type UpdateApiV1TenantsPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: TenantOut;
+};
+
+export type UpdateApiV1TenantsPutResponse = UpdateApiV1TenantsPutResponses[keyof UpdateApiV1TenantsPutResponses];
+
+export type GetByIdApiV1TenantsTenantIdGetData = {
     body?: never;
     path: {
         /**
@@ -3562,7 +3704,7 @@ export type GetTenantApiV1TenantsTenantIdGetData = {
     url: '/api/v1/tenants/{tenant_id}';
 };
 
-export type GetTenantApiV1TenantsTenantIdGetErrors = {
+export type GetByIdApiV1TenantsTenantIdGetErrors = {
     /**
      * Not Found
      */
@@ -3573,16 +3715,16 @@ export type GetTenantApiV1TenantsTenantIdGetErrors = {
     422: HttpValidationError;
 };
 
-export type GetTenantApiV1TenantsTenantIdGetError = GetTenantApiV1TenantsTenantIdGetErrors[keyof GetTenantApiV1TenantsTenantIdGetErrors];
+export type GetByIdApiV1TenantsTenantIdGetError = GetByIdApiV1TenantsTenantIdGetErrors[keyof GetByIdApiV1TenantsTenantIdGetErrors];
 
-export type GetTenantApiV1TenantsTenantIdGetResponses = {
+export type GetByIdApiV1TenantsTenantIdGetResponses = {
     /**
      * Successful Response
      */
     200: TenantOut;
 };
 
-export type GetTenantApiV1TenantsTenantIdGetResponse = GetTenantApiV1TenantsTenantIdGetResponses[keyof GetTenantApiV1TenantsTenantIdGetResponses];
+export type GetByIdApiV1TenantsTenantIdGetResponse = GetByIdApiV1TenantsTenantIdGetResponses[keyof GetByIdApiV1TenantsTenantIdGetResponses];
 
 export type ListMembersApiV1TenantsTenantIdMembersGetData = {
     body?: never;
@@ -3698,3 +3840,208 @@ export type RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses =
 };
 
 export type RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponse = RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses[keyof RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses];
+
+export type ListEventsApiV1TenantsTenantIdAuditEventsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+    };
+    query?: {
+        /**
+         * Action
+         */
+        action?: string | null;
+        /**
+         * Resource Type
+         */
+        resource_type?: string | null;
+        /**
+         * Resource Id
+         */
+        resource_id?: number | null;
+        /**
+         * Actor Id
+         */
+        actor_id?: number | null;
+        /**
+         * Outcome
+         */
+        outcome?: string | null;
+    };
+    url: '/api/v1/tenants/{tenant_id}/audit-events';
+};
+
+export type ListEventsApiV1TenantsTenantIdAuditEventsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEventsApiV1TenantsTenantIdAuditEventsGetError = ListEventsApiV1TenantsTenantIdAuditEventsGetErrors[keyof ListEventsApiV1TenantsTenantIdAuditEventsGetErrors];
+
+export type ListEventsApiV1TenantsTenantIdAuditEventsGetResponses = {
+    /**
+     * Response List Events Api V1 Tenants  Tenant Id  Audit Events Get
+     *
+     * Successful Response
+     */
+    200: Array<AuditEventOut>;
+};
+
+export type ListEventsApiV1TenantsTenantIdAuditEventsGetResponse = ListEventsApiV1TenantsTenantIdAuditEventsGetResponses[keyof ListEventsApiV1TenantsTenantIdAuditEventsGetResponses];
+
+export type RecordEventApiV1TenantsTenantIdAuditEventsPostData = {
+    body: AuditEventIn;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/audit-events';
+};
+
+export type RecordEventApiV1TenantsTenantIdAuditEventsPostErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+};
+
+export type RecordEventApiV1TenantsTenantIdAuditEventsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: AuditEventOut;
+};
+
+export type RecordEventApiV1TenantsTenantIdAuditEventsPostResponse = RecordEventApiV1TenantsTenantIdAuditEventsPostResponses[keyof RecordEventApiV1TenantsTenantIdAuditEventsPostResponses];
+
+export type DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/audit-events/{event_id}';
+};
+
+export type DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteError = DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteErrors[keyof DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteErrors];
+
+export type DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteResponse = DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteResponses[keyof DeleteEventApiV1TenantsTenantIdAuditEventsEventIdDeleteResponses];
+
+export type GetEventApiV1TenantsTenantIdAuditEventsEventIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/audit-events/{event_id}';
+};
+
+export type GetEventApiV1TenantsTenantIdAuditEventsEventIdGetErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEventApiV1TenantsTenantIdAuditEventsEventIdGetError = GetEventApiV1TenantsTenantIdAuditEventsEventIdGetErrors[keyof GetEventApiV1TenantsTenantIdAuditEventsEventIdGetErrors];
+
+export type GetEventApiV1TenantsTenantIdAuditEventsEventIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: AuditEventOut;
+};
+
+export type GetEventApiV1TenantsTenantIdAuditEventsEventIdGetResponse = GetEventApiV1TenantsTenantIdAuditEventsEventIdGetResponses[keyof GetEventApiV1TenantsTenantIdAuditEventsEventIdGetResponses];
+
+export type UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutData = {
+    body: AuditEventUpdate;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+        /**
+         * Event Id
+         */
+        event_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/audit-events/{event_id}';
+};
+
+export type UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+};
+
+export type UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: AuditEventOut;
+};
+
+export type UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutResponse = UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutResponses[keyof UpdateEventApiV1TenantsTenantIdAuditEventsEventIdPutResponses];

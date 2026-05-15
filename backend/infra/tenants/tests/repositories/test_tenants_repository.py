@@ -203,6 +203,66 @@ class TenantRepositoryTests(TestCase):
         assert removed.left_at is not None
         assert removed.left_reason == "Resigned"
 
+    def test_list_for_user_returns_tenants_where_user_is_active_member(self):
+        owner = make_user()
+        other = make_user("other@example.com")
+        first = TenantRepository.create(
+            TenantEntity(name="Beta Corp", slug="beta"),
+            user_id=owner.id,
+        )
+        second = TenantRepository.create(
+            TenantEntity(name="Acme Corp", slug="acme"),
+            user_id=owner.id,
+        )
+        third = TenantRepository.create(
+            TenantEntity(name="Gamma Corp", slug="gamma"),
+            user_id=other.id,
+        )
+        TenantRepository.add_membership(
+            tenant_id=first.id,
+            user_id=owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+        TenantRepository.add_membership(
+            tenant_id=second.id,
+            user_id=owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.EMPLOYEE.value),
+            invited_by_id=None,
+        )
+        TenantRepository.add_membership(
+            tenant_id=third.id,
+            user_id=other.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+
+        tenants = TenantRepository.list_for_user(owner.id)
+
+        assert [t.slug for t in tenants] == ["acme", "beta"]
+
+    def test_list_for_user_excludes_left_memberships(self):
+        owner = make_user()
+        tenant = TenantRepository.create(
+            TenantEntity(name="Acme Corp", slug="acme"),
+            user_id=owner.id,
+        )
+        membership = TenantRepository.add_membership(
+            tenant_id=tenant.id,
+            user_id=owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+        TenantRepository.remove_membership(
+            membership.id, "left", left_at=timezone.now()
+        )
+
+        assert TenantRepository.list_for_user(owner.id) == []
+
+    def test_list_for_user_returns_empty_for_user_without_memberships(self):
+        loner = make_user("loner@example.com")
+        assert TenantRepository.list_for_user(loner.id) == []
+
     def test_remove_membership_returns_none_for_missing_or_inactive_membership(self):
         owner = make_user()
         member = make_user("member@example.com")

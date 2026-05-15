@@ -428,11 +428,11 @@ function ReportEditor({
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, hours }: { id: number; hours: number }) => {
+    mutationFn: async ({ id, date, hours }: { id: number; date: string; hours: number }) => {
       const { data, error } =
         await updateTimeEntryApiV1TenantsTenantIdReportsReportIdEntriesEntryIdPut({
           path: { tenant_id: tenantId, report_id: report.id, entry_id: id },
-          body: { hours },
+          body: { date, hours },
         });
       if (error || !data) throw error;
       return data;
@@ -497,7 +497,7 @@ function ReportEditor({
       if (hours === 0) {
         deleteEntry.mutate(existing.id);
       } else {
-        updateEntry.mutate({ id: existing.id, hours });
+        updateEntry.mutate({ id: existing.id, date, hours });
       }
     } else if (hours > 0) {
       createEntry.mutate({ date, hours });

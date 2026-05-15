@@ -140,7 +140,15 @@ describe("useUpdateOvertimeRule", () => {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate({ id: mockRule.id, body: { name: "Updated name", multiplier: "2.00" } });
+    result.current.mutate({
+      id: mockRule.id,
+      body: {
+        name: "Updated name",
+        multiplier: "2.00",
+        priority: 1,
+        conditions: [{ condition_type: "hours_per_day", value: "8" }],
+      },
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.name).toBe("Updated name");
