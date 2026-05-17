@@ -1,6 +1,6 @@
 export default {
   extends: ["@commitlint/config-conventional"],
   prompt: {
-    scopes: ["TMW-0012"],   // Include project scopes
+    scopes: ["TMW-0014"],   // Include project scopes
   },
 };
