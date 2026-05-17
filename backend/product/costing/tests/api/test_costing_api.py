@@ -59,13 +59,21 @@ class CostingApiTests(TestCase):
             email="owner@example.com", full_name="Owner"
         )
         self.tenant = tenants_router.create(
-            TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=self.user,
+            request=build_request(),
         )
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
         self.employee = workforce_router.create_employee(
             self.tenant.id,
@@ -79,6 +87,7 @@ class CostingApiTests(TestCase):
                 hired_at=date(2024, 1, 1),
             ),
             self.user,
+            request=build_request(),
         )
 
     def _make_rule_payload(self, name: str = "Weekend rule") -> OvertimeRuleIn:
@@ -96,22 +105,30 @@ class CostingApiTests(TestCase):
                 name="Q1 2025", start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user,
+            request=build_request(),
         )
         report = timekeeping_router.create_time_report(
             self.tenant.id,
             period.id,
             TimeReportIn(employee_id=self.employee.id),
             self.user,
+            request=build_request(),
         )
         timekeeping_router.create_time_entry(
             self.tenant.id,
             report.id,
             TimeEntryIn(date=date(2025, 1, 6), hours=Decimal("8.00")),
             self.user,
+            request=build_request(),
         )
-        timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+        timekeeping_router.submit_time_report(
+            self.tenant.id, report.id, self.user, request=build_request()
+        )
         return timekeeping_router.approve_time_report(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
 
     # --- Auth ---
@@ -125,7 +142,10 @@ class CostingApiTests(TestCase):
 
     def test_create_rule_returns_rule_for_admin(self):
         rule = costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload(), self.user
+            self.tenant.id,
+            self._make_rule_payload(),
+            self.user,
+            request=build_request(),
         )
         assert rule.name == "Weekend rule"
         assert rule.multiplier == Decimal("1.50")
@@ -145,52 +165,85 @@ class CostingApiTests(TestCase):
         )
         with pytest.raises(HTTPException) as exc:
             costing_router.create_rule(
-                self.tenant.id, self._make_rule_payload(), employee_user
+                self.tenant.id,
+                self._make_rule_payload(),
+                employee_user,
+                request=build_request(),
             )
         assert exc.value.status_code == 403
 
     def test_create_rule_raises_409_on_duplicate_name(self):
         costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload("Overtime"), self.user
+            self.tenant.id,
+            self._make_rule_payload("Overtime"),
+            self.user,
+            request=build_request(),
         )
         with pytest.raises(HTTPException) as exc:
             costing_router.create_rule(
-                self.tenant.id, self._make_rule_payload("Overtime"), self.user
+                self.tenant.id,
+                self._make_rule_payload("Overtime"),
+                self.user,
+                request=build_request(),
             )
         assert exc.value.status_code == 409
 
     def test_list_rules_returns_all_tenant_rules(self):
         costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload("Rule A"), self.user
+            self.tenant.id,
+            self._make_rule_payload("Rule A"),
+            self.user,
+            request=build_request(),
         )
         costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload("Rule B"), self.user
+            self.tenant.id,
+            self._make_rule_payload("Rule B"),
+            self.user,
+            request=build_request(),
         )
-        rules = costing_router.list_rules(self.tenant.id, self.user)
+        rules = costing_router.list_rules(
+            self.tenant.id, self.user, request=build_request()
+        )
         assert len(rules) == 2
 
     def test_list_rules_active_only_filter(self):
         rule = costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload(), self.user
+            self.tenant.id,
+            self._make_rule_payload(),
+            self.user,
+            request=build_request(),
         )
-        costing_router.deactivate_rule(self.tenant.id, rule.id, self.user)
+        costing_router.deactivate_rule(
+            self.tenant.id, rule.id, self.user, request=build_request()
+        )
         all_rules = costing_router.list_rules(
-            self.tenant.id, self.user, active_only=False
+            self.tenant.id,
+            self.user,
+            active_only=False,
+            request=build_request(),
         )
         active_rules = costing_router.list_rules(
-            self.tenant.id, self.user, active_only=True
+            self.tenant.id,
+            self.user,
+            active_only=True,
+            request=build_request(),
         )
         assert len(all_rules) == 1
         assert len(active_rules) == 0
 
     def test_get_rule_raises_404_for_missing_rule(self):
         with pytest.raises(HTTPException) as exc:
-            costing_router.get_rule(self.tenant.id, 99999, self.user)
+            costing_router.get_rule(
+                self.tenant.id, 99999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_update_rule_changes_name_and_conditions(self):
         rule = costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload(), self.user
+            self.tenant.id,
+            self._make_rule_payload(),
+            self.user,
+            request=build_request(),
         )
         updated = costing_router.update_rule(
             self.tenant.id,
@@ -202,24 +255,37 @@ class CostingApiTests(TestCase):
                 conditions=[{"condition_type": "is_holiday", "value": "true"}],
             ),
             self.user,
+            request=build_request(),
         )
         assert updated.name == "Holiday rule"
         assert updated.conditions[0].condition_type == "is_holiday"
 
     def test_deactivate_rule_returns_rule_with_is_active_false(self):
         rule = costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload(), self.user
+            self.tenant.id,
+            self._make_rule_payload(),
+            self.user,
+            request=build_request(),
         )
-        deactivated = costing_router.deactivate_rule(self.tenant.id, rule.id, self.user)
+        deactivated = costing_router.deactivate_rule(
+            self.tenant.id, rule.id, self.user, request=build_request()
+        )
         assert deactivated.is_active is False
 
     def test_deactivate_already_inactive_rule_raises_409(self):
         rule = costing_router.create_rule(
-            self.tenant.id, self._make_rule_payload(), self.user
+            self.tenant.id,
+            self._make_rule_payload(),
+            self.user,
+            request=build_request(),
         )
-        costing_router.deactivate_rule(self.tenant.id, rule.id, self.user)
+        costing_router.deactivate_rule(
+            self.tenant.id, rule.id, self.user, request=build_request()
+        )
         with pytest.raises(HTTPException) as exc:
-            costing_router.deactivate_rule(self.tenant.id, rule.id, self.user)
+            costing_router.deactivate_rule(
+                self.tenant.id, rule.id, self.user, request=build_request()
+            )
         assert exc.value.status_code == 409
 
     # --- Calculations ---
@@ -227,7 +293,10 @@ class CostingApiTests(TestCase):
     def test_calculate_report_returns_summary(self):
         approved = self._create_approved_report()
         summary = costing_router.calculate_report_cost(
-            self.tenant.id, approved.id, self.user
+            self.tenant.id,
+            approved.id,
+            self.user,
+            request=build_request(),
         )
         assert summary.time_report_id == approved.id
         assert summary.employee_id == self.employee.id
@@ -242,24 +311,36 @@ class CostingApiTests(TestCase):
             email="other@example.com", full_name="Other"
         )
         other_tenant = tenants_router.create(
-            TenantIn(name="Other Corp", slug="other"), current_user=other_user
+            TenantIn(name="Other Corp", slug="other"),
+            current_user=other_user,
+            request=build_request(),
         )
         with pytest.raises(HTTPException) as exc:
             costing_router.calculate_report_cost(
-                other_tenant.id, approved.id, other_user
+                other_tenant.id,
+                approved.id,
+                other_user,
+                request=build_request(),
             )
         assert exc.value.status_code == 404
 
     def test_list_calculations_returns_stored_breakdowns(self):
         approved = self._create_approved_report()
-        costing_router.calculate_report_cost(self.tenant.id, approved.id, self.user)
+        costing_router.calculate_report_cost(
+            self.tenant.id, approved.id, self.user, request=build_request()
+        )
         calculations = costing_router.list_report_calculations(
-            self.tenant.id, approved.id, self.user
+            self.tenant.id,
+            approved.id,
+            self.user,
+            request=build_request(),
         )
         assert len(calculations) == 1
         assert calculations[0].time_entry_id is not None
 
     def test_list_calculations_raises_404_for_missing_report(self):
         with pytest.raises(HTTPException) as exc:
-            costing_router.list_report_calculations(self.tenant.id, 99999, self.user)
+            costing_router.list_report_calculations(
+                self.tenant.id, 99999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404

@@ -12,7 +12,9 @@ from infra.tenants.api import router as tenants_router
 from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn
 
 
-def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
+def build_request(
+    path: str = "/api/v1/auth/login", client_host: str = "127.0.0.1"
+) -> Request:
     return Request(
         {
             "type": "http",
@@ -53,6 +55,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="  Acme Corp  ", slug="  Acme-Corp  "),
             current_user=current_user,
+            request=build_request(),
         )
 
         assert tenant.name == "Acme Corp"
@@ -67,12 +70,14 @@ class TenantsApiTests(TestCase):
         tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=current_user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             tenants_router.create(
                 TenantIn(name="Another Acme", slug="  ACME  "),
                 current_user=current_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
@@ -88,6 +93,7 @@ class TenantsApiTests(TestCase):
             tenants_router.create(
                 TenantIn(name="   ", slug="acme"),
                 current_user=current_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 422
@@ -105,13 +111,15 @@ class TenantsApiTests(TestCase):
         tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
         tenants_router.create(
             TenantIn(name="Beta Corp", slug="beta"),
             current_user=other_user,
+            request=build_request(),
         )
 
-        tenants = tenants_router.list_for_user(owner_user)
+        tenants = tenants_router.list_for_user(owner_user, request=build_request())
 
         assert [t.slug for t in tenants] == ["acme"]
 
@@ -121,7 +129,7 @@ class TenantsApiTests(TestCase):
             full_name="Loner User",
         )
 
-        assert tenants_router.list_for_user(current_user) == []
+        assert tenants_router.list_for_user(current_user, request=build_request()) == []
 
     def test_get_tenant_returns_tenant(self):
         current_user = self._authenticate_user(
@@ -131,9 +139,12 @@ class TenantsApiTests(TestCase):
         created = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=current_user,
+            request=build_request(),
         )
 
-        tenant = tenants_router.get_by_id(created.id, current_user)
+        tenant = tenants_router.get_by_id(
+            created.id, current_user, request=build_request()
+        )
 
         assert tenant.id == created.id
         assert tenant.slug == "acme"
@@ -150,6 +161,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
 
         membership = tenants_router.add_member(
@@ -159,6 +171,7 @@ class TenantsApiTests(TestCase):
                 role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
+            request=build_request(),
         )
 
         assert membership.tenant_id == tenant.id
@@ -184,6 +197,7 @@ class TenantsApiTests(TestCase):
                     role=MembershipRoles.EMPLOYEE.value,
                 ),
                 current_user=owner_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -201,6 +215,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
         tenants_router.add_member(
             tenant_id=tenant.id,
@@ -209,6 +224,7 @@ class TenantsApiTests(TestCase):
                 role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
@@ -219,6 +235,7 @@ class TenantsApiTests(TestCase):
                     role=MembershipRoles.ADMIN.value,
                 ),
                 current_user=owner_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
@@ -236,6 +253,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
         payload = AddMemberRequest.model_construct(
             user_id=member_user.id,
@@ -247,6 +265,7 @@ class TenantsApiTests(TestCase):
                 tenant_id=tenant.id,
                 payload=payload,
                 current_user=owner_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 422
@@ -264,6 +283,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
         tenants_router.add_member(
             tenant_id=tenant.id,
@@ -272,9 +292,12 @@ class TenantsApiTests(TestCase):
                 role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
+            request=build_request(),
         )
 
-        memberships = tenants_router.list_members(tenant.id, owner_user)
+        memberships = tenants_router.list_members(
+            tenant.id, owner_user, request=build_request()
+        )
 
         assert len(memberships) == 2
         assert [membership.user_id for membership in memberships] == [
@@ -289,7 +312,7 @@ class TenantsApiTests(TestCase):
         )
 
         with pytest.raises(HTTPException) as exc:
-            tenants_router.list_members(999, current_user)
+            tenants_router.list_members(999, current_user, request=build_request())
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Tenant 999 not found."
@@ -306,6 +329,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
         membership = tenants_router.add_member(
             tenant_id=tenant.id,
@@ -314,12 +338,14 @@ class TenantsApiTests(TestCase):
                 role=MembershipRoles.EMPLOYEE.value,
             ),
             current_user=owner_user,
+            request=build_request(),
         )
 
         removed = tenants_router.remove_member(
             tenant_id=tenant.id,
             membership_id=membership.id,
             _=owner_user,
+            request=build_request(),
         )
 
         assert removed.id == membership.id
@@ -337,6 +363,7 @@ class TenantsApiTests(TestCase):
                 tenant_id=999,
                 membership_id=1,
                 _=current_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -350,6 +377,7 @@ class TenantsApiTests(TestCase):
         tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=owner_user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
@@ -357,6 +385,7 @@ class TenantsApiTests(TestCase):
                 tenant_id=tenant.id,
                 membership_id=999,
                 _=owner_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404

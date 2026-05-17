@@ -60,13 +60,21 @@ class TimekeepingApiTests(TestCase):
             email="owner@example.com", full_name="Owner"
         )
         self.tenant = tenants_router.create(
-            TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=self.user,
+            request=build_request(),
         )
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
         self.employee = workforce_router.create_employee(
             self.tenant.id,
@@ -80,6 +88,7 @@ class TimekeepingApiTests(TestCase):
                 hired_at=date(2024, 1, 1),
             ),
             self.user,
+            request=build_request(),
         )
 
     def _create_period(self, name: str = "Q1 2025"):
@@ -89,6 +98,7 @@ class TimekeepingApiTests(TestCase):
                 name=name, start_date=date(2025, 1, 1), end_date=date(2025, 3, 31)
             ),
             self.user,
+            request=build_request(),
         )
 
     def _create_report(self, period_id: int):
@@ -97,6 +107,7 @@ class TimekeepingApiTests(TestCase):
             period_id,
             TimeReportIn(employee_id=self.employee.id),
             self.user,
+            request=build_request(),
         )
 
     def _add_entry(self, report_id: int):
@@ -105,6 +116,7 @@ class TimekeepingApiTests(TestCase):
             report_id,
             TimeEntryIn(date=date(2025, 1, 15), hours=Decimal("8")),
             self.user,
+            request=build_request(),
         )
 
     # --- Periods ---
@@ -128,25 +140,36 @@ class TimekeepingApiTests(TestCase):
                 name="Q2 2025", start_date=date(2025, 4, 1), end_date=date(2025, 6, 30)
             ),
             self.user,
+            request=build_request(),
         )
-        periods = timekeeping_router.list_periods(self.tenant.id, self.user, None)
+        periods = timekeeping_router.list_periods(
+            self.tenant.id, self.user, request=build_request(), status=None
+        )
         assert len(periods) == 2
 
     def test_get_period_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            timekeeping_router.get_period(self.tenant.id, 99999, self.user)
+            timekeeping_router.get_period(
+                self.tenant.id, 99999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_lock_period_changes_status(self):
         period = self._create_period()
-        locked = timekeeping_router.lock_period(self.tenant.id, period.id, self.user)
+        locked = timekeeping_router.lock_period(
+            self.tenant.id, period.id, self.user, request=build_request()
+        )
         assert locked.status == "locked"
 
     def test_lock_period_returns_409_if_already_locked(self):
         period = self._create_period()
-        timekeeping_router.lock_period(self.tenant.id, period.id, self.user)
+        timekeeping_router.lock_period(
+            self.tenant.id, period.id, self.user, request=build_request()
+        )
         with pytest.raises(HTTPException) as exc:
-            timekeeping_router.lock_period(self.tenant.id, period.id, self.user)
+            timekeeping_router.lock_period(
+                self.tenant.id, period.id, self.user, request=build_request()
+            )
         assert exc.value.status_code == 409
 
     # --- Time Reports ---
@@ -168,13 +191,18 @@ class TimekeepingApiTests(TestCase):
         period = self._create_period()
         self._create_report(period.id)
         reports = timekeeping_router.list_time_reports_for_period(
-            self.tenant.id, period.id, self.user
+            self.tenant.id,
+            period.id,
+            self.user,
+            request=build_request(),
         )
         assert len(reports) == 1
 
     def test_get_time_report_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            timekeeping_router.get_time_report(self.tenant.id, 99999, self.user)
+            timekeeping_router.get_time_report(
+                self.tenant.id, 99999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_submit_time_report_changes_status(self):
@@ -182,7 +210,10 @@ class TimekeepingApiTests(TestCase):
         report = self._create_report(period.id)
         self._add_entry(report.id)
         submitted = timekeeping_router.submit_time_report(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
         assert submitted.status == "submitted"
 
@@ -190,16 +221,23 @@ class TimekeepingApiTests(TestCase):
         period = self._create_period()
         report = self._create_report(period.id)
         with pytest.raises(HTTPException) as exc:
-            timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+            timekeeping_router.submit_time_report(
+                self.tenant.id, report.id, self.user, request=build_request()
+            )
         assert exc.value.status_code == 422
 
     def test_approve_time_report(self):
         period = self._create_period()
         report = self._create_report(period.id)
         self._add_entry(report.id)
-        timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+        timekeeping_router.submit_time_report(
+            self.tenant.id, report.id, self.user, request=build_request()
+        )
         approved = timekeeping_router.approve_time_report(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
         assert approved.status == "approved"
 
@@ -207,12 +245,15 @@ class TimekeepingApiTests(TestCase):
         period = self._create_period()
         report = self._create_report(period.id)
         self._add_entry(report.id)
-        timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+        timekeeping_router.submit_time_report(
+            self.tenant.id, report.id, self.user, request=build_request()
+        )
         rejected = timekeeping_router.reject_time_report(
             self.tenant.id,
             report.id,
             RejectReportRequest(reason="Needs review"),
             self.user,
+            request=build_request(),
         )
         assert rejected.status == "rejected"
         assert rejected.rejection_reason == "Needs review"
@@ -221,9 +262,14 @@ class TimekeepingApiTests(TestCase):
         period = self._create_period()
         report = self._create_report(period.id)
         self._add_entry(report.id)
-        timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+        timekeeping_router.submit_time_report(
+            self.tenant.id, report.id, self.user, request=build_request()
+        )
         history = timekeeping_router.list_report_history(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
         assert len(history) == 1
         assert history[0].to_status == "submitted"
@@ -246,9 +292,13 @@ class TimekeepingApiTests(TestCase):
             report.id,
             TimeEntryIn(date=date(2025, 1, 16), hours=Decimal("6")),
             self.user,
+            request=build_request(),
         )
         entries = timekeeping_router.list_time_entries(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
         assert len(entries) == 2
 
@@ -262,6 +312,7 @@ class TimekeepingApiTests(TestCase):
             entry.id,
             TimeEntryUpdate(date=date(2025, 1, 15), hours=Decimal("4")),
             self.user,
+            request=build_request(),
         )
         assert updated.hours == Decimal("4")
 
@@ -270,10 +321,17 @@ class TimekeepingApiTests(TestCase):
         report = self._create_report(period.id)
         entry = self._add_entry(report.id)
         timekeeping_router.delete_time_entry(
-            self.tenant.id, report.id, entry.id, self.user
+            self.tenant.id,
+            report.id,
+            entry.id,
+            self.user,
+            request=build_request(),
         )
         entries = timekeeping_router.list_time_entries(
-            self.tenant.id, report.id, self.user
+            self.tenant.id,
+            report.id,
+            self.user,
+            request=build_request(),
         )
         assert len(entries) == 0
 
@@ -281,12 +339,15 @@ class TimekeepingApiTests(TestCase):
         period = self._create_period()
         report = self._create_report(period.id)
         self._add_entry(report.id)
-        timekeeping_router.submit_time_report(self.tenant.id, report.id, self.user)
+        timekeeping_router.submit_time_report(
+            self.tenant.id, report.id, self.user, request=build_request()
+        )
         with pytest.raises(HTTPException) as exc:
             timekeeping_router.create_time_entry(
                 self.tenant.id,
                 report.id,
                 TimeEntryIn(date=date(2025, 1, 16), hours=Decimal("8")),
                 self.user,
+                request=build_request(),
             )
         assert exc.value.status_code == 422

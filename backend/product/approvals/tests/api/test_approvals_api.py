@@ -58,19 +58,28 @@ class ApprovalsApiTests(TestCase):
         )
 
         self.tenant = tenants_router.create(
-            TenantIn(name="Acme Corp", slug="acme"), current_user=self.manager
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=self.manager,
+            request=build_request(),
         )
         tenants_router.add_member(
             self.tenant.id,
             AddMemberRequest(user_id=self.employee_user.id, role="employee"),
             current_user=self.manager,
+            request=build_request(),
         )
 
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.manager
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.manager,
+            request=build_request(),
         )
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.manager
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.manager,
+            request=build_request(),
         )
         self.employee = workforce_router.create_employee(
             self.tenant.id,
@@ -84,6 +93,7 @@ class ApprovalsApiTests(TestCase):
                 hired_at=date(2024, 1, 1),
             ),
             self.manager,
+            request=build_request(),
         )
 
         self.period = timekeeping_router.create_period(
@@ -94,23 +104,29 @@ class ApprovalsApiTests(TestCase):
                 end_date=date(2025, 4, 30),
             ),
             self.manager,
+            request=build_request(),
         )
         self.report = timekeeping_router.create_time_report(
             self.tenant.id,
             self.period.id,
             TimeReportIn(employee_id=self.employee.id),
             self.employee_user,
+            request=build_request(),
         )
         timekeeping_router.create_time_entry(
             self.tenant.id,
             self.report.id,
             TimeEntryIn(date=date(2025, 4, 1), hours=Decimal("8")),
             self.employee_user,
+            request=build_request(),
         )
 
     def _submit(self):
         return approvals_router.submit_report_for_approval(
-            self.tenant.id, self.report.id, current_user=self.employee_user
+            self.tenant.id,
+            self.report.id,
+            current_user=self.employee_user,
+            request=build_request(),
         )
 
     def test_submit_creates_approval_with_pending_status(self):
@@ -132,7 +148,10 @@ class ApprovalsApiTests(TestCase):
         approval = self._submit()
 
         updated = approvals_router.approve_report(
-            self.tenant.id, approval.id, current_user=self.manager
+            self.tenant.id,
+            approval.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         assert updated.status == "approved"
@@ -143,7 +162,10 @@ class ApprovalsApiTests(TestCase):
 
         with pytest.raises(HTTPException) as exc:
             approvals_router.approve_report(
-                self.tenant.id, approval.id, current_user=self.employee_user
+                self.tenant.id,
+                approval.id,
+                current_user=self.employee_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 403
@@ -151,12 +173,18 @@ class ApprovalsApiTests(TestCase):
     def test_approve_returns_409_if_already_approved(self):
         approval = self._submit()
         approvals_router.approve_report(
-            self.tenant.id, approval.id, current_user=self.manager
+            self.tenant.id,
+            approval.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             approvals_router.approve_report(
-                self.tenant.id, approval.id, current_user=self.manager
+                self.tenant.id,
+                approval.id,
+                current_user=self.manager,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
@@ -169,6 +197,7 @@ class ApprovalsApiTests(TestCase):
             approval.id,
             RejectApprovalIn(reason="Missing Thursday"),
             current_user=self.manager,
+            request=build_request(),
         )
 
         assert updated.status == "rejected"
@@ -183,6 +212,7 @@ class ApprovalsApiTests(TestCase):
                 approval.id,
                 RejectApprovalIn(reason="Bad data"),
                 current_user=self.employee_user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 403
@@ -191,7 +221,9 @@ class ApprovalsApiTests(TestCase):
         self._submit()
 
         approvals = approvals_router.list_approvals(
-            self.tenant.id, current_user=self.manager
+            self.tenant.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         assert len(approvals) == 1
@@ -200,14 +232,23 @@ class ApprovalsApiTests(TestCase):
     def test_list_approvals_filters_by_status(self):
         approval = self._submit()
         approvals_router.approve_report(
-            self.tenant.id, approval.id, current_user=self.manager
+            self.tenant.id,
+            approval.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         pending = approvals_router.list_approvals(
-            self.tenant.id, current_user=self.manager, status="pending"
+            self.tenant.id,
+            current_user=self.manager,
+            status="pending",
+            request=build_request(),
         )
         approved = approvals_router.list_approvals(
-            self.tenant.id, current_user=self.manager, status="approved"
+            self.tenant.id,
+            current_user=self.manager,
+            status="approved",
+            request=build_request(),
         )
 
         assert len(pending) == 0
@@ -217,7 +258,10 @@ class ApprovalsApiTests(TestCase):
         approval = self._submit()
 
         found = approvals_router.get_approval(
-            self.tenant.id, approval.id, current_user=self.employee_user
+            self.tenant.id,
+            approval.id,
+            current_user=self.employee_user,
+            request=build_request(),
         )
 
         assert found.id == approval.id
@@ -225,7 +269,10 @@ class ApprovalsApiTests(TestCase):
     def test_get_approval_returns_404_if_not_found(self):
         with pytest.raises(HTTPException) as exc:
             approvals_router.get_approval(
-                self.tenant.id, 99999, current_user=self.manager
+                self.tenant.id,
+                99999,
+                current_user=self.manager,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -235,12 +282,17 @@ class ApprovalsApiTests(TestCase):
 
         other_manager = self._authenticate(email="other@example.com", full_name="Other")
         other_tenant = tenants_router.create(
-            TenantIn(name="Other Corp", slug="other"), current_user=other_manager
+            TenantIn(name="Other Corp", slug="other"),
+            current_user=other_manager,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             approvals_router.get_approval(
-                other_tenant.id, approval.id, current_user=other_manager
+                other_tenant.id,
+                approval.id,
+                current_user=other_manager,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -248,11 +300,17 @@ class ApprovalsApiTests(TestCase):
     def test_list_events_returns_full_trail(self):
         approval = self._submit()
         approvals_router.approve_report(
-            self.tenant.id, approval.id, current_user=self.manager
+            self.tenant.id,
+            approval.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         events = approvals_router.list_approval_events(
-            self.tenant.id, approval.id, current_user=self.manager
+            self.tenant.id,
+            approval.id,
+            current_user=self.manager,
+            request=build_request(),
         )
 
         assert len(events) == 2

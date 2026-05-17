@@ -32,7 +32,9 @@ from product.workforce.repositories.workforce_repository import WorkforceReposit
 EXPECTED_DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
 
 
-def build_request(path: str, client_host: str = "127.0.0.1") -> Request:
+def build_request(
+    path: str = "/api/v1/auth/login", client_host: str = "127.0.0.1"
+) -> Request:
     return Request(
         {
             "type": "http",
@@ -66,53 +68,80 @@ class WorkforceApiTests(TestCase):
             email="owner@example.com", full_name="Owner"
         )
         self.tenant = tenants_router.create(
-            TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=self.user,
+            request=build_request(),
         )
 
     # --- Departments ---
 
     def test_create_department_returns_201(self):
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         assert dept.name == "Engineering"
         assert dept.tenant_id == self.tenant.id
 
     def test_create_department_returns_409_on_duplicate(self):
         workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.create_department(
-                self.tenant.id, DepartmentIn(name="Engineering"), self.user
+                self.tenant.id,
+                DepartmentIn(name="Engineering"),
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
 
     def test_list_departments_returns_all(self):
         workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="HR"), self.user
+            self.tenant.id,
+            DepartmentIn(name="HR"),
+            self.user,
+            request=build_request(),
         )
         workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
 
-        depts = workforce_router.list_departments(self.tenant.id, self.user)
+        depts = workforce_router.list_departments(
+            self.tenant.id, self.user, request=build_request()
+        )
         assert len(depts) == 2
         assert [d.name for d in depts] == ["Engineering", "HR"]
 
     def test_get_department_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.get_department(self.tenant.id, 999, self.user)
+            workforce_router.get_department(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_deactivate_department_marks_inactive(self):
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         result = workforce_router.deactivate_department(
-            self.tenant.id, dept.id, self.user
+            self.tenant.id,
+            dept.id,
+            self.user,
+            request=build_request(),
         )
         assert result.is_active is False
 
@@ -120,36 +149,53 @@ class WorkforceApiTests(TestCase):
 
     def test_create_role_returns_201(self):
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
         assert role.name == "Developer"
         assert role.tenant_id == self.tenant.id
 
     def test_create_role_returns_409_on_duplicate(self):
         workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.create_role(
-                self.tenant.id, RoleIn(name="Developer"), self.user
+                self.tenant.id,
+                RoleIn(name="Developer"),
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
 
     def test_get_role_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.get_role(self.tenant.id, 999, self.user)
+            workforce_router.get_role(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     # --- Employees ---
 
     def _create_dept_and_role(self):
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
         return dept, role
 
@@ -169,7 +215,10 @@ class WorkforceApiTests(TestCase):
     def test_create_employee_returns_201(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         assert emp.email == "alice@example.com"
         assert emp.is_active is True
@@ -177,12 +226,18 @@ class WorkforceApiTests(TestCase):
     def test_create_employee_returns_409_on_duplicate_email(self):
         dept, role = self._create_dept_and_role()
         workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.create_employee(
-                self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+                self.tenant.id,
+                self._employee_payload(dept.id, role.id),
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 409
@@ -192,59 +247,93 @@ class WorkforceApiTests(TestCase):
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.create_employee(
-                self.tenant.id, self._employee_payload(999, role.id), self.user
+                self.tenant.id,
+                self._employee_payload(999, role.id),
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
 
     def test_get_employee_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.get_employee(self.tenant.id, 999, self.user)
+            workforce_router.get_employee(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_deactivate_employee_marks_inactive(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
-        result = workforce_router.deactivate_employee(self.tenant.id, emp.id, self.user)
+        result = workforce_router.deactivate_employee(
+            self.tenant.id, emp.id, self.user, request=build_request()
+        )
         assert result.is_active is False
 
     # --- Update endpoints ---
 
     def test_update_department_changes_name(self):
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         updated = workforce_router.update_department(
-            self.tenant.id, dept.id, DepartmentUpdate(name="R&D"), self.user
+            self.tenant.id,
+            dept.id,
+            DepartmentUpdate(name="R&D"),
+            self.user,
+            request=build_request(),
         )
         assert updated.name == "R&D"
 
     def test_update_department_returns_403_for_member(self):
         dept = workforce_router.create_department(
-            self.tenant.id, DepartmentIn(name="Engineering"), self.user
+            self.tenant.id,
+            DepartmentIn(name="Engineering"),
+            self.user,
+            request=build_request(),
         )
         member = self._authenticate_user(email="member@example.com", full_name="Member")
         with pytest.raises(HTTPException) as exc:
             workforce_router.update_department(
-                self.tenant.id, dept.id, DepartmentUpdate(name="X"), member
+                self.tenant.id,
+                dept.id,
+                DepartmentUpdate(name="X"),
+                member,
+                request=build_request(),
             )
         assert exc.value.status_code == 403
 
     def test_update_role_changes_name(self):
         role = workforce_router.create_role(
-            self.tenant.id, RoleIn(name="Developer"), self.user
+            self.tenant.id,
+            RoleIn(name="Developer"),
+            self.user,
+            request=build_request(),
         )
         updated = workforce_router.update_role(
-            self.tenant.id, role.id, RoleUpdate(name="Senior Developer"), self.user
+            self.tenant.id,
+            role.id,
+            RoleUpdate(name="Senior Developer"),
+            self.user,
+            request=build_request(),
         )
         assert updated.name == "Senior Developer"
 
     def test_update_employee_changes_name(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         updated = workforce_router.update_employee(
             self.tenant.id,
@@ -255,13 +344,17 @@ class WorkforceApiTests(TestCase):
                 hired_at=date(2024, 3, 1),
             ),
             self.user,
+            request=build_request(),
         )
         assert updated.full_name == "Alice Jones"
 
     def test_update_employee_returns_403_for_member(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         member = self._authenticate_user(email="member@example.com", full_name="Member")
         with pytest.raises(HTTPException) as exc:
@@ -272,6 +365,7 @@ class WorkforceApiTests(TestCase):
                     full_name="X", email="alice@example.com", hired_at=date(2024, 3, 1)
                 ),
                 member,
+                request=build_request(),
             )
         assert exc.value.status_code == 403
 
@@ -280,13 +374,17 @@ class WorkforceApiTests(TestCase):
     def test_assign_department_manager_returns_201(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         assignment = workforce_router.assign_department_manager(
             self.tenant.id,
             dept.id,
             AssignDepartmentManagerRequest(employee_id=emp.id),
             self.user,
+            request=build_request(),
         )
         assert assignment.department_id == dept.id
         assert assignment.employee_id == emp.id
@@ -294,16 +392,23 @@ class WorkforceApiTests(TestCase):
     def test_list_department_managers_returns_active(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         workforce_router.assign_department_manager(
             self.tenant.id,
             dept.id,
             AssignDepartmentManagerRequest(employee_id=emp.id),
             self.user,
+            request=build_request(),
         )
         managers = workforce_router.list_department_managers(
-            self.tenant.id, dept.id, self.user
+            self.tenant.id,
+            dept.id,
+            self.user,
+            request=build_request(),
         )
         assert len(managers) == 1
         assert managers[0].employee_id == emp.id
@@ -311,13 +416,17 @@ class WorkforceApiTests(TestCase):
     def test_remove_department_manager_closes_assignment(self):
         dept, role = self._create_dept_and_role()
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         assignment = workforce_router.assign_department_manager(
             self.tenant.id,
             dept.id,
             AssignDepartmentManagerRequest(employee_id=emp.id),
             self.user,
+            request=build_request(),
         )
         removed = workforce_router.remove_department_manager(
             self.tenant.id,
@@ -325,6 +434,7 @@ class WorkforceApiTests(TestCase):
             assignment.id,
             RemoveDepartmentManagerRequest(reason="Done"),
             self.user,
+            request=build_request(),
         )
         assert removed.left_at is not None
 
@@ -336,15 +446,20 @@ class WorkforceApiTests(TestCase):
             self.tenant.id,
             self._employee_payload(dept.id, role.id, "manager@example.com"),
             self.user,
+            request=build_request(),
         )
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         updated = workforce_router.set_employee_manager(
             self.tenant.id,
             emp.id,
             SetEmployeeManagerRequest(manager_id=manager_emp.id),
             self.user,
+            request=build_request(),
         )
         assert updated.manager_id == manager_emp.id
 
@@ -354,18 +469,26 @@ class WorkforceApiTests(TestCase):
             self.tenant.id,
             self._employee_payload(dept.id, role.id, "manager@example.com"),
             self.user,
+            request=build_request(),
         )
         emp = workforce_router.create_employee(
-            self.tenant.id, self._employee_payload(dept.id, role.id), self.user
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
         )
         workforce_router.set_employee_manager(
             self.tenant.id,
             emp.id,
             SetEmployeeManagerRequest(manager_id=manager_emp.id),
             self.user,
+            request=build_request(),
         )
         reports = workforce_router.get_direct_reports(
-            self.tenant.id, manager_emp.id, self.user
+            self.tenant.id,
+            manager_emp.id,
+            self.user,
+            request=build_request(),
         )
         assert len(reports) == 1
         assert reports[0].id == emp.id
@@ -399,6 +522,7 @@ class WorkforceApiAdditionalTests(TestCase):
         self.tenant = tenants_router.create(
             TenantIn(name="Acme Corp", slug="acme"),
             current_user=self.user,
+            request=build_request(),
         )
 
     def _create_department(self, name: str = "Engineering"):
@@ -406,6 +530,7 @@ class WorkforceApiAdditionalTests(TestCase):
             self.tenant.id,
             DepartmentIn(name=name),
             self.user,
+            request=build_request(),
         )
 
     def _create_role(self, name: str = "Developer"):
@@ -413,6 +538,7 @@ class WorkforceApiAdditionalTests(TestCase):
             self.tenant.id,
             RoleIn(name=name),
             self.user,
+            request=build_request(),
         )
 
     def _employee_payload(
@@ -440,6 +566,7 @@ class WorkforceApiAdditionalTests(TestCase):
             self.tenant.id,
             self._employee_payload(department.id, role.id),
             self.user,
+            request=build_request(),
         )
 
     def test_create_department_returns_422_for_invalid_name(self):
@@ -447,7 +574,10 @@ class WorkforceApiAdditionalTests(TestCase):
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.create_department(
-                self.tenant.id, invalid_payload, self.user
+                self.tenant.id,
+                invalid_payload,
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 422
@@ -457,23 +587,34 @@ class WorkforceApiAdditionalTests(TestCase):
         department = self._create_department()
 
         result = workforce_router.get_department(
-            self.tenant.id, department.id, self.user
+            self.tenant.id,
+            department.id,
+            self.user,
+            request=build_request(),
         )
 
         assert result == department
 
     def test_deactivate_department_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.deactivate_department(self.tenant.id, 999, self.user)
+            workforce_router.deactivate_department(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Department 999 not found."
 
     def test_list_roles_returns_all_sorted(self):
-        workforce_router.create_role(self.tenant.id, RoleIn(name="Zulu"), self.user)
-        workforce_router.create_role(self.tenant.id, RoleIn(name="Alpha"), self.user)
+        workforce_router.create_role(
+            self.tenant.id, RoleIn(name="Zulu"), self.user, request=build_request()
+        )
+        workforce_router.create_role(
+            self.tenant.id, RoleIn(name="Alpha"), self.user, request=build_request()
+        )
 
-        roles = workforce_router.list_roles(self.tenant.id, self.user)
+        roles = workforce_router.list_roles(
+            self.tenant.id, self.user, request=build_request()
+        )
 
         assert [role.name for role in roles] == sorted(
             [*EXPECTED_DEFAULT_ROLE_NAMES, "Alpha", "Zulu"]
@@ -482,20 +623,26 @@ class WorkforceApiAdditionalTests(TestCase):
     def test_get_role_returns_role(self):
         role = self._create_role()
 
-        result = workforce_router.get_role(self.tenant.id, role.id, self.user)
+        result = workforce_router.get_role(
+            self.tenant.id, role.id, self.user, request=build_request()
+        )
 
         assert result == role
 
     def test_deactivate_role_marks_inactive(self):
         role = self._create_role()
 
-        result = workforce_router.deactivate_role(self.tenant.id, role.id, self.user)
+        result = workforce_router.deactivate_role(
+            self.tenant.id, role.id, self.user, request=build_request()
+        )
 
         assert result.is_active is False
 
     def test_deactivate_role_returns_404_when_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.deactivate_role(self.tenant.id, 999, self.user)
+            workforce_router.deactivate_role(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Role 999 not found."
@@ -504,7 +651,9 @@ class WorkforceApiAdditionalTests(TestCase):
         invalid_payload = RoleIn.model_construct(name="   ")
 
         with pytest.raises(HTTPException) as exc:
-            workforce_router.create_role(self.tenant.id, invalid_payload, self.user)
+            workforce_router.create_role(
+                self.tenant.id, invalid_payload, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 422
         assert exc.value.detail == "Role name cannot be blank."
@@ -521,6 +670,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 full_name="Zara",
             ),
             self.user,
+            request=build_request(),
         )
         workforce_router.create_employee(
             self.tenant.id,
@@ -531,16 +681,21 @@ class WorkforceApiAdditionalTests(TestCase):
                 full_name="Alice",
             ),
             self.user,
+            request=build_request(),
         )
 
-        employees = workforce_router.list_employees(self.tenant.id, self.user)
+        employees = workforce_router.list_employees(
+            self.tenant.id, self.user, request=build_request()
+        )
 
         assert [employee.full_name for employee in employees] == ["Alice", "Zara"]
 
     def test_get_employee_returns_employee(self):
         employee = self._create_employee()
 
-        result = workforce_router.get_employee(self.tenant.id, employee.id, self.user)
+        result = workforce_router.get_employee(
+            self.tenant.id, employee.id, self.user, request=build_request()
+        )
 
         assert result == employee
 
@@ -552,6 +707,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 self.tenant.id,
                 self._employee_payload(department.id, 999),
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -572,7 +728,9 @@ class WorkforceApiAdditionalTests(TestCase):
         )
 
         with pytest.raises(HTTPException) as exc:
-            workforce_router.create_employee(self.tenant.id, invalid_payload, self.user)
+            workforce_router.create_employee(
+                self.tenant.id, invalid_payload, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 422
         assert "Invalid email address" in exc.value.detail
@@ -589,12 +747,14 @@ class WorkforceApiAdditionalTests(TestCase):
                 reason="Reorg",
             ),
             self.user,
+            request=build_request(),
         )
 
         history = workforce_router.list_department_history(
             self.tenant.id,
             employee.id,
             self.user,
+            request=build_request(),
         )
 
         assert assignment.department_id == new_department.id
@@ -612,6 +772,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 999,
                 AssignDepartmentRequest(department_id=department.id),
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -626,6 +787,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 employee.id,
                 AssignDepartmentRequest(department_id=999),
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -639,12 +801,14 @@ class WorkforceApiAdditionalTests(TestCase):
             employee.id,
             AssignDepartmentRequest(department_id=new_department.id, reason="Reorg"),
             self.user,
+            request=build_request(),
         )
 
         assignment = workforce_router.get_active_department(
             self.tenant.id,
             employee.id,
             self.user,
+            request=build_request(),
         )
 
         assert assignment.department_id == new_department.id
@@ -658,7 +822,10 @@ class WorkforceApiAdditionalTests(TestCase):
 
         with pytest.raises(HTTPException) as exc:
             workforce_router.get_active_department(
-                self.tenant.id, employee.id, self.user
+                self.tenant.id,
+                employee.id,
+                self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -668,7 +835,9 @@ class WorkforceApiAdditionalTests(TestCase):
 
     def test_list_department_history_returns_404_when_employee_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.list_department_history(self.tenant.id, 999, self.user)
+            workforce_router.list_department_history(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Employee 999 not found."
@@ -687,12 +856,14 @@ class WorkforceApiAdditionalTests(TestCase):
                 reason="Promotion",
             ),
             self.user,
+            request=build_request(),
         )
 
         history = workforce_router.list_role_history(
             self.tenant.id,
             employee.id,
             self.user,
+            request=build_request(),
         )
 
         assert assignment.role_id == new_role.id
@@ -715,6 +886,7 @@ class WorkforceApiAdditionalTests(TestCase):
                     contract_hours_per_week=35,
                 ),
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -733,6 +905,7 @@ class WorkforceApiAdditionalTests(TestCase):
                     contract_hours_per_week=35,
                 ),
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 404
@@ -754,6 +927,7 @@ class WorkforceApiAdditionalTests(TestCase):
                 employee.id,
                 invalid_payload,
                 self.user,
+                request=build_request(),
             )
 
         assert exc.value.status_code == 422
@@ -772,12 +946,14 @@ class WorkforceApiAdditionalTests(TestCase):
                 reason="Promotion",
             ),
             self.user,
+            request=build_request(),
         )
 
         assignment = workforce_router.get_active_role(
             self.tenant.id,
             employee.id,
             self.user,
+            request=build_request(),
         )
 
         assert assignment.role_id == new_role.id
@@ -791,7 +967,9 @@ class WorkforceApiAdditionalTests(TestCase):
         )
 
         with pytest.raises(HTTPException) as exc:
-            workforce_router.get_active_role(self.tenant.id, employee.id, self.user)
+            workforce_router.get_active_role(
+                self.tenant.id, employee.id, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 404
         assert (
@@ -800,7 +978,9 @@ class WorkforceApiAdditionalTests(TestCase):
 
     def test_list_role_history_returns_404_when_employee_missing(self):
         with pytest.raises(HTTPException) as exc:
-            workforce_router.list_role_history(self.tenant.id, 999, self.user)
+            workforce_router.list_role_history(
+                self.tenant.id, 999, self.user, request=build_request()
+            )
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Employee 999 not found."

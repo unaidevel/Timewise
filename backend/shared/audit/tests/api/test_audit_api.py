@@ -58,12 +58,17 @@ class AuditApiTests(TestCase):
     def setUp(self):
         self.user = authenticate(email="owner@example.com", full_name="Owner")
         self.tenant = tenants_router.create(
-            TenantIn(name="Acme Corp", slug="acme"), current_user=self.user
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=self.user,
+            request=build_request(),
         )
 
     def _record(self, **overrides):
         return audit_router.record_event(
-            self.tenant.id, make_payload(**overrides), self.user
+            self.tenant.id,
+            make_payload(**overrides),
+            self.user,
+            request=build_request(),
         )
 
     # --- record ---
@@ -81,6 +86,7 @@ class AuditApiTests(TestCase):
                 self.tenant.id,
                 make_payload(action="   "),
                 self.user,
+                request=build_request(),
             )
         assert exc.value.status_code == 422
 
@@ -91,7 +97,14 @@ class AuditApiTests(TestCase):
         second = self._record(action="b")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, None, None, None, None
+            self.tenant.id,
+            self.user,
+            request=build_request(),
+            action=None,
+            resource_type=None,
+            resource_id=None,
+            actor_id=None,
+            outcome=None,
         )
 
         assert [e.id for e in events] == [second.id, first.id]
@@ -101,7 +114,14 @@ class AuditApiTests(TestCase):
         target = self._record(action="user.logout")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, "user.logout", None, None, None, None
+            self.tenant.id,
+            self.user,
+            request=build_request(),
+            action="user.logout",
+            resource_type=None,
+            resource_id=None,
+            actor_id=None,
+            outcome=None,
         )
 
         assert [e.id for e in events] == [target.id]
@@ -111,7 +131,14 @@ class AuditApiTests(TestCase):
         self._record(resource_type="TimeReport", resource_id=8)
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, "TimeReport", 7, None, None
+            self.tenant.id,
+            self.user,
+            request=build_request(),
+            action=None,
+            resource_type="TimeReport",
+            resource_id=7,
+            actor_id=None,
+            outcome=None,
         )
 
         assert [e.id for e in events] == [target.id]
@@ -120,7 +147,14 @@ class AuditApiTests(TestCase):
         target = self._record(action="mine")
 
         events = audit_router.list_events(
-            self.tenant.id, self.user, None, None, None, self.user.id, None
+            self.tenant.id,
+            self.user,
+            request=build_request(),
+            action=None,
+            resource_type=None,
+            resource_id=None,
+            actor_id=self.user.id,
+            outcome=None,
         )
 
         assert [e.id for e in events] == [target.id]
@@ -129,12 +163,16 @@ class AuditApiTests(TestCase):
 
     def test_get_event_returns_event(self):
         created = self._record()
-        event = audit_router.get_event(self.tenant.id, created.id, self.user)
+        event = audit_router.get_event(
+            self.tenant.id, created.id, self.user, request=build_request()
+        )
         assert event.id == created.id
 
     def test_get_event_returns_404_for_unknown_id(self):
         with pytest.raises(HTTPException) as exc:
-            audit_router.get_event(self.tenant.id, 999_999, self.user)
+            audit_router.get_event(
+                self.tenant.id, 999_999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     # --- update ---
@@ -146,6 +184,7 @@ class AuditApiTests(TestCase):
             created.id,
             AuditEventUpdate(notes="patched"),
             self.user,
+            request=build_request(),
         )
         assert updated.notes == "patched"
 
@@ -156,6 +195,7 @@ class AuditApiTests(TestCase):
                 999_999,
                 AuditEventUpdate(notes="x"),
                 self.user,
+                request=build_request(),
             )
         assert exc.value.status_code == 404
 
@@ -179,6 +219,7 @@ class AuditApiTests(TestCase):
                 created.id,
                 AuditEventUpdate(notes="x"),
                 employee,
+                request=build_request(),
             )
         assert exc.value.status_code == 403
 
@@ -190,6 +231,7 @@ class AuditApiTests(TestCase):
                 created.id,
                 AuditEventUpdate(notes="x" * 10_001),
                 self.user,
+                request=build_request(),
             )
         assert exc.value.status_code == 422
 
@@ -198,13 +240,19 @@ class AuditApiTests(TestCase):
     def test_delete_event_removes_event(self):
         created = self._record()
 
-        audit_router.delete_event(self.tenant.id, created.id, self.user)
+        audit_router.delete_event(
+            self.tenant.id, created.id, self.user, request=build_request()
+        )
 
         with pytest.raises(HTTPException) as exc:
-            audit_router.get_event(self.tenant.id, created.id, self.user)
+            audit_router.get_event(
+                self.tenant.id, created.id, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
 
     def test_delete_event_returns_404_for_unknown_id(self):
         with pytest.raises(HTTPException) as exc:
-            audit_router.delete_event(self.tenant.id, 999_999, self.user)
+            audit_router.delete_event(
+                self.tenant.id, 999_999, self.user, request=build_request()
+            )
         assert exc.value.status_code == 404
