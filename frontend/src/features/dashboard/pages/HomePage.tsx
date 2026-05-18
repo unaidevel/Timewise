@@ -20,6 +20,7 @@ import { useApprovals } from "@/features/approvals/hooks";
 import { useAuthStore } from "@/features/auth/store";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
+import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { usePeriods } from "@/features/periods/hooks";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 
@@ -112,6 +113,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
   return (
     <div className="space-y-8">
+      <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <p className="text-sm text-muted-foreground capitalize">{fmt.format(today)}</p>
