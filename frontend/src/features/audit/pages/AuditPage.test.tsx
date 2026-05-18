@@ -169,6 +169,43 @@ describe("AuditPage", () => {
     await waitFor(() => expect(receivedAction).toBe("time_report.submitted"));
   });
 
+  it("links success events to their resource detail page when the type is supported", async () => {
+    useTenantStore.setState({ currentTenantId: TENANT_ID });
+    useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
+    mockBase();
+
+    render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
+
+    const link = await screen.findByRole("link", { name: "Ir a TimeReport #42" });
+    expect(link.getAttribute("href")).toBe("/reports/42");
+  });
+
+  it("hides the resource link for failure events", async () => {
+    useTenantStore.setState({ currentTenantId: TENANT_ID });
+    useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
+    mockBase({ events: [{ ...event, outcome: "failure" }] });
+
+    render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
+
+    await screen.findByText("time_report.submitted");
+    expect(screen.queryByRole("link", { name: /^Ir a / })).toBeNull();
+  });
+
+  it("hides the resource link for unsupported resource types", async () => {
+    useTenantStore.setState({ currentTenantId: TENANT_ID });
+    useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
+    mockBase({
+      events: [
+        { ...event, resource_type: "AuthUser", action: "auth.login", resource_id: 99 },
+      ],
+    });
+
+    render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
+
+    await screen.findByText("auth.login");
+    expect(screen.queryByRole("link", { name: /^Ir a / })).toBeNull();
+  });
+
   it("opens the edit-notes dialog when an admin clicks the pencil", async () => {
     useTenantStore.setState({ currentTenantId: TENANT_ID });
     useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });

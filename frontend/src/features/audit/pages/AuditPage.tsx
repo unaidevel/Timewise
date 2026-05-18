@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronRight, Pencil, ScrollText, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink, Pencil, ScrollText, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { AuditEventOut, EmployeeOut } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
@@ -41,6 +41,19 @@ type Outcome = "success" | "failure";
 
 function readOutcome(value: string | null): Outcome | undefined {
   return value === "success" || value === "failure" ? value : undefined;
+}
+
+const RESOURCE_ROUTES: Record<string, (id: number) => string> = {
+  TimeReport: (id) => `/reports/${id}`,
+  Period: (id) => `/periods/${id}`,
+  Employee: (id) => `/employees/${id}`,
+  OvertimeRule: (id) => `/costing-rules/${id}`,
+};
+
+function resourceLink(resourceType: string, resourceId: number | null): string | null {
+  if (resourceId == null) return null;
+  const build = RESOURCE_ROUTES[resourceType];
+  return build ? build(resourceId) : null;
 }
 
 export default function AuditPage() {
@@ -259,11 +272,33 @@ function Row({
           {actorEmail && <div className="truncate text-xs text-muted-foreground">{actorEmail}</div>}
         </div>
         <code className="text-xs font-mono text-foreground/80 truncate">{event.action}</code>
-        <span className="text-xs text-muted-foreground truncate">
-          {event.resource_type}
-          {event.resource_id != null && (
-            <span className="text-foreground/60"> #{event.resource_id}</span>
-          )}
+        <span className="text-xs text-muted-foreground truncate inline-flex items-center gap-1.5">
+          <span className="truncate">
+            {event.resource_type}
+            {event.resource_id != null && (
+              <span className="text-foreground/60"> #{event.resource_id}</span>
+            )}
+          </span>
+          {event.outcome === "success" &&
+            (() => {
+              const href = resourceLink(event.resource_type, event.resource_id);
+              if (!href) return null;
+              return (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to={href}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-muted-foreground hover:text-foreground shrink-0"
+                      aria-label={`Ir a ${event.resource_type} #${event.resource_id}`}
+                    >
+                      <ExternalLink className="size-3.5" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>Ir al recurso</TooltipContent>
+                </Tooltip>
+              );
+            })()}
         </span>
         <Badge
           variant="outline"
