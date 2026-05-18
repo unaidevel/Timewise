@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 
 const tones = {
-  draft: "bg-slate-100 text-slate-700",
-  pending: "bg-amber-100 text-amber-800",
-  approved: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  locked: "bg-slate-200 text-slate-700",
-  open: "bg-blue-100 text-blue-800",
-  active: "bg-green-100 text-green-800",
-  inactive: "bg-slate-100 text-slate-500",
+  draft: "bg-muted text-muted-foreground",
+  pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  approved: "bg-green-500/15 text-green-700 dark:text-green-400",
+  rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
+  locked: "bg-muted text-foreground",
+  open: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  active: "bg-green-500/15 text-green-700 dark:text-green-400",
+  inactive: "bg-muted text-muted-foreground",
 } as const;
 
 type Tone = keyof typeof tones;
