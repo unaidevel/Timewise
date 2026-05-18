@@ -19,10 +19,7 @@ export function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellE
 
 export function Td({ className = "", ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td
-      {...props}
-      className={`border-b border-border px-4 py-3 text-foreground ${className}`}
-    />
+    <td {...props} className={`border-b border-border px-4 py-3 text-foreground ${className}`} />
   );
 }
 

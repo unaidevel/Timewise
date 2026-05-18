@@ -195,9 +195,7 @@ describe("AuditPage", () => {
     useTenantStore.setState({ currentTenantId: TENANT_ID });
     useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
     mockBase({
-      events: [
-        { ...event, resource_type: "AuthUser", action: "auth.login", resource_id: 99 },
-      ],
+      events: [{ ...event, resource_type: "AuthUser", action: "auth.login", resource_id: 99 }],
     });
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
