@@ -32,11 +32,11 @@ export default function CostingRuleDetailPage() {
         <Spinner />
       </div>
     );
-  if (!rule) return <p className="text-slate-600">Regla no encontrada.</p>;
+  if (!rule) return <p className="text-muted-foreground">Regla no encontrada.</p>;
 
   return (
     <div className="space-y-4">
-      <Link to="/costing-rules" className="text-sm text-slate-600 hover:underline">
+      <Link to="/costing-rules" className="text-sm text-muted-foreground hover:underline">
         ← Volver a reglas
       </Link>
 
@@ -122,8 +122,8 @@ export default function CostingRuleDetailPage() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-slate-500">{label}</dt>
-      <dd className="mt-1 font-medium text-slate-900">{value}</dd>
+      <dt className="text-xs uppercase tracking-wider text-muted-foreground">{label}</dt>
+      <dd className="mt-1 font-medium text-foreground">{value}</dd>
     </div>
   );
 }
@@ -228,7 +228,7 @@ function EditRuleModal({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-700">Condiciones</p>
+            <p className="text-sm font-medium text-foreground">Condiciones</p>
             <Button type="button" variant="secondary" onClick={addCondition}>
               + Añadir
             </Button>

@@ -63,7 +63,7 @@ export default function CostingRulesPage() {
                   <Td className="text-right">
                     <Link
                       to={`/costing-rules/${rule.id}`}
-                      className="text-sm text-slate-600 hover:underline"
+                      className="text-sm text-muted-foreground hover:underline"
                     >
                       Ver →
                     </Link>

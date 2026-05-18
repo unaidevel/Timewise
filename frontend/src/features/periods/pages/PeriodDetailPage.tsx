@@ -26,11 +26,11 @@ export default function PeriodDetailPage() {
         <Spinner />
       </div>
     );
-  if (!period) return <p className="text-slate-600">Periodo no encontrado.</p>;
+  if (!period) return <p className="text-muted-foreground">Periodo no encontrado.</p>;
 
   return (
     <div className="space-y-4">
-      <Link to="/periods" className="text-sm text-slate-600 hover:underline">
+      <Link to="/periods" className="text-sm text-muted-foreground hover:underline">
         ← Volver a periodos
       </Link>
 
@@ -79,7 +79,7 @@ export default function PeriodDetailPage() {
                     <Td className="text-right">
                       <Link
                         to={`/reports/${r.id}`}
-                        className="text-sm font-medium text-slate-900 hover:underline"
+                        className="text-sm font-medium text-foreground hover:underline"
                       >
                         Ver →
                       </Link>
