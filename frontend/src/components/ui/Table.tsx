@@ -12,21 +12,21 @@ export function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellE
   return (
     <th
       {...props}
-      className={`border-b border-slate-200 px-4 py-2 text-left font-medium text-slate-600 ${className}`}
+      className={`border-b border-border px-4 py-2 text-left font-medium text-muted-foreground ${className}`}
     />
   );
 }
 
 export function Td({ className = "", ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td {...props} className={`border-b border-slate-100 px-4 py-3 text-slate-900 ${className}`} />
+    <td {...props} className={`border-b border-border px-4 py-3 text-foreground ${className}`} />
   );
 }
 
 export function EmptyRow({ colSpan, message }: { colSpan: number; message: string }) {
   return (
     <tr>
-      <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-slate-500">
+      <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-muted-foreground">
         {message}
       </td>
     </tr>
