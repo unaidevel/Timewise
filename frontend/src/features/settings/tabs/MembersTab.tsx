@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
@@ -14,18 +15,19 @@ import { formatDate } from "@/lib/format";
 
 export function MembersTab({ tenantId }: { tenantId: number }) {
   const members = useMembers(tenantId);
+  const { t } = useTranslation();
   const rows = members.data ?? [];
 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
         <div>
-          <CardTitle className="text-base">Miembros y roles</CardTitle>
-          <CardDescription>Personas con acceso a este workspace.</CardDescription>
+          <CardTitle className="text-base">{t("settings.members.title")}</CardTitle>
+          <CardDescription>{t("settings.members.subtitle")}</CardDescription>
         </div>
         <Button variant="outline" disabled>
           <Plus className="size-4 mr-1.5" />
-          Invitar miembro
+          {t("settings.members.invite")}
         </Button>
       </CardHeader>
       <CardContent className="p-0">
@@ -38,9 +40,11 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">Usuario #{m.user_id}</div>
+                <div className="font-medium truncate">
+                  {t("settings.members.userLabel", { id: m.user_id })}
+                </div>
                 <div className="text-xs text-muted-foreground truncate">
-                  Se unió {formatDate(m.joined_at)}
+                  {t("settings.members.joined", { date: formatDate(m.joined_at) })}
                 </div>
               </div>
               <Badge variant="outline" className="capitalize">
@@ -48,14 +52,14 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
               </Badge>
               {m.left_at && (
                 <Badge variant="outline" className="text-muted-foreground">
-                  Inactivo
+                  {t("settings.members.inactive")}
                 </Badge>
               )}
             </div>
           ))}
           {rows.length === 0 && (
             <div className="p-12 text-center text-sm text-muted-foreground">
-              {members.isLoading ? "Cargando…" : "Aún no hay miembros."}
+              {members.isLoading ? t("settings.members.loading") : t("settings.members.empty")}
             </div>
           )}
         </div>
