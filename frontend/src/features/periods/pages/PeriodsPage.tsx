@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -14,14 +15,15 @@ import { useCreatePeriod, useLockPeriod, usePeriods } from "../hooks";
 export default function PeriodsPage() {
   const tenantId = useCurrentTenantId();
   const { data, isLoading } = usePeriods(tenantId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <Card>
       <CardHeader
-        title="Periodos"
-        description="Ventanas temporales de imputación de horas"
-        action={<Button onClick={() => setOpen(true)}>Nuevo periodo</Button>}
+        title={t("timekeeping.periods.title")}
+        description={t("timekeeping.periods.subtitle")}
+        action={<Button onClick={() => setOpen(true)}>{t("timekeeping.periods.new")}</Button>}
       />
       <CardBody className="p-0">
         {isLoading ? (
@@ -32,16 +34,18 @@ export default function PeriodsPage() {
           <Table>
             <thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th>Inicio</Th>
-                <Th>Fin</Th>
-                <Th>Estado</Th>
-                <Th>Bloqueado</Th>
+                <Th>{t("timekeeping.periods.columns.name")}</Th>
+                <Th>{t("timekeeping.periods.columns.start")}</Th>
+                <Th>{t("timekeeping.periods.columns.end")}</Th>
+                <Th>{t("timekeeping.periods.columns.status")}</Th>
+                <Th>{t("timekeeping.periods.columns.locked")}</Th>
                 <Th></Th>
               </tr>
             </thead>
             <tbody>
-              {(!data || data.length === 0) && <EmptyRow colSpan={6} message="Sin periodos." />}
+              {(!data || data.length === 0) && (
+                <EmptyRow colSpan={6} message={t("timekeeping.periods.empty")} />
+              )}
               {data?.map((p) => (
                 <PeriodRow key={p.id} period={p} />
               ))}
@@ -58,6 +62,7 @@ export default function PeriodsPage() {
 function PeriodRow({ period }: { period: import("@/client").PeriodOut }) {
   const tenantId = useCurrentTenantId();
   const lock = useLockPeriod(tenantId);
+  const { t } = useTranslation();
   return (
     <tr>
       <Td className="font-medium">
@@ -74,7 +79,7 @@ function PeriodRow({ period }: { period: import("@/client").PeriodOut }) {
       <Td className="text-right">
         {!period.locked_at && (
           <Button variant="ghost" onClick={() => lock.mutate(period.id)} disabled={lock.isPending}>
-            Bloquear
+            {t("timekeeping.periods.lock")}
           </Button>
         )}
       </Td>
@@ -85,6 +90,7 @@ function PeriodRow({ period }: { period: import("@/client").PeriodOut }) {
 function CreatePeriodModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const create = useCreatePeriod(tenantId);
+  const { t } = useTranslation();
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "" });
 
   function onSubmit(e: React.FormEvent) {
@@ -93,24 +99,24 @@ function CreatePeriodModal({ open, onClose }: { open: boolean; onClose: () => vo
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nuevo periodo">
+    <Modal open={open} onClose={onClose} title={t("timekeeping.periods.createTitle")}>
       <form onSubmit={onSubmit} className="space-y-3">
         <Input
-          label="Nombre"
+          label={t("common.name")}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Inicio"
+            label={t("timekeeping.periods.start")}
             type="date"
             value={form.start_date}
             onChange={(e) => setForm({ ...form, start_date: e.target.value })}
             required
           />
           <Input
-            label="Fin"
+            label={t("timekeeping.periods.end")}
             type="date"
             value={form.end_date}
             onChange={(e) => setForm({ ...form, end_date: e.target.value })}
@@ -119,10 +125,10 @@ function CreatePeriodModal({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Creando…" : "Crear"}
+            {create.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </form>

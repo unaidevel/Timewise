@@ -1,5 +1,6 @@
 import { Check, CheckSquare, Inbox, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ApprovalOut } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
@@ -31,6 +32,7 @@ const statusStyle: Record<string, string> = {
 export default function ApprovalsPage() {
   const tenantId = useCurrentTenantId();
   const approvals = useApprovals(tenantId);
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("pending");
   const [rejecting, setRejecting] = useState<ApprovalOut | null>(null);
 
@@ -53,36 +55,36 @@ export default function ApprovalsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Aprobaciones</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Revisa y actúa sobre los reportes enviados por tu equipo.
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {t("timekeeping.approvals.title")}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("timekeeping.approvals.subtitle")}</p>
       </header>
 
       {isEmpty ? (
         <EmptyState
           icon={CheckSquare}
-          title="Bandeja vacía"
-          description="Cuando lleguen reportes para revisar, los verás aquí agrupados por estado."
+          title={t("timekeeping.approvals.empty.title")}
+          description={t("timekeeping.approvals.empty.description")}
         />
       ) : (
         <>
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
             <TabsList>
               <TabsTrigger value="pending">
-                Pendientes
+                {t("timekeeping.approvals.tabs.pending")}
                 <Badge variant="secondary" className="ml-2 px-1.5">
                   {counts.pending}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="approved">
-                Aprobadas
+                {t("timekeeping.approvals.tabs.approved")}
                 <Badge variant="secondary" className="ml-2 px-1.5">
                   {counts.approved}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="rejected">
-                Rechazadas
+                {t("timekeeping.approvals.tabs.rejected")}
                 <Badge variant="secondary" className="ml-2 px-1.5">
                   {counts.rejected}
                 </Badge>
@@ -111,7 +113,7 @@ export default function ApprovalsPage() {
                 <div className="mx-auto size-12 rounded-full bg-muted grid place-items-center mb-3">
                   <Inbox className="size-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">Nada por aquí ahora mismo.</p>
+                <p className="text-sm text-muted-foreground">{t("timekeeping.approvals.nothing")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -132,6 +134,7 @@ export default function ApprovalsPage() {
 function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject: () => void }) {
   const tenantId = useCurrentTenantId();
   const approve = useApproveApproval(tenantId);
+  const { t } = useTranslation();
   const isPending = approval.status === "pending";
 
   return (
@@ -141,10 +144,14 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
           #{approval.report_id}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">Reporte #{approval.report_id}</div>
+          <div className="font-medium truncate">
+            {t("timekeeping.approvals.reportLabel", { id: approval.report_id })}
+          </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            Aprobación #{approval.id}
-            {approval.reviewer_id != null && <> · Revisor #{approval.reviewer_id}</>}
+            {t("timekeeping.approvals.approvalLabel", { id: approval.id })}
+            {approval.reviewer_id != null && (
+              <> · {t("timekeeping.approvals.reviewer", { id: approval.reviewer_id })}</>
+            )}
             {approval.reviewed_at && <> · {formatDateTime(approval.reviewed_at)}</>}
           </div>
         </div>
@@ -157,7 +164,7 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
               size="icon"
               variant="outline"
               className="size-8"
-              aria-label="Rechazar"
+              aria-label={t("timekeeping.approvals.rejectAria")}
               onClick={onReject}
             >
               <X className="size-4" />
@@ -165,12 +172,12 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
             <Button
               size="icon"
               className="size-8"
-              aria-label="Aprobar"
+              aria-label={t("timekeeping.approvals.approveAria")}
               disabled={approve.isPending}
               onClick={() =>
                 approve.mutate(approval.id, {
-                  onSuccess: () => toast.success("Reporte aprobado"),
-                  onError: () => toast.error("No se pudo aprobar"),
+                  onSuccess: () => toast.success(t("timekeeping.approvals.approvedToast")),
+                  onError: () => toast.error(t("timekeeping.approvals.approveErrorToast")),
                 })
               }
             >
@@ -186,6 +193,7 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
 function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const reject = useRejectApproval(tenantId);
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
 
   function onSubmit(e: React.FormEvent) {
@@ -195,11 +203,11 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
       { id: approval.id, body: { reason } },
       {
         onSuccess: () => {
-          toast.success("Reporte rechazado");
+          toast.success(t("timekeeping.approvals.rejectedToast"));
           setReason("");
           onClose();
         },
-        onError: () => toast.error("No se pudo rechazar"),
+        onError: () => toast.error(t("timekeeping.approvals.rejectErrorToast")),
       },
     );
   }
@@ -208,11 +216,12 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
     <Sheet open={!!approval} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Rechazar reporte</SheetTitle>
+          <SheetTitle>{t("timekeeping.approvals.rejectModal.title")}</SheetTitle>
           <SheetDescription>
             {approval && (
               <>
-                Reporte #{approval.report_id} · Aprobación #{approval.id}
+                {t("timekeeping.approvals.reportLabel", { id: approval.report_id })} ·{" "}
+                {t("timekeeping.approvals.approvalLabel", { id: approval.id })}
               </>
             )}
           </SheetDescription>
@@ -223,7 +232,7 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
               htmlFor="reject-reason"
               className="block text-xs font-medium text-muted-foreground"
             >
-              Motivo (opcional)
+              {t("timekeeping.approvals.rejectModal.reasonLabel")}
             </label>
             <textarea
               id="reject-reason"
@@ -231,15 +240,17 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
               onChange={(e) => setReason(e.target.value)}
               rows={4}
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              placeholder="Cuéntale al empleado qué cambiar antes de reenviar."
+              placeholder={t("timekeeping.approvals.rejectModal.reasonPlaceholder")}
             />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" variant="destructive" disabled={reject.isPending}>
-              {reject.isPending ? "Rechazando…" : "Rechazar"}
+              {reject.isPending
+                ? t("timekeeping.approvals.rejectModal.rejecting")
+                : t("timekeeping.approvals.rejectAria")}
             </Button>
           </div>
         </form>

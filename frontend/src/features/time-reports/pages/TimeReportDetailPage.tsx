@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -29,6 +30,7 @@ export default function TimeReportDetailPage() {
   const { data: report, isLoading } = useTimeReport(tenantId, reportId);
   const submit = useSubmitReport(tenantId, reportId);
   const approve = useApproveReport(tenantId, reportId);
+  const { t } = useTranslation();
   const [rejecting, setRejecting] = useState(false);
 
   if (isLoading)
@@ -37,7 +39,7 @@ export default function TimeReportDetailPage() {
         <Spinner />
       </div>
     );
-  if (!report) return <p className="text-slate-600">Reporte no encontrado.</p>;
+  if (!report) return <p className="text-slate-600">{t("timekeeping.reports.notFound")}</p>;
 
   const isDraft = report.status === "draft";
   const isPending = report.status === "pending" || report.status === "submitted";
@@ -45,40 +47,56 @@ export default function TimeReportDetailPage() {
   return (
     <div className="space-y-4">
       <Link to="/reports" className="text-sm text-slate-600 hover:underline">
-        ← Volver a reportes
+        {t("timekeeping.reports.backToList")}
       </Link>
 
       <Card>
         <CardHeader
-          title={`Reporte #${report.id}`}
-          description={`Empleado #${report.employee_id} · Periodo #${report.period_id} · v${report.version}`}
+          title={t("timekeeping.reports.header", { id: report.id })}
+          description={t("timekeeping.reports.subheader", {
+            employee: report.employee_id,
+            period: report.period_id,
+            version: report.version,
+          })}
           action={<Badge status={report.status}>{report.status}</Badge>}
         />
         <CardBody>
           <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-            <Field label="Enviado" value={formatDateTime(report.submitted_at)} />
-            <Field label="Aprobado" value={formatDateTime(report.approved_at)} />
-            <Field label="Rechazado" value={formatDateTime(report.rejected_at)} />
-            <Field label="Bloqueado" value={formatDateTime(report.locked_at)} />
+            <Field
+              label={t("timekeeping.reports.fields.submitted")}
+              value={formatDateTime(report.submitted_at)}
+            />
+            <Field
+              label={t("timekeeping.reports.fields.approved")}
+              value={formatDateTime(report.approved_at)}
+            />
+            <Field
+              label={t("timekeeping.reports.fields.rejected")}
+              value={formatDateTime(report.rejected_at)}
+            />
+            <Field
+              label={t("timekeeping.reports.fields.locked")}
+              value={formatDateTime(report.locked_at)}
+            />
           </div>
           {report.rejection_reason && (
             <p className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-700">
-              <strong>Motivo de rechazo:</strong> {report.rejection_reason}
+              <strong>{t("timekeeping.reports.rejectionReason")}</strong> {report.rejection_reason}
             </p>
           )}
           <div className="mt-4 flex flex-wrap gap-2">
             {isDraft && (
               <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
-                Enviar para aprobación
+                {t("timekeeping.reports.submit")}
               </Button>
             )}
             {isPending && (
               <>
                 <Button onClick={() => approve.mutate()} disabled={approve.isPending}>
-                  Aprobar
+                  {t("timekeeping.reports.approve")}
                 </Button>
                 <Button variant="danger" onClick={() => setRejecting(true)}>
-                  Rechazar
+                  {t("timekeeping.reports.reject")}
                 </Button>
               </>
             )}
@@ -108,6 +126,7 @@ function EntriesCard({ reportId, canEdit }: { reportId: number; canEdit: boolean
   const tenantId = useCurrentTenantId();
   const { data: entries = [], isLoading } = useTimeEntries(tenantId, reportId);
   const remove = useDeleteTimeEntry(tenantId, reportId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const totalHours = entries.reduce((sum, e) => sum + parseFloat(e.hours), 0);
@@ -115,9 +134,13 @@ function EntriesCard({ reportId, canEdit }: { reportId: number; canEdit: boolean
   return (
     <Card>
       <CardHeader
-        title="Imputaciones de horas"
-        description={`Total: ${totalHours.toFixed(2)} h`}
-        action={canEdit && <Button onClick={() => setOpen(true)}>Añadir entrada</Button>}
+        title={t("timekeeping.reports.entries.title")}
+        description={t("timekeeping.reports.entries.totalLabel", { hours: totalHours.toFixed(2) })}
+        action={
+          canEdit && (
+            <Button onClick={() => setOpen(true)}>{t("timekeeping.reports.entries.add")}</Button>
+          )
+        }
       />
       <CardBody className="p-0">
         {isLoading ? (
@@ -128,16 +151,18 @@ function EntriesCard({ reportId, canEdit }: { reportId: number; canEdit: boolean
           <Table>
             <thead>
               <tr>
-                <Th>Fecha</Th>
-                <Th>Horas</Th>
-                <Th>Inicio</Th>
-                <Th>Fin</Th>
-                <Th>Descripción</Th>
+                <Th>{t("timekeeping.reports.entries.columns.date")}</Th>
+                <Th>{t("timekeeping.reports.entries.columns.hours")}</Th>
+                <Th>{t("timekeeping.reports.entries.columns.start")}</Th>
+                <Th>{t("timekeeping.reports.entries.columns.end")}</Th>
+                <Th>{t("timekeeping.reports.entries.columns.description")}</Th>
                 <Th></Th>
               </tr>
             </thead>
             <tbody>
-              {entries.length === 0 && <EmptyRow colSpan={6} message="Sin imputaciones." />}
+              {entries.length === 0 && (
+                <EmptyRow colSpan={6} message={t("timekeeping.reports.entries.empty")} />
+              )}
               {entries.map((e) => (
                 <tr key={e.id}>
                   <Td>{formatDate(e.date)}</Td>
@@ -152,7 +177,7 @@ function EntriesCard({ reportId, canEdit }: { reportId: number; canEdit: boolean
                         onClick={() => remove.mutate(e.id)}
                         disabled={remove.isPending}
                       >
-                        Eliminar
+                        {t("timekeeping.reports.entries.delete")}
                       </Button>
                     )}
                   </Td>
@@ -179,6 +204,7 @@ function CreateEntryModal({
 }) {
   const tenantId = useCurrentTenantId();
   const create = useCreateTimeEntry(tenantId, reportId);
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     hours: "8",
@@ -202,17 +228,17 @@ function CreateEntryModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nueva imputación">
+    <Modal open={open} onClose={onClose} title={t("timekeeping.reports.entries.createTitle")}>
       <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
         <Input
-          label="Fecha"
+          label={t("timekeeping.reports.entries.date")}
           type="date"
           value={form.date}
           onChange={(e) => setForm({ ...form, date: e.target.value })}
           required
         />
         <Input
-          label="Horas"
+          label={t("timekeeping.reports.entries.hours")}
           type="number"
           step="0.25"
           value={form.hours}
@@ -220,20 +246,20 @@ function CreateEntryModal({
           required
         />
         <Input
-          label="Inicio"
+          label={t("timekeeping.reports.entries.start")}
           type="time"
           value={form.start_time}
           onChange={(e) => setForm({ ...form, start_time: e.target.value })}
         />
         <Input
-          label="Fin"
+          label={t("timekeeping.reports.entries.end")}
           type="time"
           value={form.end_time}
           onChange={(e) => setForm({ ...form, end_time: e.target.value })}
         />
         <div className="col-span-full">
           <Textarea
-            label="Descripción"
+            label={t("timekeeping.reports.entries.description")}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={2}
@@ -241,10 +267,12 @@ function CreateEntryModal({
         </div>
         <div className="col-span-full flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Añadiendo…" : "Añadir"}
+            {create.isPending
+              ? t("timekeeping.reports.entries.adding")
+              : t("timekeeping.reports.entries.add2")}
           </Button>
         </div>
       </form>
@@ -256,6 +284,7 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
   const tenantId = useCurrentTenantId();
   const { data: breakdowns = [], isLoading } = useReportCostBreakdown(tenantId, reportId);
   const calculate = useCalculateReportCost(tenantId, reportId);
+  const { t } = useTranslation();
 
   const totalCost = breakdowns.reduce((sum, b) => sum + parseFloat(b.total_cost), 0);
   const totalBaseHours = breakdowns.reduce((sum, b) => sum + parseFloat(b.base_hours), 0);
@@ -264,11 +293,15 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
   return (
     <Card>
       <CardHeader
-        title="Desglose de costes"
+        title={t("timekeeping.reports.cost.title")}
         description={
           breakdowns.length > 0
-            ? `${formatHours(String(totalBaseHours))} base · ${formatHours(String(totalOvertimeHours))} extra · Total ${formatCurrency(String(totalCost))}`
-            : "Sin cálculo disponible"
+            ? t("timekeeping.reports.cost.summary", {
+                base: formatHours(String(totalBaseHours)),
+                overtime: formatHours(String(totalOvertimeHours)),
+                total: formatCurrency(String(totalCost)),
+              })
+            : t("timekeeping.reports.cost.empty")
         }
         action={
           <Button
@@ -276,7 +309,9 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
             onClick={() => calculate.mutate()}
             disabled={calculate.isPending}
           >
-            {calculate.isPending ? "Calculando…" : "Calcular costes"}
+            {calculate.isPending
+              ? t("timekeeping.reports.cost.calculating")
+              : t("timekeeping.reports.cost.calculate")}
           </Button>
         }
       />
@@ -289,12 +324,12 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
           <Table>
             <thead>
               <tr>
-                <Th>Regla aplicada</Th>
-                <Th>Multiplicador</Th>
-                <Th>Horas base</Th>
-                <Th>Horas extra</Th>
-                <Th>Coste base</Th>
-                <Th>Coste total</Th>
+                <Th>{t("timekeeping.reports.cost.columns.rule")}</Th>
+                <Th>{t("timekeeping.reports.cost.columns.multiplier")}</Th>
+                <Th>{t("timekeeping.reports.cost.columns.baseHours")}</Th>
+                <Th>{t("timekeeping.reports.cost.columns.overtimeHours")}</Th>
+                <Th>{t("timekeeping.reports.cost.columns.baseCost")}</Th>
+                <Th>{t("timekeeping.reports.cost.columns.totalCost")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -310,7 +345,7 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
               ))}
               <tr className="border-t border-slate-200 bg-slate-50">
                 <Td colSpan={4} className="font-semibold text-slate-700">
-                  Total
+                  {t("timekeeping.reports.cost.total")}
                 </Td>
                 <Td></Td>
                 <Td className="font-bold text-slate-900">{formatCurrency(String(totalCost))}</Td>
@@ -326,20 +361,21 @@ function CostBreakdownCard({ reportId }: { reportId: number }) {
 function HistoryCard({ reportId }: { reportId: number }) {
   const tenantId = useCurrentTenantId();
   const { data = [] } = useReportHistory(tenantId, reportId);
+  const { t } = useTranslation();
 
   if (data.length === 0) return null;
 
   return (
     <Card>
-      <CardHeader title="Historial de estados" />
+      <CardHeader title={t("timekeeping.reports.history.title")} />
       <CardBody className="p-0">
         <Table>
           <thead>
             <tr>
-              <Th>Cuándo</Th>
-              <Th>De</Th>
-              <Th>A</Th>
-              <Th>Por</Th>
+              <Th>{t("timekeeping.reports.history.columns.when")}</Th>
+              <Th>{t("timekeeping.reports.history.columns.from")}</Th>
+              <Th>{t("timekeeping.reports.history.columns.to")}</Th>
+              <Th>{t("timekeeping.reports.history.columns.by")}</Th>
             </tr>
           </thead>
           <tbody>
@@ -373,6 +409,7 @@ function RejectModal({
 }) {
   const tenantId = useCurrentTenantId();
   const reject = useRejectReport(tenantId, reportId);
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
 
   function onSubmit(e: React.FormEvent) {
@@ -381,10 +418,10 @@ function RejectModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Rechazar reporte">
+    <Modal open={open} onClose={onClose} title={t("timekeeping.reports.rejectModal.title")}>
       <form onSubmit={onSubmit} className="space-y-3">
         <Textarea
-          label="Motivo"
+          label={t("timekeeping.reports.rejectModal.reason")}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           required
@@ -392,10 +429,12 @@ function RejectModal({
         />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" variant="danger" disabled={reject.isPending}>
-            {reject.isPending ? "Rechazando…" : "Rechazar"}
+            {reject.isPending
+              ? t("timekeeping.reports.rejectModal.rejecting")
+              : t("timekeeping.reports.reject")}
           </Button>
         </div>
       </form>

@@ -2,6 +2,7 @@ import { useQueries } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Filter, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { listTimeReportsForPeriodApiV1TenantsTenantIdPeriodsPeriodIdReportsGet } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
@@ -39,6 +40,7 @@ const statusStyle: Record<string, string> = {
 export default function TimeReportsPage() {
   const tenantId = useCurrentTenantId();
   const periods = usePeriods(tenantId);
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "draft" | "submitted" | "approved" | "rejected">(
     "all",
@@ -86,15 +88,15 @@ export default function TimeReportsPage() {
     return (
       <div className="space-y-6">
         <header>
-          <h1 className="text-3xl font-semibold tracking-tight">Reportes</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Imputaciones de horas por periodo y empleado.
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("timekeeping.reports.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("timekeeping.reports.subtitle")}</p>
         </header>
         <EmptyState
           icon={Clock}
-          title="Sin reportes"
-          description="Cuando los empleados creen reportes para los periodos abiertos, aparecerán aquí."
+          title={t("timekeeping.reports.empty.title")}
+          description={t("timekeeping.reports.empty.description")}
         />
       </div>
     );
@@ -104,9 +106,11 @@ export default function TimeReportsPage() {
     <div className="space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Reportes</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("timekeeping.reports.title")}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {total} en total · {submitted} pendientes de revisión · {approved} aprobados
+            {t("timekeeping.reports.summary", { total, submitted, approved })}
           </p>
         </div>
       </header>
@@ -115,7 +119,7 @@ export default function TimeReportsPage() {
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por periodo, ID o empleado…"
+            placeholder={t("timekeeping.reports.searchPlaceholder")}
             className="pl-9"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -124,14 +128,14 @@ export default function TimeReportsPage() {
         <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
           <SelectTrigger className="w-[180px]">
             <Filter className="size-3.5 mr-1.5" />
-            <SelectValue placeholder="Estado" />
+            <SelectValue placeholder={t("timekeeping.reports.filterStatusPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            <SelectItem value="draft">Borrador</SelectItem>
-            <SelectItem value="submitted">Enviado</SelectItem>
-            <SelectItem value="approved">Aprobado</SelectItem>
-            <SelectItem value="rejected">Rechazado</SelectItem>
+            <SelectItem value="all">{t("timekeeping.reports.statusAll")}</SelectItem>
+            <SelectItem value="draft">{t("timekeeping.reports.statusDraft")}</SelectItem>
+            <SelectItem value="submitted">{t("timekeeping.reports.statusSubmitted")}</SelectItem>
+            <SelectItem value="approved">{t("timekeeping.reports.statusApproved")}</SelectItem>
+            <SelectItem value="rejected">{t("timekeeping.reports.statusRejected")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -141,13 +145,15 @@ export default function TimeReportsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>ID</TableHead>
-                <TableHead>Periodo</TableHead>
-                <TableHead>Empleado</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Versión</TableHead>
-                <TableHead>Enviado</TableHead>
-                <TableHead className="text-right">Acción</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.id")}</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.period")}</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.employee")}</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.status")}</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.version")}</TableHead>
+                <TableHead>{t("timekeeping.reports.columns.submitted")}</TableHead>
+                <TableHead className="text-right">
+                  {t("timekeeping.reports.columns.action")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -187,7 +193,7 @@ export default function TimeReportsPage() {
                       to={`/reports/${r.id}`}
                       className="inline-flex items-center text-sm font-medium text-primary hover:underline"
                     >
-                      Ver <ArrowRight className="size-3.5 ml-1" />
+                      {t("timekeeping.reports.view")} <ArrowRight className="size-3.5 ml-1" />
                     </Link>
                   </TableCell>
                 </motion.tr>
@@ -198,7 +204,7 @@ export default function TimeReportsPage() {
                     colSpan={7}
                     className="text-center text-sm text-muted-foreground py-12"
                   >
-                    Ningún reporte coincide con los filtros.
+                    {t("timekeeping.reports.noMatch")}
                   </TableCell>
                 </TableRow>
               )}
