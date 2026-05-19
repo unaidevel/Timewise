@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { AlertTriangle, Calculator, Clock, DollarSign, Download, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import {
   Bar,
@@ -64,17 +65,16 @@ export default function CostingPage() {
 }
 
 function NoTenantState() {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Selecciona un workspace</CardTitle>
+        <CardTitle>{t("costing.noTenant.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          Necesitas crear o seleccionar una organización para ver el coste laboral.
-        </p>
+        <p className="text-sm text-muted-foreground mb-4">{t("costing.noTenant.description")}</p>
         <Link to="/onboarding" className="text-sm font-medium text-primary hover:underline">
-          Crear primera organización →
+          {t("costing.noTenant.cta")}
         </Link>
       </CardContent>
     </Card>
@@ -85,6 +85,7 @@ function Costing({ tenantId }: { tenantId: number }) {
   const otCfg = useOvertimeConfig(tenantId);
   const org = useOrgProfile(tenantId);
   const colors = useDepartmentColors(tenantId);
+  const { t } = useTranslation();
 
   const periods = usePeriods(tenantId);
   const employees = useEmployees(tenantId);
@@ -266,16 +267,16 @@ function Costing({ tenantId }: { tenantId: number }) {
       const deptId = deptIdByEmp[r.employeeId];
       const dept = deptId != null ? deptById[deptId] : null;
       return {
-        Empleado: emp?.full_name ?? `#${r.employeeId}`,
-        Departamento: dept?.name ?? "—",
-        "Tarifa por hora": r.rate,
-        Horas: Number(r.totalHours.toFixed(2)),
-        "Horas extra": Number(r.otHours.toFixed(2)),
-        "Coste total": r.totalCost.toFixed(2),
+        [t("costing.csvHeaders.employee")]: emp?.full_name ?? `#${r.employeeId}`,
+        [t("costing.csvHeaders.department")]: dept?.name ?? "—",
+        [t("costing.csvHeaders.hourlyRate")]: r.rate,
+        [t("costing.csvHeaders.hours")]: Number(r.totalHours.toFixed(2)),
+        [t("costing.csvHeaders.overtime")]: Number(r.otHours.toFixed(2)),
+        [t("costing.csvHeaders.totalCost")]: r.totalCost.toFixed(2),
       };
     });
-    const label = activePeriod?.name ?? "periodo";
-    downloadCsv(`coste-${label}.csv`, rows);
+    const label = activePeriod?.name ?? "period";
+    downloadCsv(t("costing.csvFilename", { label }), rows);
   }
 
   const noData = !isLoading && (sortedPeriods.length === 0 || (reports.data?.length ?? 0) === 0);
@@ -283,11 +284,11 @@ function Costing({ tenantId }: { tenantId: number }) {
   if (noData) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Costing</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("costing.title")}</h1>
         <EmptyState
           icon={Calculator}
-          title="Aún no hay coste laboral"
-          description="Cuando haya reportes con horas imputadas en este workspace, verás aquí los KPIs, el desglose por departamento y por empleado."
+          title={t("costing.empty.title")}
+          description={t("costing.empty.description")}
         />
       </div>
     );
@@ -297,10 +298,12 @@ function Costing({ tenantId }: { tenantId: number }) {
     <div className="space-y-6">
       <header className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Costing</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("costing.title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Coste laboral con {otCfg.weekly_threshold}h/semana y {otCfg.daily_threshold}h/día como
-            umbrales de horas extra.
+            {t("costing.subtitle", {
+              weekly: otCfg.weekly_threshold,
+              daily: otCfg.daily_threshold,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -312,7 +315,7 @@ function Costing({ tenantId }: { tenantId: number }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="latest">Último periodo</SelectItem>
+              <SelectItem value="latest">{t("costing.latestPeriod")}</SelectItem>
               {sortedPeriods.map((p) => (
                 <SelectItem key={p.id} value={String(p.id)}>
                   {p.name}
@@ -322,7 +325,7 @@ function Costing({ tenantId }: { tenantId: number }) {
           </Select>
           <Button variant="outline" onClick={exportCsv} disabled={byEmployee.length === 0}>
             <Download className="size-4 mr-2" />
-            Exportar CSV
+            {t("costing.exportCsv")}
           </Button>
         </div>
       </header>
@@ -330,33 +333,35 @@ function Costing({ tenantId }: { tenantId: number }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Kpi
           icon={DollarSign}
-          label="Coste total"
+          label={t("costing.kpi.total")}
           value={fmtCurrency(totals.total, org.currency)}
-          hint={`${totals.hours.toFixed(0)} horas imputadas`}
+          hint={t("costing.kpi.totalHint", { hours: totals.hours.toFixed(0) })}
           loading={isLoading}
         />
         <Kpi
           icon={TrendingUp}
-          label="Coste regular"
+          label={t("costing.kpi.regular")}
           value={fmtCurrency(totals.regCost, org.currency)}
-          hint={`${(totals.hours - totals.otHours).toFixed(0)} h regulares`}
+          hint={t("costing.kpi.regularHint", {
+            hours: (totals.hours - totals.otHours).toFixed(0),
+          })}
           loading={isLoading}
         />
         <Kpi
           icon={AlertTriangle}
-          label="Coste de horas extra"
+          label={t("costing.kpi.overtime")}
           value={fmtCurrency(totals.otCost, org.currency)}
-          hint={`${totals.otHours.toFixed(0)} h extra`}
+          hint={t("costing.kpi.overtimeHint", { hours: totals.otHours.toFixed(0) })}
           accent
           loading={isLoading}
         />
         <Kpi
           icon={Clock}
-          label="Tarifa media"
+          label={t("costing.kpi.avgRate")}
           value={
             totals.hours > 0 ? `${fmtCurrency(totals.total / totals.hours, org.currency)}/h` : "—"
           }
-          hint="Coste por hora efectivo"
+          hint={t("costing.kpi.avgRateHint")}
           loading={isLoading}
         />
       </div>
@@ -364,12 +369,12 @@ function Costing({ tenantId }: { tenantId: number }) {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle className="text-base">Coste por departamento</CardTitle>
+            <CardTitle className="text-base">{t("costing.byDept.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             {byDept.length === 0 ? (
               <div className="h-[280px] grid place-items-center text-sm text-muted-foreground">
-                {isLoading ? "Calculando…" : "Sin datos para este periodo"}
+                {isLoading ? t("costing.byDept.calculating") : t("costing.byDept.noData")}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
@@ -409,7 +414,7 @@ function Costing({ tenantId }: { tenantId: number }) {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">Desglose por departamento</CardTitle>
+            <CardTitle className="text-base">{t("costing.byDept.breakdown")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {byDept.map((d) => {
@@ -435,7 +440,9 @@ function Costing({ tenantId }: { tenantId: number }) {
               );
             })}
             {byDept.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">Sin datos</p>
+              <p className="text-sm text-muted-foreground text-center py-8">
+                {t("costing.byDept.empty")}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -443,19 +450,25 @@ function Costing({ tenantId }: { tenantId: number }) {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Coste por empleado</CardTitle>
-          <Badge variant="secondary">{byEmployee.length} personas</Badge>
+          <CardTitle className="text-base">{t("costing.byEmployee.title")}</CardTitle>
+          <Badge variant="secondary">
+            {t("costing.byEmployee.countBadge", { count: byEmployee.length })}
+          </Badge>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Empleado</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead className="text-right">Tarifa</TableHead>
-                <TableHead className="text-right">Horas</TableHead>
-                <TableHead className="text-right">Extra</TableHead>
-                <TableHead className="text-right">Coste</TableHead>
+                <TableHead>{t("costing.byEmployee.columns.employee")}</TableHead>
+                <TableHead>{t("costing.byEmployee.columns.department")}</TableHead>
+                <TableHead className="text-right">{t("costing.byEmployee.columns.rate")}</TableHead>
+                <TableHead className="text-right">
+                  {t("costing.byEmployee.columns.hours")}
+                </TableHead>
+                <TableHead className="text-right">
+                  {t("costing.byEmployee.columns.overtime")}
+                </TableHead>
+                <TableHead className="text-right">{t("costing.byEmployee.columns.cost")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -512,7 +525,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                     colSpan={6}
                     className="text-center text-sm text-muted-foreground py-12"
                   >
-                    Sin datos de coste para este periodo
+                    {t("costing.byEmployee.empty")}
                   </TableCell>
                 </TableRow>
               )}

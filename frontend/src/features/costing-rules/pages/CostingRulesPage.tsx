@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import type { OvertimeRuleIn } from "@/client";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +15,7 @@ import { useCreateOvertimeRule, useOvertimeRules } from "../hooks";
 export default function CostingRulesPage() {
   const tenantId = useCurrentTenantId();
   const { data: rules = [], isLoading } = useOvertimeRules(tenantId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const active = rules.filter((r) => r.is_active);
@@ -22,9 +24,12 @@ export default function CostingRulesPage() {
   return (
     <Card>
       <CardHeader
-        title="Reglas de coste"
-        description={`${active.length} activa${active.length !== 1 ? "s" : ""} · ${inactive.length} inactiva${inactive.length !== 1 ? "s" : ""}`}
-        action={<Button onClick={() => setOpen(true)}>Nueva regla</Button>}
+        title={t("costingRules.title")}
+        description={t("costingRules.summary", {
+          active: active.length,
+          inactive: inactive.length,
+        })}
+        action={<Button onClick={() => setOpen(true)}>{t("costingRules.new")}</Button>}
       />
       <CardBody className="p-0">
         {isLoading ? (
@@ -35,16 +40,18 @@ export default function CostingRulesPage() {
           <Table>
             <thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th>Multiplicador</Th>
-                <Th>Prioridad</Th>
-                <Th>Condiciones</Th>
-                <Th>Estado</Th>
+                <Th>{t("costingRules.columns.name")}</Th>
+                <Th>{t("costingRules.columns.multiplier")}</Th>
+                <Th>{t("costingRules.columns.priority")}</Th>
+                <Th>{t("costingRules.columns.conditions")}</Th>
+                <Th>{t("costingRules.columns.status")}</Th>
                 <Th></Th>
               </tr>
             </thead>
             <tbody>
-              {rules.length === 0 && <EmptyRow colSpan={6} message="Sin reglas de coste." />}
+              {rules.length === 0 && (
+                <EmptyRow colSpan={6} message={t("costingRules.empty")} />
+              )}
               {rules.map((rule) => (
                 <tr key={rule.id}>
                   <Td className="font-medium">
@@ -57,7 +64,7 @@ export default function CostingRulesPage() {
                   <Td>{rule.conditions.length}</Td>
                   <Td>
                     <Badge status={rule.is_active ? "active" : "inactive"}>
-                      {rule.is_active ? "Activa" : "Inactiva"}
+                      {rule.is_active ? t("costingRules.active") : t("costingRules.inactive")}
                     </Badge>
                   </Td>
                   <Td className="text-right">
@@ -65,7 +72,7 @@ export default function CostingRulesPage() {
                       to={`/costing-rules/${rule.id}`}
                       className="text-sm text-muted-foreground hover:underline"
                     >
-                      Ver →
+                      {t("costingRules.view")}
                     </Link>
                   </Td>
                 </tr>
@@ -80,15 +87,10 @@ export default function CostingRulesPage() {
   );
 }
 
-const CONDITION_TYPES = [
-  { value: "day_of_week", label: "Día de la semana" },
-  { value: "hours_per_day", label: "Horas por día" },
-  { value: "hours_per_week", label: "Horas por semana" },
-];
-
 function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const create = useCreateOvertimeRule(tenantId);
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: "",
     multiplier: "1.5",
@@ -96,6 +98,12 @@ function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void
     conditionType: "hours_per_day",
     conditionValue: "8",
   });
+
+  const conditionTypes = [
+    { value: "day_of_week", label: t("costingRules.conditionTypes.dayOfWeek") },
+    { value: "hours_per_day", label: t("costingRules.conditionTypes.hoursPerDay") },
+    { value: "hours_per_week", label: t("costingRules.conditionTypes.hoursPerWeek") },
+  ];
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -129,18 +137,18 @@ function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nueva regla de coste">
+    <Modal open={open} onClose={onClose} title={t("costingRules.createTitle")}>
       <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
         <div className="col-span-full">
           <Input
-            label="Nombre"
+            label={t("costingRules.form.name")}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
           />
         </div>
         <Input
-          label="Multiplicador"
+          label={t("costingRules.form.multiplier")}
           type="number"
           step="0.01"
           min="1"
@@ -149,7 +157,7 @@ function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void
           required
         />
         <Input
-          label="Prioridad"
+          label={t("costingRules.form.priority")}
           type="number"
           min="1"
           value={form.priority}
@@ -157,28 +165,28 @@ function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void
           required
         />
         <Select
-          label="Tipo de condición"
+          label={t("costingRules.form.conditionType")}
           value={form.conditionType}
           onChange={(e) => setForm({ ...form, conditionType: e.target.value })}
         >
-          {CONDITION_TYPES.map((c) => (
+          {conditionTypes.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
             </option>
           ))}
         </Select>
         <Input
-          label="Valor de condición"
+          label={t("costingRules.form.conditionValue")}
           value={form.conditionValue}
           onChange={(e) => setForm({ ...form, conditionValue: e.target.value })}
           required
         />
         <div className="col-span-full flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Creando…" : "Crear"}
+            {create.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </form>
