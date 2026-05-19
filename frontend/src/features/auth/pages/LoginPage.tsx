@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Leaf, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
@@ -12,6 +13,7 @@ import { useLogin } from "../hooks";
 export default function LoginPage() {
   const navigate = useNavigate();
   const login = useLogin();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -21,11 +23,15 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: (data) => {
-          toast.success(`Bienvenido, ${data.user.full_name?.split(" ")[0] ?? data.user.email}`);
+          toast.success(
+            t("auth.login.success", {
+              name: data.user.full_name?.split(" ")[0] ?? data.user.email,
+            }),
+          );
           navigate("/");
         },
         onError: () => {
-          toast.error("Credenciales incorrectas");
+          toast.error(t("auth.login.errorCredentials"));
         },
       },
     );
@@ -46,14 +52,12 @@ export default function LoginPage() {
             </div>
             <span className="font-semibold tracking-tight">TimeWise</span>
           </Link>
-          <h1 className="text-3xl font-semibold tracking-tight">Bienvenido de nuevo</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Inicia sesión para continuar en tu workspace.
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("auth.login.title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.login.subtitle")}</p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.login.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -65,7 +69,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t("auth.login.password")}</Label>
               </div>
               <Input
                 id="password"
@@ -77,14 +81,18 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full h-11" disabled={login.isPending}>
-              {login.isPending ? <Loader2 className="size-4 animate-spin" /> : "Entrar"}
+              {login.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                t("auth.login.submit")
+              )}
             </Button>
           </form>
 
           <p className="mt-6 text-sm text-muted-foreground text-center">
-            ¿No tienes cuenta?{" "}
+            {t("auth.login.noAccount")}{" "}
             <Link to="/register" className="text-foreground font-medium hover:underline">
-              Crear una cuenta
+              {t("auth.login.createAccount")}
             </Link>
           </p>
         </div>
