@@ -295,6 +295,10 @@ export type DepartmentOut = {
      */
     is_active: boolean;
     /**
+     * Employee Count
+     */
+    employee_count: number;
+    /**
      * Created By Id
      */
     created_by_id: number | null;

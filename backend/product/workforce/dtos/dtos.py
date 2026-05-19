@@ -15,6 +15,7 @@ class DepartmentOut(BaseModel):
     tenant_id: int
     name: str
     is_active: bool
+    employee_count: int = 0
     created_by_id: int | None
     updated_by_id: int | None
     created_at: datetime

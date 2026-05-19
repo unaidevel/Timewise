@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.db.models import Count, Q
+
 from product.workforce.dtos.dtos import (
     DepartmentManagerOut,
     DepartmentOut,
@@ -58,12 +60,17 @@ class WorkforceRepository:
 
     @staticmethod
     def list_departments(tenant_id: int) -> list[DepartmentOut]:
-        return [
-            DepartmentOut.model_validate(m)
-            for m in DepartmentModel.objects.filter(tenant_id=tenant_id).order_by(
-                "name"
+        qs = (
+            DepartmentModel.objects.filter(tenant_id=tenant_id)
+            .annotate(
+                employee_count=Count(
+                    "employee_assignments",
+                    filter=Q(employee_assignments__left_at__isnull=True),
+                )
             )
-        ]
+            .order_by("name")
+        )
+        return [DepartmentOut.model_validate(m) for m in qs]
 
     @staticmethod
     def update_department(
