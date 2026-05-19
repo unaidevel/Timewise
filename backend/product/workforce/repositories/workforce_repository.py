@@ -254,10 +254,8 @@ class WorkforceRepository:
 
     @staticmethod
     def list_employees(tenant_id: int) -> list[EmployeeOut]:
-        dept_name_sq = Subquery(
-            EmployeeDepartmentModel.objects.filter(
-                employee=OuterRef("pk"), left_at__isnull=True
-            ).values("department__name")[:1]
+        active_dept_qs = EmployeeDepartmentModel.objects.filter(
+            employee=OuterRef("pk"), left_at__isnull=True
         )
         role_name_sq = Subquery(
             EmployeeRoleModel.objects.filter(
@@ -267,7 +265,12 @@ class WorkforceRepository:
         qs = (
             EmployeeModel.objects.filter(tenant_id=tenant_id)
             .annotate(
-                current_department_name=dept_name_sq,
+                current_department_id=Subquery(
+                    active_dept_qs.values("department_id")[:1]
+                ),
+                current_department_name=Subquery(
+                    active_dept_qs.values("department__name")[:1]
+                ),
                 current_role_name=role_name_sq,
             )
             .order_by("full_name")

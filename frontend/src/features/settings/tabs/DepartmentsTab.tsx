@@ -102,17 +102,25 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
         <div className="divide-y">
           {(departments.data ?? []).map((d) => (
             <div key={d.id} className="flex items-center gap-4 px-6 py-3.5">
-              <span
-                className="size-3 rounded-full shrink-0"
-                style={{ background: colorForDepartment(colors, d.id) }}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{d.name}</div>
-                <div className="text-xs text-muted-foreground">
+              <div className="flex-1 min-w-0 flex items-center gap-3">
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-sm font-medium"
+                  style={{
+                    background: `color-mix(in oklch, ${colorForDepartment(colors, d.id)} 15%, transparent)`,
+                    color: colorForDepartment(colors, d.id),
+                  }}
+                >
+                  <span
+                    className="size-2 rounded-full shrink-0"
+                    style={{ background: colorForDepartment(colors, d.id) }}
+                  />
+                  {d.name}
+                </span>
+                <span className="text-xs text-muted-foreground shrink-0">
                   {d.employee_count === 1
                     ? t("settings.depts.personOne")
                     : t("settings.depts.personOther", { count: d.employee_count })}
-                </div>
+                </span>
               </div>
               {d.is_active ? (
                 <>

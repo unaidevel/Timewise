@@ -35,6 +35,7 @@ import {
 } from "@/components/shadcn/table";
 import { useDepartments } from "@/features/departments/hooks";
 import { useRoles } from "@/features/roles/hooks";
+import { colorForDepartment, useDepartmentColors } from "@/features/settings/local-store";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ const statusStyle = {
 export default function EmployeesPage() {
   const tenantId = useCurrentTenantId();
   const employees = useEmployees(tenantId);
+  const colors = useDepartmentColors(tenantId);
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
@@ -179,7 +181,17 @@ export default function EmployeesPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.email}</TableCell>
                       <TableCell className="text-sm">
-                        {e.current_department_name ?? (
+                        {e.current_department_id != null && e.current_department_name ? (
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="size-2.5 rounded-full shrink-0"
+                              style={{
+                                background: colorForDepartment(colors, e.current_department_id),
+                              }}
+                            />
+                            {e.current_department_name}
+                          </span>
+                        ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
@@ -242,11 +254,12 @@ export default function EmployeesPage() {
                   label={t("workforce.employees.detail.emailLabel")}
                   value={selected.email}
                 />
-                {selected.current_department_name && (
+                {selected.current_department_id != null && selected.current_department_name && (
                   <DetailRow
                     icon={Building2}
                     label={t("workforce.employees.detail.departmentLabel")}
                     value={selected.current_department_name}
+                    dotColor={colorForDepartment(colors, selected.current_department_id)}
                   />
                 )}
                 {selected.current_role_name && (
@@ -293,17 +306,24 @@ function DetailRow({
   icon: Icon,
   label,
   value,
+  dotColor,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  dotColor?: string;
 }) {
   return (
     <div className="flex items-start gap-3 text-sm">
       <Icon className="size-4 text-muted-foreground mt-0.5" />
       <div className="flex-1">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="font-medium">{value}</div>
+        <div className="font-medium flex items-center gap-1.5">
+          {dotColor && (
+            <span className="size-2.5 rounded-full shrink-0" style={{ background: dotColor }} />
+          )}
+          {value}
+        </div>
       </div>
     </div>
   );
