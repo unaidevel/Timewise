@@ -47,27 +47,26 @@ type NavItem = {
   end?: boolean;
 };
 
-const nav: NavItem[] = [
-  { to: "/", label: "Inicio", icon: LayoutDashboard, end: true },
-  { to: "/employees", label: "Empleados", icon: Users },
-  { to: "/departments", label: "Departamentos", icon: FolderKanban },
-  { to: "/roles", label: "Roles", icon: Tag },
-  { to: "/periods", label: "Periodos", icon: Clock },
-  { to: "/time", label: "Fichar horas", icon: Clock },
-  { to: "/reports", label: "Mis reportes", icon: Clock },
-  { to: "/approvals", label: "Aprobaciones", icon: CheckSquare },
-  { to: "/costing-rules", label: "Reglas de coste", icon: Calculator },
-  { to: "/costing", label: "Costing", icon: Calculator },
-  { to: "/audit", label: "Auditoría", icon: ScrollText },
-  { to: "/settings", label: "Ajustes", icon: Settings },
-];
-
 export function Layout() {
   const location = useLocation();
   const { theme, toggle } = useTheme();
   const { i18n, t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
+  const nav: NavItem[] = [
+    { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true },
+    { to: "/employees", label: t("layout.nav.employees"), icon: Users },
+    { to: "/departments", label: t("layout.nav.departments"), icon: FolderKanban },
+    { to: "/roles", label: t("layout.nav.roles"), icon: Tag },
+    { to: "/periods", label: t("layout.nav.periods"), icon: Clock },
+    { to: "/time", label: t("layout.nav.time"), icon: Clock },
+    { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
+    { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
+    { to: "/costing-rules", label: t("layout.nav.costingRules"), icon: Calculator },
+    { to: "/costing", label: t("layout.nav.costing"), icon: Calculator },
+    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText },
+    { to: "/settings", label: t("layout.nav.settings"), icon: Settings },
+  ];
   const { data: tenants = [] } = useTenants();
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
@@ -129,7 +128,7 @@ export function Layout() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Workspaces
+                  {t("layout.workspaces")}
                 </DropdownMenuLabel>
                 {tenants.map((t) => (
                   <DropdownMenuItem
@@ -177,7 +176,7 @@ export function Layout() {
             onClick={() => setCollapsed((c) => !c)}
             className="text-xs text-muted-foreground hover:text-foreground w-full text-left px-2"
           >
-            {collapsed ? "Expandir" : "Contraer"}
+            {collapsed ? t("layout.expand") : t("layout.collapse")}
           </button>
         </div>
       </aside>
@@ -190,11 +189,11 @@ export function Layout() {
             className="relative flex-1 max-w-md flex items-center gap-2 h-9 rounded-md border border-transparent bg-muted/40 hover:bg-muted/60 px-3 text-left text-sm text-muted-foreground transition"
           >
             <Search className="size-4" />
-            <span className="flex-1 truncate">Buscar empleados, reportes, periodos…</span>
+            <span className="flex-1 truncate">{t("layout.search")}</span>
             <kbd className="hidden sm:inline-flex text-[10px] border rounded px-1.5 py-0.5">⌘K</kbd>
           </button>
           <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={toggle} aria-label="Cambiar tema">
+            <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("layout.themeToggle")}>
               {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
             <DropdownMenu>
@@ -203,7 +202,7 @@ export function Layout() {
                   variant="ghost"
                   size="sm"
                   className="font-medium uppercase"
-                  aria-label="Language"
+                  aria-label={t("layout.languageMenu")}
                 >
                   {i18n.resolvedLanguage ?? i18n.language}
                 </Button>
@@ -219,7 +218,7 @@ export function Layout() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="icon" className="relative" aria-label="Notificaciones">
+            <Button variant="ghost" size="icon" className="relative" aria-label={t("layout.notifications")}>
               <Bell className="size-4" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary" />
             </Button>
@@ -244,7 +243,7 @@ export function Layout() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => logout.mutate()}>
                   <LogOut className="size-4 mr-2" />
-                  Cerrar sesión
+                  {t("layout.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
