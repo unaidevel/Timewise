@@ -6,10 +6,10 @@ import { EmptyState } from "./EmptyState";
 
 describe("EmptyState", () => {
   it("renders title and description", () => {
-    render(<EmptyState title="Sin empleados" description="Añade el primero." />);
+    render(<EmptyState title="No employees" description="Add the first one." />);
 
-    expect(screen.getByRole("heading", { name: "Sin empleados" })).toBeTruthy();
-    expect(screen.getByText("Añade el primero.")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "No employees" })).toBeTruthy();
+    expect(screen.getByText("Add the first one.")).toBeTruthy();
   });
 
   it("renders the default Sparkles icon when none is provided", () => {
@@ -40,13 +40,13 @@ describe("EmptyState", () => {
         icon={Sparkles}
         action={
           <button type="button" onClick={onClick}>
-            Cargar datos
+            Load data
           </button>
         }
       />,
     );
 
-    const btn = screen.getByRole("button", { name: "Cargar datos" });
+    const btn = screen.getByRole("button", { name: "Load data" });
     await userEvent.click(btn);
 
     expect(onClick).toHaveBeenCalledTimes(1);

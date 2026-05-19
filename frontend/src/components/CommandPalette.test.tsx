@@ -51,7 +51,7 @@ describe("CommandPalette", () => {
       wrapper: createRouterWrapper(),
     });
 
-    expect(screen.queryByPlaceholderText(/Busca personas/i)).toBeNull();
+    expect(screen.queryByPlaceholderText(/Search people/i)).toBeNull();
   });
 
   it("renders the navigation group when opened", async () => {
@@ -64,10 +64,10 @@ describe("CommandPalette", () => {
       wrapper: createRouterWrapper(),
     });
 
-    expect(await screen.findByText("Navegar")).toBeTruthy();
-    expect(screen.getByText("Inicio")).toBeTruthy();
-    expect(screen.getByText("Empleados")).toBeTruthy();
-    expect(screen.getByText("Aprobaciones")).toBeTruthy();
+    expect(await screen.findByText("Navigate")).toBeTruthy();
+    expect(screen.getByText("Home")).toBeTruthy();
+    expect(screen.getByText("Employees")).toBeTruthy();
+    expect(screen.getByText("Approvals")).toBeTruthy();
   });
 
   it("lists employees when the tenant has any", async () => {
@@ -84,7 +84,7 @@ describe("CommandPalette", () => {
 
     await waitFor(() => expect(screen.getByText("Maya Patel")).toBeTruthy());
     expect(screen.getByText("James O'Connor")).toBeTruthy();
-    expect(screen.getByText("Empleados", { selector: "[cmdk-group-heading]" })).toBeTruthy();
+    expect(screen.getByText("Employees", { selector: "[cmdk-group-heading]" })).toBeTruthy();
   });
 
   it("does not render the employees group when none are returned", async () => {
@@ -97,8 +97,8 @@ describe("CommandPalette", () => {
       wrapper: createRouterWrapper(),
     });
 
-    await screen.findByText("Navegar");
-    expect(screen.queryByText("Empleados", { selector: "[cmdk-group-heading]" })).toBeNull();
+    await screen.findByText("Navigate");
+    expect(screen.queryByText("Employees", { selector: "[cmdk-group-heading]" })).toBeNull();
   });
 
   it("filters items as the user types", async () => {
@@ -115,7 +115,7 @@ describe("CommandPalette", () => {
 
     await waitFor(() => expect(screen.getByText("Maya Patel")).toBeTruthy());
 
-    const input = screen.getByPlaceholderText(/Busca personas/i);
+    const input = screen.getByPlaceholderText(/Search people/i);
     await userEvent.type(input, "James");
 
     await waitFor(() => expect(screen.queryByText("Maya Patel")).toBeNull());
@@ -129,7 +129,7 @@ describe("CommandPalette", () => {
       wrapper: createRouterWrapper(),
     });
 
-    await screen.findByText("Navegar");
-    expect(screen.queryByText("Empleados", { selector: "[cmdk-group-heading]" })).toBeNull();
+    await screen.findByText("Navigate");
+    expect(screen.queryByText("Employees", { selector: "[cmdk-group-heading]" })).toBeNull();
   });
 });

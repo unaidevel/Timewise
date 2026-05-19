@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, CheckSquare, Clock, DollarSign, MoreHorizontal, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import {
   Area,
@@ -42,13 +43,6 @@ const hoursByDept = [
   { dept: "Support", base: 720, ot: 95 },
 ];
 
-const activity = [
-  { who: "Maya Patel", action: "envió un parte de horas", when: "hace 12m" },
-  { who: "James O'Connor", action: "aprobó 3 reportes", when: "hace 1h" },
-  { who: "Lina Hoffmann", action: "añadió una regla de horas extra", when: "hace 3h" },
-  { who: "Diego Alvarez", action: "se unió a Engineering", when: "ayer" },
-];
-
 export default function HomePage() {
   const tenantId = useCurrentTenantId();
   if (tenantId == null) return <NoTenantState />;
@@ -56,17 +50,16 @@ export default function HomePage() {
 }
 
 function NoTenantState() {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bienvenido a TimeWise</CardTitle>
+        <CardTitle>{t("dashboard.noTenant.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          Necesitas crear o seleccionar una organización para empezar.
-        </p>
+        <p className="text-sm text-muted-foreground mb-4">{t("dashboard.noTenant.description")}</p>
         <Link to="/onboarding" className="text-sm font-medium text-primary hover:underline">
-          Crear primera organización →
+          {t("dashboard.noTenant.cta")}
         </Link>
       </CardContent>
     </Card>
@@ -75,6 +68,7 @@ function NoTenantState() {
 
 function Dashboard({ tenantId }: { tenantId: number }) {
   const user = useAuthStore((s) => s.user);
+  const { t, i18n } = useTranslation();
   const employees = useEmployees(tenantId);
   const departments = useDepartments(tenantId);
   const periods = usePeriods(tenantId);
@@ -82,33 +76,44 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const pendingApprovals = approvals.data?.filter((a) => a.status === "pending").length;
 
   const today = new Date();
-  const fmt = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const fmt = new Intl.DateTimeFormat(i18n.resolvedLanguage === "es" ? "es-ES" : "en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   const kpis = [
     {
-      label: "Empleados activos",
+      label: t("dashboard.kpi.activeEmployees"),
       value: employees.data?.length,
       icon: Users,
       delta: "+0",
     },
     {
-      label: "Aprobaciones pendientes",
+      label: t("dashboard.kpi.pendingApprovals"),
       value: pendingApprovals,
       icon: CheckSquare,
       delta: "0",
     },
     {
-      label: "Periodos",
+      label: t("dashboard.kpi.periods"),
       value: periods.data?.length,
       icon: Clock,
       delta: "0",
     },
     {
-      label: "Departamentos",
+      label: t("dashboard.kpi.departments"),
       value: departments.data?.length,
       icon: DollarSign,
       delta: "0",
     },
+  ];
+
+  const activity = [
+    { who: "Maya Patel", action: t("dashboard.activity.sentTimesheet"), when: t("dashboard.activity.ago12m") },
+    { who: "James O'Connor", action: t("dashboard.activity.approvedReports"), when: t("dashboard.activity.ago1h") },
+    { who: "Lina Hoffmann", action: t("dashboard.activity.addedRule"), when: t("dashboard.activity.ago3h") },
+    { who: "Diego Alvarez", action: t("dashboard.activity.joinedDept"), when: t("dashboard.activity.yesterday") },
   ];
 
   return (
@@ -118,13 +123,15 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         <div>
           <p className="text-sm text-muted-foreground capitalize">{fmt.format(today)}</p>
           <h1 className="text-3xl font-semibold tracking-tight mt-1">
-            Hola, {user?.full_name?.split(" ")[0] ?? "bienvenido"}
+            {t("dashboard.greeting", {
+              name: user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback"),
+            })}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Resumen del workspace.</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("dashboard.summary")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">Exportar</Button>
-          <Button>Nuevo reporte</Button>
+          <Button variant="outline">{t("dashboard.export")}</Button>
+          <Button>{t("dashboard.newReport")}</Button>
         </div>
       </header>
 
@@ -161,8 +168,10 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">Tendencia de coste laboral</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">Últimas 4 semanas (placeholder)</p>
+              <CardTitle className="text-base">{t("dashboard.costTrend.title")}</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("dashboard.costTrend.subtitle")}
+              </p>
             </div>
             <Button variant="ghost" size="icon">
               <MoreHorizontal className="size-4" />
@@ -221,14 +230,14 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Acciones rápidas</CardTitle>
-            <p className="text-xs text-muted-foreground">Atajos del workspace</p>
+            <CardTitle className="text-base">{t("dashboard.quickActions.title")}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t("dashboard.quickActions.subtitle")}</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            <QuickAction to="/employees" title="Gestionar empleados" />
-            <QuickAction to="/periods" title="Periodos de imputación" />
-            <QuickAction to="/approvals" title="Revisar aprobaciones" />
-            <QuickAction to="/costing-rules" title="Reglas de coste" />
+            <QuickAction to="/employees" title={t("dashboard.quickActions.manageEmployees")} />
+            <QuickAction to="/periods" title={t("dashboard.quickActions.periods")} />
+            <QuickAction to="/approvals" title={t("dashboard.quickActions.approvals")} />
+            <QuickAction to="/costing-rules" title={t("dashboard.quickActions.costRules")} />
           </CardContent>
         </Card>
       </section>
@@ -236,10 +245,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">Horas por departamento</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Base vs. extra · placeholder hasta tener endpoint de agregación
-            </p>
+            <CardTitle className="text-base">{t("dashboard.hoursByDept.title")}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t("dashboard.hoursByDept.subtitle")}</p>
           </CardHeader>
           <CardContent>
             <div className="h-[280px]">
@@ -278,10 +285,11 @@ function Dashboard({ tenantId }: { tenantId: number }) {
             </div>
             <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-primary" /> Horas base
+                <span className="size-2.5 rounded-sm bg-primary" /> {t("dashboard.hoursByDept.base")}
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-chart-3" /> Horas extra
+                <span className="size-2.5 rounded-sm bg-chart-3" />{" "}
+                {t("dashboard.hoursByDept.overtime")}
               </div>
             </div>
           </CardContent>
@@ -289,8 +297,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Actividad reciente</CardTitle>
-            <p className="text-xs text-muted-foreground">Placeholder</p>
+            <CardTitle className="text-base">{t("dashboard.activity.title")}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t("dashboard.activity.subtitle")}</p>
           </CardHeader>
           <CardContent className="space-y-4">
             {activity.map((a, i) => (
