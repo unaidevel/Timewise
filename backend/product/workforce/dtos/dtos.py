@@ -69,6 +69,8 @@ class EmployeeOut(BaseModel):
     email: str
     is_active: bool
     hired_at: date
+    current_department_name: str | None = None
+    current_role_name: str | None = None
     created_by_id: int | None
     updated_by_id: int | None
     created_at: datetime

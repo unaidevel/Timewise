@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
+import { Briefcase, Building2, Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -135,6 +135,8 @@ export default function EmployeesPage() {
                   <TableRow className="hover:bg-transparent">
                     <TableHead>{t("workforce.employees.columns.name")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.email")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.department")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.role")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.hired")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.status")}</TableHead>
                   </TableRow>
@@ -143,7 +145,7 @@ export default function EmployeesPage() {
                   {employees.isLoading &&
                     ["a", "b", "c", "d", "e", "f"].map((row) => (
                       <TableRow key={row}>
-                        {["name", "email", "hired", "status"].map((col) => (
+                        {["name", "email", "department", "role", "hired", "status"].map((col) => (
                           <TableCell key={col}>
                             <Skeleton className="h-5 w-32" />
                           </TableCell>
@@ -176,6 +178,16 @@ export default function EmployeesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.email}</TableCell>
+                      <TableCell className="text-sm">
+                        {e.current_department_name ?? (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {e.current_role_name ?? (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm">{formatDate(e.hired_at)}</TableCell>
                       <TableCell>
                         <Badge
@@ -193,7 +205,7 @@ export default function EmployeesPage() {
                   {!employees.isLoading && filtered.length === 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={6}
                         className="text-center text-sm text-muted-foreground py-12"
                       >
                         {t("workforce.employees.noMatch")}
@@ -230,6 +242,20 @@ export default function EmployeesPage() {
                   label={t("workforce.employees.detail.emailLabel")}
                   value={selected.email}
                 />
+                {selected.current_department_name && (
+                  <DetailRow
+                    icon={Building2}
+                    label={t("workforce.employees.detail.departmentLabel")}
+                    value={selected.current_department_name}
+                  />
+                )}
+                {selected.current_role_name && (
+                  <DetailRow
+                    icon={Briefcase}
+                    label={t("workforce.employees.detail.roleLabel")}
+                    value={selected.current_role_name}
+                  />
+                )}
                 <DetailRow
                   icon={Calendar}
                   label={t("workforce.employees.detail.hiredLabel")}

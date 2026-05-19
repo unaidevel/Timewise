@@ -439,6 +439,14 @@ export type EmployeeOut = {
      */
     hired_at: string;
     /**
+     * Current Department Name
+     */
+    current_department_name: string | null;
+    /**
+     * Current Role Name
+     */
+    current_role_name: string | null;
+    /**
      * Created By Id
      */
     created_by_id: number | null;

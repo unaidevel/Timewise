@@ -619,12 +619,16 @@
       "columns": {
         "name": "Nombre",
         "email": "Email",
+        "department": "Departamento",
+        "role": "Rol",
         "hired": "Contratado",
         "status": "Estado"
       },
       "noMatch": "Ningún empleado coincide con los filtros.",
       "detail": {
         "emailLabel": "Email",
+        "departmentLabel": "Departamento",
+        "roleLabel": "Rol",
         "hiredLabel": "Contratado"
       },
       "deactivate": "Desactivar empleado",

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Count, Q
+from django.db.models import Count, OuterRef, Q, Subquery
 
 from product.workforce.dtos.dtos import (
     DepartmentManagerOut,
@@ -254,12 +254,25 @@ class WorkforceRepository:
 
     @staticmethod
     def list_employees(tenant_id: int) -> list[EmployeeOut]:
-        return [
-            EmployeeOut.model_validate(m)
-            for m in EmployeeModel.objects.filter(tenant_id=tenant_id).order_by(
-                "full_name"
+        dept_name_sq = Subquery(
+            EmployeeDepartmentModel.objects.filter(
+                employee=OuterRef("pk"), left_at__isnull=True
+            ).values("department__name")[:1]
+        )
+        role_name_sq = Subquery(
+            EmployeeRoleModel.objects.filter(
+                employee=OuterRef("pk"), left_at__isnull=True
+            ).values("role__name")[:1]
+        )
+        qs = (
+            EmployeeModel.objects.filter(tenant_id=tenant_id)
+            .annotate(
+                current_department_name=dept_name_sq,
+                current_role_name=role_name_sq,
             )
-        ]
+            .order_by("full_name")
+        )
+        return [EmployeeOut.model_validate(m) for m in qs]
 
     @staticmethod
     def update_employee(
