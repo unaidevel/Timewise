@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DepartmentOut } from "@/client";
 import { Button } from "@/components/shadcn/button";
@@ -37,6 +38,7 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
   const departments = useDepartments(tenantId);
   const employees = useEmployees(tenantId);
   const colors = useDepartmentColors(tenantId);
+  const { t } = useTranslation();
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<DepartmentOut | null>(null);
 
@@ -60,7 +62,7 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
       {
         onSuccess: (dept) => {
           if (dept) setDepartmentColor(tenantId, dept.id, color);
-          toast.success("Departamento creado");
+          toast.success(t("settings.depts.createdToast"));
           setOpenCreate(false);
         },
       },
@@ -81,28 +83,28 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
     setDepartmentColor(tenantId, id, color);
     Promise.all(promises)
       .then(() => {
-        toast.success("Departamento actualizado");
+        toast.success(t("settings.depts.updatedToast"));
         setEditing(null);
       })
-      .catch(() => toast.error("No se pudo actualizar"));
+      .catch(() => toast.error(t("settings.depts.updateError")));
   }
 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
         <div>
-          <CardTitle className="text-base">Departamentos</CardTitle>
-          <CardDescription>Agrupa empleados para reportes y asignación de costes.</CardDescription>
+          <CardTitle className="text-base">{t("settings.depts.title")}</CardTitle>
+          <CardDescription>{t("settings.depts.subtitle")}</CardDescription>
         </div>
         <Dialog open={openCreate} onOpenChange={setOpenCreate}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4 mr-1.5" />
-              Nuevo departamento
+              {t("settings.depts.new")}
             </Button>
           </DialogTrigger>
           <DepartmentDialog
-            title="Crear departamento"
+            title={t("settings.depts.createTitle")}
             onSubmit={handleCreate}
             pending={create.isPending}
           />
@@ -119,19 +121,22 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{d.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  {(counts[d.id] ?? 0) === 1 ? "1 persona" : `${counts[d.id] ?? 0} personas`}
+                  {(counts[d.id] ?? 0) === 1
+                    ? t("settings.depts.personOne")
+                    : t("settings.depts.personOther", { count: counts[d.id] ?? 0 })}
                 </div>
               </div>
               {d.is_active ? (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => setEditing(d)}>
-                    Editar
+                    {t("settings.depts.edit")}
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => {
-                      if (window.confirm(`¿Desactivar ${d.name}?`)) deactivate.mutate(d.id);
+                      if (window.confirm(t("settings.depts.confirmDeactivate", { name: d.name })))
+                        deactivate.mutate(d.id);
                     }}
                     className="text-muted-foreground hover:text-destructive"
                   >
@@ -139,13 +144,15 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
                   </Button>
                 </>
               ) : (
-                <span className="text-xs text-muted-foreground">Inactivo</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("settings.depts.inactive")}
+                </span>
               )}
             </div>
           ))}
           {(departments.data?.length ?? 0) === 0 && (
             <div className="p-12 text-center text-sm text-muted-foreground">
-              Aún no hay departamentos. Crea el primero para empezar.
+              {t("settings.depts.empty")}
             </div>
           )}
         </div>
@@ -154,7 +161,7 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         {editing && (
           <DepartmentDialog
-            title="Editar departamento"
+            title={t("settings.depts.editTitle")}
             initialName={editing.name}
             initialColor={colorForDepartment(colors, editing.id)}
             onSubmit={handleEdit}
@@ -179,6 +186,7 @@ function DepartmentDialog({
   onSubmit: (name: string, color: string) => void;
   pending: boolean;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState(initialColor);
   return (
@@ -188,15 +196,15 @@ function DepartmentDialog({
       </DialogHeader>
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label className="text-xs">Nombre</Label>
+          <Label className="text-xs">{t("settings.depts.fields.name")}</Label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="p. ej. Ingeniería"
+            placeholder={t("settings.depts.namePlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Color</Label>
+          <Label className="text-xs">{t("settings.depts.fields.color")}</Label>
           <div className="flex flex-wrap gap-2">
             {COLOR_PALETTE.map((c) => (
               <button
@@ -207,7 +215,7 @@ function DepartmentDialog({
                   color === c ? "border-foreground" : "border-transparent"
                 }`}
                 style={{ background: c }}
-                aria-label={`Color ${c}`}
+                aria-label={t("settings.depts.colorAria", { color: c })}
               />
             ))}
           </div>
@@ -215,7 +223,7 @@ function DepartmentDialog({
       </div>
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={() => onSubmit(name.trim(), color)} disabled={!name.trim() || pending}>
-          {pending ? "Guardando…" : "Guardar"}
+          {pending ? t("settings.depts.saving") : t("settings.depts.save")}
         </Button>
       </div>
     </DialogContent>

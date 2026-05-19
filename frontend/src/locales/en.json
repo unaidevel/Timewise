@@ -1,0 +1,678 @@
+{
+  "language": {
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "common": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "all": "All",
+    "name": "Name",
+    "email": "Email",
+    "created": "Created",
+    "cancel": "Cancel",
+    "create": "Create",
+    "creating": "Creating…",
+    "save": "Save",
+    "saving": "Saving…",
+    "delete": "Delete",
+    "deactivate": "Deactivate",
+    "back": "Back",
+    "loading": "Loading…",
+    "notFound": "Not found",
+    "viewDetail": "View detail →"
+  },
+  "layout": {
+    "themeToggle": "Toggle theme",
+    "languageMenu": "Language",
+    "notifications": "Notifications",
+    "logout": "Log out",
+    "workspaces": "Workspaces",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "search": "Search employees, reports, periods…",
+    "nav": {
+      "home": "Home",
+      "employees": "Employees",
+      "departments": "Departments",
+      "roles": "Roles",
+      "periods": "Periods",
+      "time": "Log hours",
+      "reports": "My reports",
+      "approvals": "Approvals",
+      "costingRules": "Cost rules",
+      "costing": "Costing",
+      "audit": "Audit",
+      "settings": "Settings"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue to your workspace.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create an account",
+      "success": "Welcome, {{name}}",
+      "errorCredentials": "Invalid credentials"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start managing your team in minutes.",
+      "fullName": "Full name",
+      "workEmail": "Work email",
+      "password": "Password",
+      "passwordHint": "Minimum 8 characters.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "success": "Account created",
+      "successNeedLogin": "Account created — sign in",
+      "error": "Could not create the account"
+    },
+    "hero": {
+      "title": "People, time and cost — all in one place.",
+      "subtitle": "TimeWise brings your team, their hours and labor cost into a single source of truth.",
+      "kpi": {
+        "people": "People",
+        "hoursPeriod": "Hours this period",
+        "approvals": "Approvals",
+        "costVariance": "Cost variance"
+      }
+    }
+  },
+  "onboarding": {
+    "tenant": {
+      "greeting": "Hi {{name}} 👋",
+      "title": "Create your workspace",
+      "subtitle": "Each workspace is an independent tenant — your data, your team.",
+      "companyName": "Company name",
+      "workspaceUrl": "Workspace URL",
+      "submit": "Create workspace",
+      "successReady": "{{name}} is ready",
+      "error": "Could not create the workspace"
+    },
+    "demoModal": {
+      "title": "Load demo data to explore the app",
+      "description": "We'll create a sample team (departments, employees, periods, reports). You can edit or delete them afterwards.",
+      "startEmpty": "Start from scratch",
+      "load": "Load demo",
+      "loading": "Loading…",
+      "successToast": "Demo data loaded",
+      "errorToast": "Could not load the data"
+    }
+  },
+  "dashboard": {
+    "noTenant": {
+      "title": "Welcome to TimeWise",
+      "description": "You need to create or select an organization to get started.",
+      "cta": "Create first organization →"
+    },
+    "greeting": "Hi, {{name}}",
+    "greetingFallback": "welcome",
+    "summary": "Workspace overview.",
+    "export": "Export",
+    "newReport": "New report",
+    "kpi": {
+      "activeEmployees": "Active employees",
+      "pendingApprovals": "Pending approvals",
+      "periods": "Periods",
+      "departments": "Departments"
+    },
+    "costTrend": {
+      "title": "Labor cost trend",
+      "subtitle": "Last 4 weeks (placeholder)"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "subtitle": "Workspace shortcuts",
+      "manageEmployees": "Manage employees",
+      "periods": "Reporting periods",
+      "approvals": "Review approvals",
+      "costRules": "Cost rules"
+    },
+    "hoursByDept": {
+      "title": "Hours by department",
+      "subtitle": "Base vs. overtime · placeholder until aggregation endpoint exists",
+      "base": "Base hours",
+      "overtime": "Overtime hours"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "subtitle": "Placeholder",
+      "sentTimesheet": "submitted a timesheet",
+      "approvedReports": "approved 3 reports",
+      "addedRule": "added an overtime rule",
+      "joinedDept": "joined Engineering",
+      "ago12m": "12m ago",
+      "ago1h": "1h ago",
+      "ago3h": "3h ago",
+      "yesterday": "yesterday"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Search people, pages, actions…",
+    "empty": "No results.",
+    "navigate": "Navigate",
+    "employees": "Employees",
+    "pages": {
+      "home": "Home",
+      "employees": "Employees",
+      "departments": "Departments",
+      "roles": "Roles",
+      "periods": "Periods",
+      "reports": "Reports",
+      "approvals": "Approvals",
+      "costingRules": "Cost rules"
+    }
+  },
+  "timekeeping": {
+    "periods": {
+      "title": "Periods",
+      "subtitle": "Time-tracking windows for hour reporting",
+      "new": "New period",
+      "createTitle": "New period",
+      "columns": {
+        "name": "Name",
+        "start": "Start",
+        "end": "End",
+        "status": "Status",
+        "locked": "Locked"
+      },
+      "empty": "No periods.",
+      "lock": "Lock",
+      "start": "Start",
+      "end": "End",
+      "notFound": "Period not found.",
+      "backToList": "← Back to periods",
+      "reports": {
+        "title": "Period reports",
+        "subtitle": "Reports generated for employees in this period",
+        "createReport": "Create report",
+        "createForEmployee": "Create report for employee",
+        "employee": "Employee",
+        "selectPlaceholder": "— Select —",
+        "columns": {
+          "id": "ID",
+          "employee": "Employee",
+          "status": "Status",
+          "version": "Version",
+          "submitted": "Submitted"
+        },
+        "view": "View →",
+        "empty": "No reports."
+      }
+    },
+    "time": {
+      "noTenant": {
+        "title": "Select a workspace",
+        "description": "You need to create or select an organization to log hours.",
+        "cta": "Create first organization →"
+      },
+      "title": "Time tracking",
+      "noPeriods": {
+        "title": "No open periods",
+        "description": "Create a period from the Periods section to start logging hours."
+      },
+      "noEmployees": {
+        "title": "No employees",
+        "description": "Create an employee to log hours on their behalf."
+      },
+      "loggingAs": "Logging hours as",
+      "selectEmployeePrompt": "Select an employee…",
+      "selectEmployeePlaceholder": "Select employee",
+      "recentPeriods": "Recent periods",
+      "noReportYet": "You don't have a report for this period yet.",
+      "createReport": "Create report",
+      "creating": "Creating…",
+      "submit": "Submit for approval",
+      "submitting": "Submitting…",
+      "totalHoursSuffix": "h total",
+      "overtimeSuffix": "h overtime",
+      "periodTotal": "Period total",
+      "totalHoursShort": "h",
+      "submittedToast": "Report submitted for approval",
+      "submitErrorToast": "Could not submit the report"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Hour entries by period and employee.",
+      "empty": {
+        "title": "No reports",
+        "description": "When employees create reports for open periods, they'll appear here."
+      },
+      "summary": "{{total}} total · {{submitted}} awaiting review · {{approved}} approved",
+      "searchPlaceholder": "Search by period, ID or employee…",
+      "filterStatusPlaceholder": "Status",
+      "statusAll": "All statuses",
+      "statusDraft": "Draft",
+      "statusSubmitted": "Submitted",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected",
+      "columns": {
+        "id": "ID",
+        "period": "Period",
+        "employee": "Employee",
+        "status": "Status",
+        "version": "Version",
+        "submitted": "Submitted",
+        "action": "Action"
+      },
+      "view": "View",
+      "noMatch": "No report matches the filters.",
+      "notFound": "Report not found.",
+      "backToList": "← Back to reports",
+      "header": "Report #{{id}}",
+      "subheader": "Employee #{{employee}} · Period #{{period}} · v{{version}}",
+      "fields": {
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "locked": "Locked"
+      },
+      "rejectionReason": "Rejection reason:",
+      "submit": "Submit for approval",
+      "approve": "Approve",
+      "reject": "Reject",
+      "entries": {
+        "title": "Hour entries",
+        "totalLabel": "Total: {{hours}} h",
+        "add": "Add entry",
+        "columns": {
+          "date": "Date",
+          "hours": "Hours",
+          "start": "Start",
+          "end": "End",
+          "description": "Description"
+        },
+        "empty": "No entries.",
+        "delete": "Delete",
+        "createTitle": "New entry",
+        "date": "Date",
+        "hours": "Hours",
+        "start": "Start",
+        "end": "End",
+        "description": "Description",
+        "adding": "Adding…",
+        "add2": "Add"
+      },
+      "cost": {
+        "title": "Cost breakdown",
+        "summary": "{{base}} base · {{overtime}} overtime · Total {{total}}",
+        "empty": "No calculation available",
+        "calculate": "Calculate costs",
+        "calculating": "Calculating…",
+        "columns": {
+          "rule": "Applied rule",
+          "multiplier": "Multiplier",
+          "baseHours": "Base hours",
+          "overtimeHours": "Overtime hours",
+          "baseCost": "Base cost",
+          "totalCost": "Total cost"
+        },
+        "total": "Total"
+      },
+      "history": {
+        "title": "Status history",
+        "columns": {
+          "when": "When",
+          "from": "From",
+          "to": "To",
+          "by": "By"
+        }
+      },
+      "rejectModal": {
+        "title": "Reject report",
+        "reason": "Reason",
+        "rejecting": "Rejecting…"
+      }
+    },
+    "approvals": {
+      "title": "Approvals",
+      "subtitle": "Review and act on the reports submitted by your team.",
+      "empty": {
+        "title": "Empty inbox",
+        "description": "When reports arrive to review, you'll see them here grouped by status."
+      },
+      "tabs": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "nothing": "Nothing here right now.",
+      "reportLabel": "Report #{{id}}",
+      "approvalLabel": "Approval #{{id}}",
+      "reviewer": "Reviewer #{{id}}",
+      "rejectAria": "Reject",
+      "approveAria": "Approve",
+      "approvedToast": "Report approved",
+      "approveErrorToast": "Could not approve",
+      "rejectedToast": "Report rejected",
+      "rejectErrorToast": "Could not reject",
+      "rejectModal": {
+        "title": "Reject report",
+        "reasonLabel": "Reason (optional)",
+        "reasonPlaceholder": "Tell the employee what to change before resubmitting.",
+        "rejecting": "Rejecting…"
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage the workspace, departments, overtime rules and members.",
+    "noTenant": {
+      "title": "Select a workspace",
+      "description": "You need to create or select an organization to see settings.",
+      "cta": "Create first organization →"
+    },
+    "tabs": {
+      "org": "Organization",
+      "depts": "Departments",
+      "ot": "Overtime",
+      "members": "Members"
+    },
+    "org": {
+      "title": "Organization profile",
+      "subtitle": "Public name, fiscal calendar and currency for cost reports.",
+      "fields": {
+        "name": "Workspace name",
+        "legalName": "Legal name",
+        "country": "Country",
+        "timezone": "Timezone",
+        "currency": "Currency",
+        "fiscalYear": "Fiscal year start (MM-DD)"
+      },
+      "save": "Save changes",
+      "saving": "Saving…",
+      "reset": "Reset",
+      "updated": "Organization updated"
+    },
+    "ot": {
+      "title": "Overtime rules",
+      "subtitle": "Hours above the thresholds are paid at the configured multiplier when calculating costs.",
+      "fields": {
+        "weeklyThreshold": "Weekly threshold (hours)",
+        "weeklyMultiplier": "Weekly multiplier",
+        "dailyThreshold": "Daily threshold (hours)",
+        "dailyMultiplier": "Daily multiplier"
+      },
+      "previewTitle": "Cost preview",
+      "previewText": "An employee at €50/h working 50 hours in a week (with a 10-hour day) would cost <0>{{value}} €</0> with these rules.",
+      "save": "Save rules",
+      "saving": "Saving…",
+      "reset": "Reset",
+      "updated": "Overtime rules updated"
+    },
+    "members": {
+      "title": "Members and roles",
+      "subtitle": "People with access to this workspace.",
+      "invite": "Invite member",
+      "userLabel": "User #{{id}}",
+      "joined": "Joined {{date}}",
+      "inactive": "Inactive",
+      "empty": "No members yet.",
+      "loading": "Loading…"
+    },
+    "depts": {
+      "title": "Departments",
+      "subtitle": "Group employees for reports and cost assignment.",
+      "new": "New department",
+      "createTitle": "Create department",
+      "editTitle": "Edit department",
+      "personOne": "1 person",
+      "personOther": "{{count}} people",
+      "edit": "Edit",
+      "inactive": "Inactive",
+      "empty": "No departments yet. Create the first one to get started.",
+      "createdToast": "Department created",
+      "updatedToast": "Department updated",
+      "updateError": "Could not update",
+      "confirmDeactivate": "Deactivate {{name}}?",
+      "fields": {
+        "name": "Name",
+        "color": "Color"
+      },
+      "namePlaceholder": "e.g. Engineering",
+      "save": "Save",
+      "saving": "Saving…",
+      "colorAria": "Color {{color}}"
+    }
+  },
+  "audit": {
+    "noWorkspace": {
+      "title": "No workspace selected",
+      "description": "Pick a workspace from the sidebar to see its audit log."
+    },
+    "title": "Audit log",
+    "subtitle": "Every action taken in this workspace, in reverse chronological order.",
+    "filters": {
+      "action": "Action contains",
+      "actionPlaceholder": "e.g. time_report.submitted",
+      "resource": "Resource type",
+      "resourcePlaceholder": "e.g. TimeReport",
+      "outcome": "Outcome",
+      "actor": "Actor",
+      "any": "Any",
+      "success": "Success",
+      "failure": "Failure",
+      "clear": "Clear"
+    },
+    "table": {
+      "loading": "Loading…",
+      "eventCount": "{{count}} events",
+      "columns": {
+        "time": "Time",
+        "actor": "Actor",
+        "action": "Action",
+        "resource": "Resource",
+        "outcome": "Outcome"
+      },
+      "empty": "No event matches the filters.",
+      "userFallback": "User #{{id}}",
+      "goToResource": "Go to {{type}} #{{id}}",
+      "goToResourceTooltip": "Go to resource"
+    },
+    "detail": {
+      "metadata": "Metadata",
+      "notes": "Notes",
+      "noNotes": "No notes yet.",
+      "editNotesAria": "Edit notes"
+    },
+    "editNotes": {
+      "title": "Edit notes",
+      "eventLine": "Event #{{id}} — ",
+      "placeholder": "Context, follow-up, investigation notes…",
+      "save": "Save",
+      "saving": "Saving…",
+      "successToast": "Notes updated",
+      "errorToast": "Could not save the notes"
+    },
+    "relative": {
+      "seconds": "{{n}}s ago",
+      "minutes": "{{n}}m ago",
+      "hours": "{{n}}h ago",
+      "days": "{{n}}d ago"
+    }
+  },
+  "costing": {
+    "noTenant": {
+      "title": "Select a workspace",
+      "description": "You need to create or select an organization to view labor cost.",
+      "cta": "Create first organization →"
+    },
+    "title": "Costing",
+    "subtitle": "Labor cost with {{weekly}}h/week and {{daily}}h/day as overtime thresholds.",
+    "latestPeriod": "Latest period",
+    "exportCsv": "Export CSV",
+    "csvFilename": "cost-{{label}}.csv",
+    "csvHeaders": {
+      "employee": "Employee",
+      "department": "Department",
+      "hourlyRate": "Hourly rate",
+      "hours": "Hours",
+      "overtime": "Overtime hours",
+      "totalCost": "Total cost"
+    },
+    "empty": {
+      "title": "No labor cost yet",
+      "description": "When there are reports with logged hours in this workspace, you'll see KPIs, breakdown by department and by employee here."
+    },
+    "kpi": {
+      "total": "Total cost",
+      "totalHint": "{{hours}} hours logged",
+      "regular": "Regular cost",
+      "regularHint": "{{hours}} regular hours",
+      "overtime": "Overtime cost",
+      "overtimeHint": "{{hours}} overtime hours",
+      "avgRate": "Average rate",
+      "avgRateHint": "Effective cost per hour"
+    },
+    "byDept": {
+      "title": "Cost by department",
+      "breakdown": "Department breakdown",
+      "calculating": "Calculating…",
+      "noData": "No data for this period",
+      "empty": "No data"
+    },
+    "byEmployee": {
+      "title": "Cost by employee",
+      "countBadge": "{{count}} people",
+      "columns": {
+        "employee": "Employee",
+        "department": "Department",
+        "rate": "Rate",
+        "hours": "Hours",
+        "overtime": "Overtime",
+        "cost": "Cost"
+      },
+      "empty": "No cost data for this period"
+    }
+  },
+  "costingRules": {
+    "title": "Cost rules",
+    "summary": "{{active}} active · {{inactive}} inactive",
+    "new": "New rule",
+    "createTitle": "New cost rule",
+    "editTitle": "Edit rule",
+    "columns": {
+      "name": "Name",
+      "multiplier": "Multiplier",
+      "priority": "Priority",
+      "conditions": "Conditions",
+      "status": "Status"
+    },
+    "empty": "No cost rules.",
+    "view": "View →",
+    "active": "Active",
+    "inactive": "Inactive",
+    "notFound": "Rule not found.",
+    "backToList": "← Back to rules",
+    "detailDescription": "Priority {{priority}} · Multiplier ×{{multiplier}}",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "deactivating": "Deactivating…",
+    "fields": {
+      "multiplier": "Multiplier",
+      "priority": "Priority",
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "conditions": {
+      "title": "Conditions",
+      "subtitle": "The rule applies when all conditions are met",
+      "columns": {
+        "type": "Type",
+        "value": "Value"
+      },
+      "empty": "No conditions.",
+      "type": "Type",
+      "value": "Value",
+      "add": "+ Add"
+    },
+    "form": {
+      "name": "Name",
+      "multiplier": "Multiplier",
+      "priority": "Priority",
+      "conditionType": "Condition type",
+      "conditionValue": "Condition value"
+    },
+    "conditionTypes": {
+      "dayOfWeek": "Day of week",
+      "hoursPerDay": "Hours per day",
+      "hoursPerWeek": "Hours per week"
+    }
+  },
+  "workforce": {
+    "employees": {
+      "title": "Employees",
+      "summary": "{{total}} on staff · {{active}} active",
+      "new": "New employee",
+      "empty": {
+        "title": "No employees",
+        "description": "Add the first employee to start tracking hours and costs."
+      },
+      "searchPlaceholder": "Search by name or email…",
+      "filterStatusPlaceholder": "Status",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "hired": "Hired",
+        "status": "Status"
+      },
+      "noMatch": "No employee matches the filters.",
+      "detail": {
+        "emailLabel": "Email",
+        "hiredLabel": "Hired"
+      },
+      "deactivate": "Deactivate employee",
+      "deactivating": "Deactivating…",
+      "create": {
+        "title": "New employee",
+        "subtitle": "Add someone to the workspace and assign them a department and role.",
+        "fullName": "Full name",
+        "email": "Email",
+        "department": "Department",
+        "role": "Role",
+        "hourlyRate": "Hourly rate (€)",
+        "weeklyHours": "Contract hours/week",
+        "hiredAt": "Hire date",
+        "selectPlaceholder": "— Select —"
+      },
+      "notFound": "Employee not found.",
+      "backToList": "← Back to employees",
+      "fields": {
+        "hireDate": "Hire date",
+        "manager": "Manager",
+        "id": "ID",
+        "createdAt": "Created"
+      }
+    },
+    "departments": {
+      "title": "Departments",
+      "subtitle": "Company organization structure",
+      "new": "New department",
+      "createTitle": "New department",
+      "columns": {
+        "name": "Name",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": "No departments."
+    },
+    "roles": {
+      "title": "Roles",
+      "subtitle": "Available positions in the organization",
+      "new": "New role",
+      "createTitle": "New role",
+      "columns": {
+        "name": "Name",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": "No roles."
+    }
+  }
+}

@@ -73,7 +73,7 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "Bandeja vacía" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Empty inbox" })).toBeTruthy();
   });
 
   it("shows pending approvals by default with action buttons", async () => {
@@ -84,11 +84,11 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByText("Reporte #100")).toBeTruthy();
-    expect(screen.queryByText("Reporte #101")).toBeNull();
-    expect(screen.queryByText("Reporte #102")).toBeNull();
-    expect(screen.getByRole("button", { name: "Aprobar" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Rechazar" })).toBeTruthy();
+    expect(await screen.findByText("Report #100")).toBeTruthy();
+    expect(screen.queryByText("Report #101")).toBeNull();
+    expect(screen.queryByText("Report #102")).toBeNull();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reject" })).toBeTruthy();
   });
 
   it("switches to approved tab and lists approved items", async () => {
@@ -99,12 +99,12 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Reporte #100");
+    await screen.findByText("Report #100");
 
-    await userEvent.click(screen.getByRole("tab", { name: /Aprobadas/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Approved/ }));
 
-    await waitFor(() => expect(screen.queryByText("Reporte #100")).toBeNull());
-    expect(screen.getByText("Reporte #101")).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText("Report #100")).toBeNull());
+    expect(screen.getByText("Report #101")).toBeTruthy();
   });
 
   it("renders tab counts from the data", async () => {
@@ -115,13 +115,13 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Reporte #100");
+    await screen.findByText("Report #100");
 
-    const pendingTab = screen.getByRole("tab", { name: /Pendientes/ });
+    const pendingTab = screen.getByRole("tab", { name: /Pending/ });
     expect(within(pendingTab).getByText("1")).toBeTruthy();
-    const approvedTab = screen.getByRole("tab", { name: /Aprobadas/ });
+    const approvedTab = screen.getByRole("tab", { name: /Approved/ });
     expect(within(approvedTab).getByText("1")).toBeTruthy();
-    const rejectedTab = screen.getByRole("tab", { name: /Rechazadas/ });
+    const rejectedTab = screen.getByRole("tab", { name: /Rejected/ });
     expect(within(rejectedTab).getByText("1")).toBeTruthy();
   });
 
@@ -139,11 +139,11 @@ describe("ApprovalsPage", () => {
     const { toast } = await import("sonner");
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Reporte #100");
-    await userEvent.click(screen.getByRole("button", { name: "Aprobar" }));
+    await screen.findByText("Report #100");
+    await userEvent.click(screen.getByRole("button", { name: "Approve" }));
 
     await waitFor(() => expect(approveCalls).toBe(1));
-    expect(toast.success).toHaveBeenCalledWith("Reporte aprobado");
+    expect(toast.success).toHaveBeenCalledWith("Report approved");
   });
 
   it("opens the reject sheet, submits with a reason, and posts to the API", async () => {
@@ -160,17 +160,17 @@ describe("ApprovalsPage", () => {
     const { toast } = await import("sonner");
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Reporte #100");
-    await userEvent.click(screen.getByRole("button", { name: "Rechazar" }));
+    await screen.findByText("Report #100");
+    await userEvent.click(screen.getByRole("button", { name: "Reject" }));
 
-    const textarea = await screen.findByLabelText("Motivo (opcional)");
+    const textarea = await screen.findByLabelText("Reason (optional)");
     await userEvent.type(textarea, "Faltan horas");
 
-    await userEvent.click(screen.getByRole("button", { name: "Rechazar", hidden: false }));
+    await userEvent.click(screen.getByRole("button", { name: "Reject", hidden: false }));
 
     await waitFor(() => expect(rejectBody).not.toBeNull());
     expect(rejectBody).toEqual({ reason: "Faltan horas" });
-    expect(toast.success).toHaveBeenCalledWith("Reporte rechazado");
+    expect(toast.success).toHaveBeenCalledWith("Report rejected");
   });
 
   it("shows an inbox-zero card on a tab with no items", async () => {
@@ -183,7 +183,7 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByRole("tab", { name: /Pendientes/ });
-    expect(await screen.findByText("Nada por aquí ahora mismo.")).toBeTruthy();
+    await screen.findByRole("tab", { name: /Pending/ });
+    expect(await screen.findByText("Nothing here right now.")).toBeTruthy();
   });
 });

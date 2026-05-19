@@ -1,5 +1,6 @@
 import { Save, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import {
@@ -21,13 +22,14 @@ import {
 export function OvertimeTab({ tenantId }: { tenantId: number }) {
   const [cfg, setCfg] = useState<OvertimeConfig>(() => getOvertimeConfig(tenantId));
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => setCfg(getOvertimeConfig(tenantId)), [tenantId]);
 
   function save() {
     setSaving(true);
     setOvertimeConfig(tenantId, cfg);
-    toast.success("Reglas de horas extra actualizadas");
+    toast.success(t("settings.ot.updated"));
     setSaving(false);
   }
 
@@ -36,15 +38,12 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Reglas de horas extra</CardTitle>
-        <CardDescription>
-          Las horas por encima de los umbrales se pagan al multiplicador configurado al calcular
-          costes.
-        </CardDescription>
+        <CardTitle className="text-base">{t("settings.ot.title")}</CardTitle>
+        <CardDescription>{t("settings.ot.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 max-w-2xl">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Umbral semanal (horas)">
+          <Field label={t("settings.ot.fields.weeklyThreshold")}>
             <Input
               type="number"
               min={0}
@@ -52,7 +51,7 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => setCfg({ ...cfg, weekly_threshold: Number(e.target.value) })}
             />
           </Field>
-          <Field label="Multiplicador semanal">
+          <Field label={t("settings.ot.fields.weeklyMultiplier")}>
             <Input
               type="number"
               step="0.05"
@@ -61,7 +60,7 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => setCfg({ ...cfg, multiplier: Number(e.target.value) })}
             />
           </Field>
-          <Field label="Umbral diario (horas)">
+          <Field label={t("settings.ot.fields.dailyThreshold")}>
             <Input
               type="number"
               min={0}
@@ -69,7 +68,7 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => setCfg({ ...cfg, daily_threshold: Number(e.target.value) })}
             />
           </Field>
-          <Field label="Multiplicador diario">
+          <Field label={t("settings.ot.fields.dailyMultiplier")}>
             <Input
               type="number"
               step="0.05"
@@ -86,11 +85,13 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
               <Sparkles className="size-4" />
             </div>
             <div className="text-sm">
-              <div className="font-medium">Vista previa de coste</div>
+              <div className="font-medium">{t("settings.ot.previewTitle")}</div>
               <p className="text-muted-foreground mt-1">
-                Un empleado a 50 €/h trabajando 50 horas en una semana (con una jornada de 10 horas)
-                costaría <span className="font-mono text-foreground">{preview.toFixed(0)} €</span>{" "}
-                con estas reglas.
+                <Trans
+                  i18nKey="settings.ot.previewText"
+                  values={{ value: preview.toFixed(0) }}
+                  components={{ 0: <span className="font-mono text-foreground" /> }}
+                />
               </p>
             </div>
           </div>
@@ -99,10 +100,10 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
         <div className="flex gap-2 pt-1">
           <Button onClick={save} disabled={saving}>
             <Save className="size-4 mr-2" />
-            {saving ? "Guardando…" : "Guardar reglas"}
+            {saving ? t("settings.ot.saving") : t("settings.ot.save")}
           </Button>
           <Button variant="outline" onClick={() => setCfg(DEFAULT_OT)}>
-            Restablecer
+            {t("settings.ot.reset")}
           </Button>
         </div>
       </CardContent>

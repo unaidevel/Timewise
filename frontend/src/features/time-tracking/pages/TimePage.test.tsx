@@ -97,7 +97,7 @@ afterEach(() => {
 describe("TimePage", () => {
   it("shows the 'no tenant' state when no workspace is selected", () => {
     render(<TimePage />, { wrapper: createRouterWrapper() });
-    expect(screen.getByText("Selecciona un workspace")).toBeTruthy();
+    expect(screen.getByText("Select a workspace")).toBeTruthy();
   });
 
   it("shows the 'no periods' empty state", async () => {
@@ -111,7 +111,7 @@ describe("TimePage", () => {
 
     render(<TimePage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "No hay periodos abiertos" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "No open periods" })).toBeTruthy();
   });
 
   it("shows the 'no employees' empty state", async () => {
@@ -123,7 +123,7 @@ describe("TimePage", () => {
 
     render(<TimePage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "No hay empleados" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "No employees" })).toBeTruthy();
   });
 
   it("offers to create a report when the employee has none for the period", async () => {
@@ -140,8 +140,8 @@ describe("TimePage", () => {
 
     render(<TimePage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByText(/Aún no tienes un reporte para este periodo/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Crear reporte/ })).toBeTruthy();
+    expect(await screen.findByText(/You don't have a report for this period yet/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Create report/ })).toBeTruthy();
   });
 
   it("renders the weekly grid with existing entries and the period total", async () => {
@@ -161,7 +161,7 @@ describe("TimePage", () => {
 
     render(<TimePage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByText(/Imputando horas como/)).toBeTruthy();
+    expect(await screen.findByText(/Logging hours as/)).toBeTruthy();
     expect(screen.getByText("Maya Patel")).toBeTruthy();
 
     // Period total reflects 8 + 8 = 16 hours (the editor has rendered by now).
@@ -247,7 +247,7 @@ describe("TimePage", () => {
 
     render(<TimePage />, { wrapper: createRouterWrapper() });
 
-    const submit = await screen.findByRole("button", { name: /Enviar para aprobación/ });
+    const submit = await screen.findByRole("button", { name: /Submit for approval/ });
     expect(submit.hasAttribute("disabled")).toBe(true);
   });
 });

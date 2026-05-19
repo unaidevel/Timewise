@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
   CommandDialog,
@@ -21,17 +22,6 @@ import {
 import { useEmployees } from "@/features/employees/hooks";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 
-const pages = [
-  { to: "/", label: "Inicio", icon: LayoutDashboard },
-  { to: "/employees", label: "Empleados", icon: Users },
-  { to: "/departments", label: "Departamentos", icon: FolderKanban },
-  { to: "/roles", label: "Roles", icon: Tag },
-  { to: "/periods", label: "Periodos", icon: Clock },
-  { to: "/reports", label: "Reportes", icon: Clock },
-  { to: "/approvals", label: "Aprobaciones", icon: CheckSquare },
-  { to: "/costing-rules", label: "Reglas de coste", icon: Calculator },
-] as const;
-
 export function CommandPalette({
   open,
   onOpenChange,
@@ -40,10 +30,22 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const tenantId = useCurrentTenantId();
   const employees = useEmployees(open ? tenantId : null);
 
   const peopleItems = useMemo(() => (employees.data ?? []).slice(0, 8), [employees.data]);
+
+  const pages = [
+    { to: "/", label: t("commandPalette.pages.home"), icon: LayoutDashboard },
+    { to: "/employees", label: t("commandPalette.pages.employees"), icon: Users },
+    { to: "/departments", label: t("commandPalette.pages.departments"), icon: FolderKanban },
+    { to: "/roles", label: t("commandPalette.pages.roles"), icon: Tag },
+    { to: "/periods", label: t("commandPalette.pages.periods"), icon: Clock },
+    { to: "/reports", label: t("commandPalette.pages.reports"), icon: Clock },
+    { to: "/approvals", label: t("commandPalette.pages.approvals"), icon: CheckSquare },
+    { to: "/costing-rules", label: t("commandPalette.pages.costingRules"), icon: Calculator },
+  ];
 
   const go = (to: string) => {
     onOpenChange(false);
@@ -52,10 +54,10 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Busca personas, páginas, acciones…" />
+      <CommandInput placeholder={t("commandPalette.placeholder")} />
       <CommandList>
-        <CommandEmpty>No hay resultados.</CommandEmpty>
-        <CommandGroup heading="Navegar">
+        <CommandEmpty>{t("commandPalette.empty")}</CommandEmpty>
+        <CommandGroup heading={t("commandPalette.navigate")}>
           {pages.map((p) => (
             <CommandItem key={p.to} onSelect={() => go(p.to)}>
               <p.icon className="size-4 mr-2" />
@@ -66,7 +68,7 @@ export function CommandPalette({
         {peopleItems.length > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Empleados">
+            <CommandGroup heading={t("commandPalette.employees")}>
               {peopleItems.map((e) => (
                 <CommandItem
                   key={e.id}

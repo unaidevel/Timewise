@@ -132,6 +132,7 @@ INSTALLED_APPS = [
     "product.timekeeping",
     "product.costing",
     "product.approvals",
+    "product.demo_data",
     # infra
     "infra.tenants",
     "infra.licensing",

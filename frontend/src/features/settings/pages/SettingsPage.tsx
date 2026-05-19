@@ -1,4 +1,5 @@
 import { Building2, Clock, Layers, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
@@ -10,34 +11,33 @@ import { useCurrentTenantId } from "@/features/tenants/hooks";
 
 export default function SettingsPage() {
   const tenantId = useCurrentTenantId();
+  const { t } = useTranslation();
   if (tenantId == null) return <NoTenantState />;
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Gestiona el workspace, departamentos, reglas de horas extra y miembros.
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("settings.subtitle")}</p>
       </header>
 
       <Tabs defaultValue="org">
         <TabsList>
           <TabsTrigger value="org">
             <Building2 className="size-4 mr-1.5" />
-            Organización
+            {t("settings.tabs.org")}
           </TabsTrigger>
           <TabsTrigger value="depts">
             <Layers className="size-4 mr-1.5" />
-            Departamentos
+            {t("settings.tabs.depts")}
           </TabsTrigger>
           <TabsTrigger value="ot">
             <Clock className="size-4 mr-1.5" />
-            Horas extra
+            {t("settings.tabs.ot")}
           </TabsTrigger>
           <TabsTrigger value="members">
             <Users className="size-4 mr-1.5" />
-            Miembros
+            {t("settings.tabs.members")}
           </TabsTrigger>
         </TabsList>
 
@@ -59,17 +59,16 @@ export default function SettingsPage() {
 }
 
 function NoTenantState() {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Selecciona un workspace</CardTitle>
+        <CardTitle>{t("settings.noTenant.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          Necesitas crear o seleccionar una organización para ver los ajustes.
-        </p>
+        <p className="text-sm text-muted-foreground mb-4">{t("settings.noTenant.description")}</p>
         <Link to="/onboarding" className="text-sm font-medium text-primary hover:underline">
-          Crear primera organización →
+          {t("settings.noTenant.cta")}
         </Link>
       </CardContent>
     </Card>

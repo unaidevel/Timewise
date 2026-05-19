@@ -26,8 +26,8 @@ afterEach(() => {
 describe("SettingsPage", () => {
   it("shows the 'no tenant' state when no workspace is selected", () => {
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
-    expect(screen.getByText("Selecciona un workspace")).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Crear primera organización/ })).toBeTruthy();
+    expect(screen.getByText("Select a workspace")).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Create first organization/ })).toBeTruthy();
   });
 
   it("renders the four tabs and lands on the organization form by default", async () => {
@@ -36,13 +36,13 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    const orgTab = await screen.findByRole("tab", { name: /Organización/ });
-    expect(screen.getByRole("tab", { name: /Departamentos/ })).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Horas extra/ })).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Miembros/ })).toBeTruthy();
+    const orgTab = await screen.findByRole("tab", { name: /Organization/ });
+    expect(screen.getByRole("tab", { name: /Departments/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Overtime/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Members/ })).toBeTruthy();
 
     expect(orgTab.getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByText("Perfil de organización")).toBeTruthy();
+    expect(screen.getByText("Organization profile")).toBeTruthy();
   });
 
   it("persists the organization profile to localStorage when saved", async () => {
@@ -51,16 +51,16 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    // Find the input under the "Nombre del workspace" label.
-    await screen.findByText("Nombre del workspace");
-    const workspaceLabel = screen.getByText("Nombre del workspace");
+    // Find the input under the "Workspace name" label.
+    await screen.findByText("Workspace name");
+    const workspaceLabel = screen.getByText("Workspace name");
     const workspaceInput = workspaceLabel.parentElement?.querySelector("input") as HTMLInputElement;
     expect(workspaceInput).toBeTruthy();
 
     await userEvent.clear(workspaceInput);
     await userEvent.type(workspaceInput, "Acme Corp");
 
-    await userEvent.click(screen.getByRole("button", { name: /Guardar cambios/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Save changes/ }));
 
     await waitFor(() => {
       const raw = window.localStorage.getItem(`timewise:settings:org:${TENANT_ID}`);
@@ -76,13 +76,13 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    await userEvent.click(await screen.findByRole("tab", { name: /Horas extra/ }));
+    await userEvent.click(await screen.findByRole("tab", { name: /Overtime/ }));
 
     // With defaults (weekly=40, daily=8, weekly_mult=1.5, daily_mult=1.25):
     // dailyOt=2, weeklyOt=8, reg=40 → 40*50 + 2*50*1.25 + 8*50*1.5 = 2725
     expect(await screen.findByText(/2725/)).toBeTruthy();
 
-    const dailyMultiplierLabel = screen.getByText("Multiplicador diario");
+    const dailyMultiplierLabel = screen.getByText("Daily multiplier");
     const dailyMultiplier = dailyMultiplierLabel.parentElement?.querySelector(
       "input",
     ) as HTMLInputElement;
@@ -117,9 +117,9 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    await userEvent.click(await screen.findByRole("tab", { name: /Miembros/ }));
+    await userEvent.click(await screen.findByRole("tab", { name: /Members/ }));
 
-    expect(await screen.findByText("Usuario #42")).toBeTruthy();
+    expect(await screen.findByText("User #42")).toBeTruthy();
     expect(screen.getByText("owner")).toBeTruthy();
   });
 
@@ -129,8 +129,8 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    await userEvent.click(await screen.findByRole("tab", { name: /Departamentos/ }));
+    await userEvent.click(await screen.findByRole("tab", { name: /Departments/ }));
 
-    expect(await screen.findByText(/Aún no hay departamentos. Crea el primero/)).toBeTruthy();
+    expect(await screen.findByText(/No departments yet. Create the first/)).toBeTruthy();
   });
 });

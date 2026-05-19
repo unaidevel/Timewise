@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, Clock, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import type { TimeEntryOut, TimeReportOut } from "@/client";
@@ -72,17 +73,18 @@ export default function TimePage() {
 }
 
 function NoTenantState() {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Selecciona un workspace</CardTitle>
+        <CardTitle>{t("timekeeping.time.noTenant.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          Necesitas crear o seleccionar una organización para fichar horas.
+          {t("timekeeping.time.noTenant.description")}
         </p>
         <Link to="/onboarding" className="text-sm font-medium text-primary hover:underline">
-          Crear primera organización →
+          {t("timekeeping.time.noTenant.cta")}
         </Link>
       </CardContent>
     </Card>
@@ -94,6 +96,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
   const otCfg = useOvertimeConfig(tenantId);
   const employees = useEmployees(tenantId);
   const periods = usePeriods(tenantId);
+  const { t } = useTranslation();
 
   const sortedPeriods = useMemo(
     () => [...(periods.data ?? [])].sort((a, b) => b.start_date.localeCompare(a.start_date)),
@@ -135,11 +138,11 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
   if (!periods.isLoading && sortedPeriods.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Fichaje de horas</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("timekeeping.time.title")}</h1>
         <EmptyState
           icon={Clock}
-          title="No hay periodos abiertos"
-          description="Crea un periodo desde la sección de Periodos para empezar a imputar horas."
+          title={t("timekeeping.time.noPeriods.title")}
+          description={t("timekeeping.time.noPeriods.description")}
         />
       </div>
     );
@@ -148,11 +151,11 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
   if (employees.isSuccess && (employees.data?.length ?? 0) === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Fichaje de horas</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("timekeeping.time.title")}</h1>
         <EmptyState
           icon={Clock}
-          title="No hay empleados"
-          description="Crea un empleado para poder imputar horas en su nombre."
+          title={t("timekeeping.time.noEmployees.title")}
+          description={t("timekeeping.time.noEmployees.description")}
         />
       </div>
     );
@@ -165,14 +168,16 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
     <div className="space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Fichaje de horas</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("timekeeping.time.title")}</h1>
           {meEmployee ? (
             <p className="text-sm text-muted-foreground mt-1">
-              Imputando horas como{" "}
+              {t("timekeeping.time.loggingAs")}{" "}
               <span className="font-medium text-foreground">{meEmployee.full_name}</span>
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground mt-1">Selecciona un empleado…</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("timekeeping.time.selectEmployeePrompt")}
+            </p>
           )}
         </div>
         {(employees.data?.length ?? 0) > 1 && (
@@ -181,7 +186,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
             onValueChange={(v) => setEmployeeId(Number(v))}
           >
             <SelectTrigger className="w-[240px]">
-              <SelectValue placeholder="Seleccionar empleado" />
+              <SelectValue placeholder={t("timekeeping.time.selectEmployeePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {(employees.data ?? []).map((e) => (
@@ -212,7 +217,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Periodos recientes</CardTitle>
+          <CardTitle className="text-base">{t("timekeeping.time.recentPeriods")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {sortedPeriods.map((p, i) => (
@@ -313,27 +318,17 @@ function PeriodEditor({
 
   if (!myReport) {
     return (
-      <Card>
-        <CardHeader className="flex-row items-center justify-between flex-wrap gap-3">
-          <div>
-            <CardTitle className="text-base">{periodName}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              {fmtDate(periodStart)} — {fmtDate(periodEnd)}
-            </p>
-          </div>
-          <PeriodNav canGoPrev={canGoPrev} canGoNext={canGoNext} onPrev={onPrev} onNext={onNext} />
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border border-dashed p-8 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Aún no tienes un reporte para este periodo.
-            </p>
-            <Button onClick={() => createReport.mutate()} disabled={createReport.isPending}>
-              {createReport.isPending ? "Creando…" : "Crear reporte"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <NoReportCard
+        periodName={periodName}
+        periodStart={periodStart}
+        periodEnd={periodEnd}
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
+        onPrev={onPrev}
+        onNext={onNext}
+        isCreating={createReport.isPending}
+        onCreate={() => createReport.mutate()}
+      />
     );
   }
 
@@ -376,6 +371,51 @@ function PeriodNav({
   );
 }
 
+function NoReportCard({
+  periodName,
+  periodStart,
+  periodEnd,
+  canGoPrev,
+  canGoNext,
+  onPrev,
+  onNext,
+  isCreating,
+  onCreate,
+}: {
+  periodName: string;
+  periodStart: string;
+  periodEnd: string;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  isCreating: boolean;
+  onCreate: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between flex-wrap gap-3">
+        <div>
+          <CardTitle className="text-base">{periodName}</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            {fmtDate(periodStart)} — {fmtDate(periodEnd)}
+          </p>
+        </div>
+        <PeriodNav canGoPrev={canGoPrev} canGoNext={canGoNext} onPrev={onPrev} onNext={onNext} />
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-lg border border-dashed p-8 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">{t("timekeeping.time.noReportYet")}</p>
+          <Button onClick={onCreate} disabled={isCreating}>
+            {isCreating ? t("timekeeping.time.creating") : t("timekeeping.time.createReport")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ReportEditor({
   tenantId,
   report,
@@ -400,6 +440,7 @@ function ReportEditor({
   onNext: () => void;
 }) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
 
   const entries = useQuery({
     queryKey: ["time-entries", tenantId, report.id],
@@ -467,9 +508,9 @@ function ReportEditor({
         queryKey: ["periods", tenantId, report.period_id, "reports"],
       });
       qc.invalidateQueries({ queryKey: ["time-report", tenantId, report.id] });
-      toast.success("Reporte enviado para aprobación");
+      toast.success(t("timekeeping.time.submittedToast"));
     },
-    onError: () => toast.error("No se pudo enviar el reporte"),
+    onError: () => toast.error(t("timekeeping.time.submitErrorToast")),
   });
 
   const entryByDate = useMemo(() => {
@@ -517,9 +558,12 @@ function ReportEditor({
               {report.status}
             </Badge>
             <span className="text-xs text-muted-foreground">
-              {totalHours.toFixed(2)} h totales
+              {totalHours.toFixed(2)} {t("timekeeping.time.totalHoursSuffix")}
               {overtime > 0 && (
-                <span className="text-warning-foreground"> · {overtime.toFixed(2)} h extra</span>
+                <span className="text-warning-foreground">
+                  {" "}
+                  · {overtime.toFixed(2)} {t("timekeeping.time.overtimeSuffix")}
+                </span>
               )}
             </span>
           </div>
@@ -531,7 +575,9 @@ function ReportEditor({
             disabled={!editable || totalHours === 0 || submitReport.isPending}
           >
             <Send className="size-4 mr-2" />
-            {submitReport.isPending ? "Enviando…" : "Enviar para aprobación"}
+            {submitReport.isPending
+              ? t("timekeeping.time.submitting")
+              : t("timekeeping.time.submit")}
           </Button>
         </div>
       </CardHeader>
@@ -559,8 +605,10 @@ function ReportEditor({
           </div>
         )}
         <div className="border-t bg-muted/30 px-4 py-3 flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total del periodo</span>
-          <span className="font-mono font-semibold">{totalHours.toFixed(2)} h</span>
+          <span className="text-muted-foreground">{t("timekeeping.time.periodTotal")}</span>
+          <span className="font-mono font-semibold">
+            {totalHours.toFixed(2)} {t("timekeeping.time.totalHoursShort")}
+          </span>
         </div>
       </CardContent>
     </Card>

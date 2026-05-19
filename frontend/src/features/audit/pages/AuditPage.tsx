@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronRight, ExternalLink, Pencil, ScrollText, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { AuditEventOut, EmployeeOut } from "@/client";
@@ -61,6 +62,7 @@ export default function AuditPage() {
   const user = useAuthStore((s) => s.user);
   const members = useMembers(tenantId);
   const employees = useEmployees(tenantId);
+  const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
 
   const actionQ = params.get("action") ?? "";
@@ -108,8 +110,8 @@ export default function AuditPage() {
   if (tenantId == null) {
     return (
       <EmptyState
-        title="No workspace selected"
-        description="Pick a workspace from the sidebar to see its audit log."
+        title={t("audit.noWorkspace.title")}
+        description={t("audit.noWorkspace.description")}
       />
     );
   }
@@ -119,33 +121,31 @@ export default function AuditPage() {
       <header>
         <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
           <ScrollText className="size-7 text-primary" />
-          Registro de auditoría
+          {t("audit.title")}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Cada acción tomada en este workspace, en orden cronológico inverso.
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">{t("audit.subtitle")}</p>
       </header>
 
       <Card className="sticky top-16 z-10 backdrop-blur-md bg-background/85">
         <CardContent className="py-4 grid gap-3 md:grid-cols-[1fr_1fr_180px_220px_auto]">
           <div className="space-y-1.5">
-            <Label className="text-xs">Acción contiene</Label>
+            <Label className="text-xs">{t("audit.filters.action")}</Label>
             <Input
-              placeholder="p. ej. time_report.submitted"
+              placeholder={t("audit.filters.actionPlaceholder")}
               value={actionQ}
               onChange={(e) => patchParams({ action: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Tipo de recurso</Label>
+            <Label className="text-xs">{t("audit.filters.resource")}</Label>
             <Input
-              placeholder="p. ej. TimeReport"
+              placeholder={t("audit.filters.resourcePlaceholder")}
               value={resourceQ}
               onChange={(e) => patchParams({ resource_type: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Resultado</Label>
+            <Label className="text-xs">{t("audit.filters.outcome")}</Label>
             <Select
               value={outcomeQ ?? "any"}
               onValueChange={(v) => patchParams({ outcome: v === "any" ? null : v })}
@@ -154,14 +154,14 @@ export default function AuditPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Cualquiera</SelectItem>
-                <SelectItem value="success">Éxito</SelectItem>
-                <SelectItem value="failure">Fallo</SelectItem>
+                <SelectItem value="any">{t("audit.filters.any")}</SelectItem>
+                <SelectItem value="success">{t("audit.filters.success")}</SelectItem>
+                <SelectItem value="failure">{t("audit.filters.failure")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Actor</Label>
+            <Label className="text-xs">{t("audit.filters.actor")}</Label>
             <Select
               value={actorQ ?? "any"}
               onValueChange={(v) => patchParams({ actor_id: v === "any" ? null : v })}
@@ -170,7 +170,7 @@ export default function AuditPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Cualquiera</SelectItem>
+                <SelectItem value="any">{t("audit.filters.any")}</SelectItem>
                 {(employees.data ?? []).map((e) => (
                   <SelectItem key={e.id} value={String(e.id)}>
                     {e.full_name}
@@ -183,7 +183,7 @@ export default function AuditPage() {
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={() => setParams({}, { replace: true })}>
                 <X className="size-4 mr-1" />
-                Limpiar
+                {t("audit.filters.clear")}
               </Button>
             )}
           </div>
@@ -193,18 +193,20 @@ export default function AuditPage() {
       <Card>
         <CardHeader className="pb-3 flex-row items-center justify-between">
           <CardTitle className="text-base font-medium">
-            {eventsQ.isPending ? "Cargando…" : `${events.length} eventos`}
+            {eventsQ.isPending
+              ? t("audit.table.loading")
+              : t("audit.table.eventCount", { count: events.length })}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           <div className="border-t">
             <div className="grid grid-cols-[40px_180px_1fr_1fr_1fr_110px_60px] gap-3 px-4 py-2.5 text-xs font-medium text-muted-foreground bg-muted/30 border-b">
               <span />
-              <span>Hora</span>
-              <span>Actor</span>
-              <span>Acción</span>
-              <span>Recurso</span>
-              <span>Resultado</span>
+              <span>{t("audit.table.columns.time")}</span>
+              <span>{t("audit.table.columns.actor")}</span>
+              <span>{t("audit.table.columns.action")}</span>
+              <span>{t("audit.table.columns.resource")}</span>
+              <span>{t("audit.table.columns.outcome")}</span>
               <span />
             </div>
             <TooltipProvider delayDuration={200}>
@@ -220,7 +222,7 @@ export default function AuditPage() {
             </TooltipProvider>
             {!eventsQ.isPending && events.length === 0 && (
               <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                Ningún evento coincide con los filtros.
+                {t("audit.table.empty")}
               </div>
             )}
           </div>
@@ -241,9 +243,10 @@ function Row({
   isAdmin: boolean;
   tenantId: number;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const actorLabel = actor?.full_name ?? `Usuario #${event.actor_id}`;
+  const actorLabel = actor?.full_name ?? t("audit.table.userFallback", { id: event.actor_id });
   const actorEmail = actor?.email;
 
   return (
@@ -262,7 +265,7 @@ function Row({
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-muted-foreground tabular-nums">
-              {relativeTime(event.occurred_at)}
+              {relativeTime(event.occurred_at, t)}
             </span>
           </TooltipTrigger>
           <TooltipContent>{new Date(event.occurred_at).toLocaleString()}</TooltipContent>
@@ -290,12 +293,15 @@ function Row({
                       to={href}
                       onClick={(e) => e.stopPropagation()}
                       className="text-muted-foreground hover:text-foreground shrink-0"
-                      aria-label={`Ir a ${event.resource_type} #${event.resource_id}`}
+                      aria-label={t("audit.table.goToResource", {
+                        type: event.resource_type,
+                        id: event.resource_id,
+                      })}
                     >
                       <ExternalLink className="size-3.5" />
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent>Ir al recurso</TooltipContent>
+                  <TooltipContent>{t("audit.table.goToResourceTooltip")}</TooltipContent>
                 </Tooltip>
               );
             })()}
@@ -321,7 +327,7 @@ function Row({
                 e.stopPropagation();
                 setEditing(true);
               }}
-              aria-label="Editar notas"
+              aria-label={t("audit.detail.editNotesAria")}
             >
               <Pencil className="size-3.5" />
             </Button>
@@ -332,20 +338,24 @@ function Row({
       {open && (
         <div className="px-4 py-4 bg-muted/10 border-b grid gap-4 md:grid-cols-2">
           <div>
-            <div className="text-xs font-medium text-muted-foreground mb-1.5">Metadata</div>
+            <div className="text-xs font-medium text-muted-foreground mb-1.5">
+              {t("audit.detail.metadata")}
+            </div>
             <pre className="text-xs font-mono bg-background border rounded-md p-3 overflow-auto max-h-72">
               {JSON.stringify(event.metadata, null, 2)}
             </pre>
           </div>
           <div>
-            <div className="text-xs font-medium text-muted-foreground mb-1.5">Notas</div>
+            <div className="text-xs font-medium text-muted-foreground mb-1.5">
+              {t("audit.detail.notes")}
+            </div>
             {event.notes ? (
               <p className="text-sm whitespace-pre-wrap bg-background border rounded-md p-3">
                 {event.notes}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground italic bg-background border rounded-md p-3">
-                Sin notas todavía.
+                {t("audit.detail.noNotes")}
               </p>
             )}
           </div>
@@ -375,6 +385,7 @@ function EditNotesDialog({
   event: AuditEventOut;
   tenantId: number;
 }) {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState(event.notes);
   const mutation = useUpdateAuditEventNotes(tenantId);
 
@@ -388,22 +399,23 @@ function EditNotesDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar notas</DialogTitle>
+          <DialogTitle>{t("audit.editNotes.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="text-xs text-muted-foreground">
-            Evento #{event.id} — <code className="font-mono">{event.action}</code>
+            {t("audit.editNotes.eventLine", { id: event.id })}
+            <code className="font-mono">{event.action}</code>
           </div>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Contexto, seguimiento, notas de investigación…"
+            placeholder={t("audit.editNotes.placeholder")}
             rows={6}
           />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={() =>
@@ -411,16 +423,16 @@ function EditNotesDialog({
                 { eventId: event.id, notes },
                 {
                   onSuccess: () => {
-                    toast.success("Notas actualizadas");
+                    toast.success(t("audit.editNotes.successToast"));
                     onOpenChange(false);
                   },
-                  onError: () => toast.error("No se pudieron guardar las notas"),
+                  onError: () => toast.error(t("audit.editNotes.errorToast")),
                 },
               )
             }
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Guardando…" : "Guardar"}
+            {mutation.isPending ? t("audit.editNotes.saving") : t("audit.editNotes.save")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -428,15 +440,15 @@ function EditNotesDialog({
   );
 }
 
-function relativeTime(iso: string) {
+function relativeTime(iso: string, t: (key: string, opts?: Record<string, unknown>) => string) {
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60) return `hace ${s}s`;
+  if (s < 60) return t("audit.relative.seconds", { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `hace ${m}m`;
+  if (m < 60) return t("audit.relative.minutes", { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `hace ${h}h`;
+  if (h < 24) return t("audit.relative.hours", { n: h });
   const d = Math.floor(h / 24);
-  if (d < 30) return `hace ${d}d`;
+  if (d < 30) return t("audit.relative.days", { n: d });
   return new Date(iso).toLocaleDateString();
 }

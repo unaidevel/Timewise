@@ -1,5 +1,6 @@
 import { Save } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import {
@@ -30,6 +31,7 @@ const CURRENCIES = ["EUR", "USD", "GBP", "JPY", "CAD", "AUD"];
 export function OrganizationTab({ tenantId }: { tenantId: number }) {
   const [profile, setProfile] = useState<OrgProfile>(() => getOrgProfile(tenantId));
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => setProfile(getOrgProfile(tenantId)), [tenantId]);
 
@@ -39,37 +41,35 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
   function save() {
     setSaving(true);
     setOrgProfile(tenantId, profile);
-    toast.success("Organización actualizada");
+    toast.success(t("settings.org.updated"));
     setSaving(false);
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Perfil de organización</CardTitle>
-        <CardDescription>
-          Nombre público, calendario fiscal y moneda para los reportes de coste.
-        </CardDescription>
+        <CardTitle className="text-base">{t("settings.org.title")}</CardTitle>
+        <CardDescription>{t("settings.org.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 max-w-2xl">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Nombre del workspace">
+          <Field label={t("settings.org.fields.name")}>
             <Input value={profile.name} onChange={(e) => upd("name", e.target.value)} />
           </Field>
-          <Field label="Razón social">
+          <Field label={t("settings.org.fields.legalName")}>
             <Input value={profile.legal_name} onChange={(e) => upd("legal_name", e.target.value)} />
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="País">
+          <Field label={t("settings.org.fields.country")}>
             <Input value={profile.country} onChange={(e) => upd("country", e.target.value)} />
           </Field>
-          <Field label="Zona horaria">
+          <Field label={t("settings.org.fields.timezone")}>
             <Input value={profile.timezone} onChange={(e) => upd("timezone", e.target.value)} />
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Moneda">
+          <Field label={t("settings.org.fields.currency")}>
             <Select value={profile.currency} onValueChange={(v) => upd("currency", v)}>
               <SelectTrigger>
                 <SelectValue />
@@ -83,7 +83,7 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Inicio de año fiscal (MM-DD)">
+          <Field label={t("settings.org.fields.fiscalYear")}>
             <Input
               value={profile.fiscal_year_start}
               onChange={(e) => upd("fiscal_year_start", e.target.value)}
@@ -94,10 +94,10 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
         <div className="flex gap-2 pt-2">
           <Button onClick={save} disabled={saving}>
             <Save className="size-4 mr-2" />
-            {saving ? "Guardando…" : "Guardar cambios"}
+            {saving ? t("settings.org.saving") : t("settings.org.save")}
           </Button>
           <Button variant="outline" onClick={() => setProfile(DEFAULT_ORG)}>
-            Restablecer
+            {t("settings.org.reset")}
           </Button>
         </div>
       </CardContent>

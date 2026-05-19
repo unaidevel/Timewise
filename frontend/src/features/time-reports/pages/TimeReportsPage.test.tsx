@@ -79,7 +79,7 @@ describe("TimeReportsPage", () => {
 
     render(<TimeReportsPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "Sin reportes" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "No reports" })).toBeTruthy();
   });
 
   it("lists reports across periods with status badges", async () => {
@@ -96,7 +96,7 @@ describe("TimeReportsPage", () => {
     expect(await screen.findByText("#100")).toBeTruthy();
     expect(screen.getByText("#101")).toBeTruthy();
     expect(screen.getAllByText("Enero 2026").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/2 en total · 1 pendientes de revisión · 1 aprobados/)).toBeTruthy();
+    expect(screen.getByText(/2 total · 1 awaiting review · 1 approved/)).toBeTruthy();
   });
 
   it("filters reports by status select", async () => {
@@ -113,7 +113,7 @@ describe("TimeReportsPage", () => {
     await screen.findByText("#100");
 
     await userEvent.click(screen.getByRole("combobox"));
-    await userEvent.click(await screen.findByRole("option", { name: "Aprobado" }));
+    await userEvent.click(await screen.findByRole("option", { name: "Approved" }));
 
     await waitFor(() => expect(screen.queryByText("#100")).toBeNull());
     expect(screen.getByText("#101")).toBeTruthy();
@@ -132,9 +132,9 @@ describe("TimeReportsPage", () => {
 
     await screen.findByText("#100");
 
-    const search = screen.getByPlaceholderText(/Buscar por periodo, ID o empleado/i);
+    const search = screen.getByPlaceholderText(/Search by period, ID or employee/i);
     await userEvent.type(search, "no-such-period");
 
-    expect(await screen.findByText("Ningún reporte coincide con los filtros.")).toBeTruthy();
+    expect(await screen.findByText("No report matches the filters.")).toBeTruthy();
   });
 });

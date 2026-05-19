@@ -204,7 +204,7 @@ afterEach(() => {
 describe("CostingPage", () => {
   it("shows the 'no tenant' state when no workspace is selected", () => {
     render(<CostingPage />, { wrapper: createRouterWrapper() });
-    expect(screen.getByText("Selecciona un workspace")).toBeTruthy();
+    expect(screen.getByText("Select a workspace")).toBeTruthy();
   });
 
   it("shows the empty state when no period has reports", async () => {
@@ -213,7 +213,7 @@ describe("CostingPage", () => {
 
     render(<CostingPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "Aún no hay coste laboral" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "No labor cost yet" })).toBeTruthy();
   });
 
   it("renders KPIs and the employee row with computed overtime + cost", async () => {
@@ -233,8 +233,8 @@ describe("CostingPage", () => {
     expect(screen.getAllByText("Engineering").length).toBeGreaterThan(0);
 
     // Header KPIs show non-zero totals.
-    expect(screen.getByText(/Coste total/)).toBeTruthy();
-    expect(screen.getByText(/Coste de horas extra/)).toBeTruthy();
+    expect(screen.getByText(/Total cost/)).toBeTruthy();
+    expect(screen.getByText(/Overtime cost/)).toBeTruthy();
   });
 
   it("falls back to '—' when an employee has no active department", async () => {
@@ -258,7 +258,7 @@ describe("CostingPage", () => {
 
     await screen.findByText("Maya Patel");
 
-    const button = screen.getByRole("button", { name: /Exportar CSV/ });
+    const button = screen.getByRole("button", { name: /Export CSV/ });
     expect(button.hasAttribute("disabled")).toBe(false);
   });
 });

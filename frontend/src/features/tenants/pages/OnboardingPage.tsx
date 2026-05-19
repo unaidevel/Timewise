@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Leaf, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
@@ -15,6 +16,7 @@ export default function OnboardingPage() {
   const create = useCreateTenant();
   const setCurrent = useTenantStore((s) => s.setCurrentTenantId);
   const user = useAuthStore((s) => s.user);
+  const { t } = useTranslation();
   const { data: tenants, isPending: tenantsLoading } = useTenants();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -33,10 +35,10 @@ export default function OnboardingPage() {
       {
         onSuccess: (data) => {
           setCurrent(data.id);
-          toast.success(`${data.name} listo`);
+          toast.success(t("onboarding.tenant.successReady", { name: data.name }));
           navigate("/");
         },
-        onError: () => toast.error("No se pudo crear el workspace"),
+        onError: () => toast.error(t("onboarding.tenant.error")),
       },
     );
   }
@@ -65,16 +67,18 @@ export default function OnboardingPage() {
 
         <div className="rounded-2xl border bg-card p-8 shadow-[var(--shadow-elegant)]">
           <p className="text-sm text-muted-foreground">
-            Hola {user?.full_name?.split(" ")[0] ?? user?.email} 👋
+            {t("onboarding.tenant.greeting", {
+              name: user?.full_name?.split(" ")[0] ?? user?.email,
+            })}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Crea tu workspace</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Cada workspace es un tenant independiente — tus datos, tu equipo.
-          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+            {t("onboarding.tenant.title")}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("onboarding.tenant.subtitle")}</p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la empresa</Label>
+              <Label htmlFor="name">{t("onboarding.tenant.companyName")}</Label>
               <Input
                 id="name"
                 required
@@ -92,7 +96,7 @@ export default function OnboardingPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">URL del workspace</Label>
+              <Label htmlFor="slug">{t("onboarding.tenant.workspaceUrl")}</Label>
               <div className="flex items-center rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring overflow-hidden">
                 <span className="px-3 text-sm text-muted-foreground border-r bg-muted/40 h-10 grid place-items-center">
                   timewise.app/
@@ -111,7 +115,7 @@ export default function OnboardingPage() {
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <>
-                  Crear workspace <ArrowRight className="size-4 ml-1" />
+                  {t("onboarding.tenant.submit")} <ArrowRight className="size-4 ml-1" />
                 </>
               )}
             </Button>

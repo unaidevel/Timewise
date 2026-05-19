@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +19,7 @@ export default function PeriodDetailPage() {
   const periodId = id ? Number(id) : null;
   const { data: period, isLoading } = usePeriod(tenantId, periodId);
   const { data: reports = [], isLoading: loadingReports } = usePeriodReports(tenantId, periodId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   if (isLoading)
@@ -26,12 +28,12 @@ export default function PeriodDetailPage() {
         <Spinner />
       </div>
     );
-  if (!period) return <p className="text-muted-foreground">Periodo no encontrado.</p>;
+  if (!period) return <p className="text-muted-foreground">{t("timekeeping.periods.notFound")}</p>;
 
   return (
     <div className="space-y-4">
       <Link to="/periods" className="text-sm text-muted-foreground hover:underline">
-        ← Volver a periodos
+        {t("timekeeping.periods.backToList")}
       </Link>
 
       <Card>
@@ -44,9 +46,15 @@ export default function PeriodDetailPage() {
 
       <Card>
         <CardHeader
-          title="Reportes del periodo"
-          description="Reportes generados para empleados en este periodo"
-          action={!period.locked_at && <Button onClick={() => setOpen(true)}>Crear reporte</Button>}
+          title={t("timekeeping.periods.reports.title")}
+          description={t("timekeeping.periods.reports.subtitle")}
+          action={
+            !period.locked_at && (
+              <Button onClick={() => setOpen(true)}>
+                {t("timekeeping.periods.reports.createReport")}
+              </Button>
+            )
+          }
         />
         <CardBody className="p-0">
           {loadingReports ? (
@@ -57,16 +65,18 @@ export default function PeriodDetailPage() {
             <Table>
               <thead>
                 <tr>
-                  <Th>ID</Th>
-                  <Th>Empleado</Th>
-                  <Th>Estado</Th>
-                  <Th>Versión</Th>
-                  <Th>Enviado</Th>
+                  <Th>{t("timekeeping.periods.reports.columns.id")}</Th>
+                  <Th>{t("timekeeping.periods.reports.columns.employee")}</Th>
+                  <Th>{t("timekeeping.periods.reports.columns.status")}</Th>
+                  <Th>{t("timekeeping.periods.reports.columns.version")}</Th>
+                  <Th>{t("timekeeping.periods.reports.columns.submitted")}</Th>
                   <Th></Th>
                 </tr>
               </thead>
               <tbody>
-                {reports.length === 0 && <EmptyRow colSpan={6} message="Sin reportes." />}
+                {reports.length === 0 && (
+                  <EmptyRow colSpan={6} message={t("timekeeping.periods.reports.empty")} />
+                )}
                 {reports.map((r) => (
                   <tr key={r.id}>
                     <Td>#{r.id}</Td>
@@ -81,7 +91,7 @@ export default function PeriodDetailPage() {
                         to={`/reports/${r.id}`}
                         className="text-sm font-medium text-foreground hover:underline"
                       >
-                        Ver →
+                        {t("timekeeping.periods.reports.view")}
                       </Link>
                     </Td>
                   </tr>
@@ -109,6 +119,7 @@ function CreateReportModal({
   const tenantId = useCurrentTenantId();
   const { data: employees = [] } = useEmployees(tenantId);
   const create = useCreateTimeReport(tenantId, periodId);
+  const { t } = useTranslation();
   const [employeeId, setEmployeeId] = useState("");
 
   function onSubmit(e: React.FormEvent) {
@@ -117,15 +128,15 @@ function CreateReportModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Crear reporte para empleado">
+    <Modal open={open} onClose={onClose} title={t("timekeeping.periods.reports.createForEmployee")}>
       <form onSubmit={onSubmit} className="space-y-3">
         <Select
-          label="Empleado"
+          label={t("timekeeping.periods.reports.employee")}
           value={employeeId}
           onChange={(e) => setEmployeeId(e.target.value)}
           required
         >
-          <option value="">— Selecciona —</option>
+          <option value="">{t("timekeeping.periods.reports.selectPlaceholder")}</option>
           {employees
             .filter((e) => e.is_active)
             .map((e) => (
@@ -136,10 +147,10 @@ function CreateReportModal({
         </Select>
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Creando…" : "Crear"}
+            {create.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </form>

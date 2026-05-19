@@ -1,0 +1,678 @@
+{
+  "language": {
+    "english": "Inglés",
+    "spanish": "Castellano"
+  },
+  "common": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "status": "Estado",
+    "all": "Todos",
+    "name": "Nombre",
+    "email": "Email",
+    "created": "Creado",
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "creating": "Creando…",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "delete": "Borrar",
+    "deactivate": "Desactivar",
+    "back": "Volver",
+    "loading": "Cargando…",
+    "notFound": "No encontrado",
+    "viewDetail": "Ver detalle →"
+  },
+  "layout": {
+    "themeToggle": "Cambiar tema",
+    "languageMenu": "Idioma",
+    "notifications": "Notificaciones",
+    "logout": "Cerrar sesión",
+    "workspaces": "Workspaces",
+    "expand": "Expandir",
+    "collapse": "Contraer",
+    "search": "Buscar empleados, reportes, periodos…",
+    "nav": {
+      "home": "Inicio",
+      "employees": "Empleados",
+      "departments": "Departamentos",
+      "roles": "Roles",
+      "periods": "Periodos",
+      "time": "Fichar horas",
+      "reports": "Mis reportes",
+      "approvals": "Aprobaciones",
+      "costingRules": "Reglas de coste",
+      "costing": "Costing",
+      "audit": "Auditoría",
+      "settings": "Ajustes"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para continuar en tu workspace.",
+      "email": "Email",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "noAccount": "¿No tienes cuenta?",
+      "createAccount": "Crear una cuenta",
+      "success": "Bienvenido, {{name}}",
+      "errorCredentials": "Credenciales incorrectas"
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a gestionar tu equipo en minutos.",
+      "fullName": "Nombre completo",
+      "workEmail": "Email de trabajo",
+      "password": "Contraseña",
+      "passwordHint": "Mínimo 8 caracteres.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "signIn": "Inicia sesión",
+      "success": "Cuenta creada",
+      "successNeedLogin": "Cuenta creada — inicia sesión",
+      "error": "No se pudo crear la cuenta"
+    },
+    "hero": {
+      "title": "Personas, tiempo y coste — en un solo lugar.",
+      "subtitle": "TimeWise reúne a tu equipo, sus horas y el coste laboral en una única fuente de verdad.",
+      "kpi": {
+        "people": "Personas",
+        "hoursPeriod": "Horas este periodo",
+        "approvals": "Aprobaciones",
+        "costVariance": "Variación coste"
+      }
+    }
+  },
+  "onboarding": {
+    "tenant": {
+      "greeting": "Hola {{name}} 👋",
+      "title": "Crea tu workspace",
+      "subtitle": "Cada workspace es un tenant independiente — tus datos, tu equipo.",
+      "companyName": "Nombre de la empresa",
+      "workspaceUrl": "URL del workspace",
+      "submit": "Crear workspace",
+      "successReady": "{{name}} listo",
+      "error": "No se pudo crear el workspace"
+    },
+    "demoModal": {
+      "title": "Carga datos para ver el flujo de la app",
+      "description": "Creamos un equipo de ejemplo (departamentos, empleados, periodos, reportes). Puedes editarlos o borrarlos después.",
+      "startEmpty": "Empezar de cero",
+      "load": "Cargar demo",
+      "loading": "Cargando…",
+      "successToast": "Datos de demo cargados",
+      "errorToast": "No se pudieron cargar los datos"
+    }
+  },
+  "dashboard": {
+    "noTenant": {
+      "title": "Bienvenido a TimeWise",
+      "description": "Necesitas crear o seleccionar una organización para empezar.",
+      "cta": "Crear primera organización →"
+    },
+    "greeting": "Hola, {{name}}",
+    "greetingFallback": "bienvenido",
+    "summary": "Resumen del workspace.",
+    "export": "Exportar",
+    "newReport": "Nuevo reporte",
+    "kpi": {
+      "activeEmployees": "Empleados activos",
+      "pendingApprovals": "Aprobaciones pendientes",
+      "periods": "Periodos",
+      "departments": "Departamentos"
+    },
+    "costTrend": {
+      "title": "Tendencia de coste laboral",
+      "subtitle": "Últimas 4 semanas (placeholder)"
+    },
+    "quickActions": {
+      "title": "Acciones rápidas",
+      "subtitle": "Atajos del workspace",
+      "manageEmployees": "Gestionar empleados",
+      "periods": "Periodos de imputación",
+      "approvals": "Revisar aprobaciones",
+      "costRules": "Reglas de coste"
+    },
+    "hoursByDept": {
+      "title": "Horas por departamento",
+      "subtitle": "Base vs. extra · placeholder hasta tener endpoint de agregación",
+      "base": "Horas base",
+      "overtime": "Horas extra"
+    },
+    "activity": {
+      "title": "Actividad reciente",
+      "subtitle": "Placeholder",
+      "sentTimesheet": "envió un parte de horas",
+      "approvedReports": "aprobó 3 reportes",
+      "addedRule": "añadió una regla de horas extra",
+      "joinedDept": "se unió a Engineering",
+      "ago12m": "hace 12m",
+      "ago1h": "hace 1h",
+      "ago3h": "hace 3h",
+      "yesterday": "ayer"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Busca personas, páginas, acciones…",
+    "empty": "No hay resultados.",
+    "navigate": "Navegar",
+    "employees": "Empleados",
+    "pages": {
+      "home": "Inicio",
+      "employees": "Empleados",
+      "departments": "Departamentos",
+      "roles": "Roles",
+      "periods": "Periodos",
+      "reports": "Reportes",
+      "approvals": "Aprobaciones",
+      "costingRules": "Reglas de coste"
+    }
+  },
+  "timekeeping": {
+    "periods": {
+      "title": "Periodos",
+      "subtitle": "Ventanas temporales de imputación de horas",
+      "new": "Nuevo periodo",
+      "createTitle": "Nuevo periodo",
+      "columns": {
+        "name": "Nombre",
+        "start": "Inicio",
+        "end": "Fin",
+        "status": "Estado",
+        "locked": "Bloqueado"
+      },
+      "empty": "Sin periodos.",
+      "lock": "Bloquear",
+      "start": "Inicio",
+      "end": "Fin",
+      "notFound": "Periodo no encontrado.",
+      "backToList": "← Volver a periodos",
+      "reports": {
+        "title": "Reportes del periodo",
+        "subtitle": "Reportes generados para empleados en este periodo",
+        "createReport": "Crear reporte",
+        "createForEmployee": "Crear reporte para empleado",
+        "employee": "Empleado",
+        "selectPlaceholder": "— Selecciona —",
+        "columns": {
+          "id": "ID",
+          "employee": "Empleado",
+          "status": "Estado",
+          "version": "Versión",
+          "submitted": "Enviado"
+        },
+        "view": "Ver →",
+        "empty": "Sin reportes."
+      }
+    },
+    "time": {
+      "noTenant": {
+        "title": "Selecciona un workspace",
+        "description": "Necesitas crear o seleccionar una organización para fichar horas.",
+        "cta": "Crear primera organización →"
+      },
+      "title": "Fichaje de horas",
+      "noPeriods": {
+        "title": "No hay periodos abiertos",
+        "description": "Crea un periodo desde la sección de Periodos para empezar a imputar horas."
+      },
+      "noEmployees": {
+        "title": "No hay empleados",
+        "description": "Crea un empleado para poder imputar horas en su nombre."
+      },
+      "loggingAs": "Imputando horas como",
+      "selectEmployeePrompt": "Selecciona un empleado…",
+      "selectEmployeePlaceholder": "Seleccionar empleado",
+      "recentPeriods": "Periodos recientes",
+      "noReportYet": "Aún no tienes un reporte para este periodo.",
+      "createReport": "Crear reporte",
+      "creating": "Creando…",
+      "submit": "Enviar para aprobación",
+      "submitting": "Enviando…",
+      "totalHoursSuffix": "h totales",
+      "overtimeSuffix": "h extra",
+      "periodTotal": "Total del periodo",
+      "totalHoursShort": "h",
+      "submittedToast": "Reporte enviado para aprobación",
+      "submitErrorToast": "No se pudo enviar el reporte"
+    },
+    "reports": {
+      "title": "Reportes",
+      "subtitle": "Imputaciones de horas por periodo y empleado.",
+      "empty": {
+        "title": "Sin reportes",
+        "description": "Cuando los empleados creen reportes para los periodos abiertos, aparecerán aquí."
+      },
+      "summary": "{{total}} en total · {{submitted}} pendientes de revisión · {{approved}} aprobados",
+      "searchPlaceholder": "Buscar por periodo, ID o empleado…",
+      "filterStatusPlaceholder": "Estado",
+      "statusAll": "Todos los estados",
+      "statusDraft": "Borrador",
+      "statusSubmitted": "Enviado",
+      "statusApproved": "Aprobado",
+      "statusRejected": "Rechazado",
+      "columns": {
+        "id": "ID",
+        "period": "Periodo",
+        "employee": "Empleado",
+        "status": "Estado",
+        "version": "Versión",
+        "submitted": "Enviado",
+        "action": "Acción"
+      },
+      "view": "Ver",
+      "noMatch": "Ningún reporte coincide con los filtros.",
+      "notFound": "Reporte no encontrado.",
+      "backToList": "← Volver a reportes",
+      "header": "Reporte #{{id}}",
+      "subheader": "Empleado #{{employee}} · Periodo #{{period}} · v{{version}}",
+      "fields": {
+        "submitted": "Enviado",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "locked": "Bloqueado"
+      },
+      "rejectionReason": "Motivo de rechazo:",
+      "submit": "Enviar para aprobación",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "entries": {
+        "title": "Imputaciones de horas",
+        "totalLabel": "Total: {{hours}} h",
+        "add": "Añadir entrada",
+        "columns": {
+          "date": "Fecha",
+          "hours": "Horas",
+          "start": "Inicio",
+          "end": "Fin",
+          "description": "Descripción"
+        },
+        "empty": "Sin imputaciones.",
+        "delete": "Eliminar",
+        "createTitle": "Nueva imputación",
+        "date": "Fecha",
+        "hours": "Horas",
+        "start": "Inicio",
+        "end": "Fin",
+        "description": "Descripción",
+        "adding": "Añadiendo…",
+        "add2": "Añadir"
+      },
+      "cost": {
+        "title": "Desglose de costes",
+        "summary": "{{base}} base · {{overtime}} extra · Total {{total}}",
+        "empty": "Sin cálculo disponible",
+        "calculate": "Calcular costes",
+        "calculating": "Calculando…",
+        "columns": {
+          "rule": "Regla aplicada",
+          "multiplier": "Multiplicador",
+          "baseHours": "Horas base",
+          "overtimeHours": "Horas extra",
+          "baseCost": "Coste base",
+          "totalCost": "Coste total"
+        },
+        "total": "Total"
+      },
+      "history": {
+        "title": "Historial de estados",
+        "columns": {
+          "when": "Cuándo",
+          "from": "De",
+          "to": "A",
+          "by": "Por"
+        }
+      },
+      "rejectModal": {
+        "title": "Rechazar reporte",
+        "reason": "Motivo",
+        "rejecting": "Rechazando…"
+      }
+    },
+    "approvals": {
+      "title": "Aprobaciones",
+      "subtitle": "Revisa y actúa sobre los reportes enviados por tu equipo.",
+      "empty": {
+        "title": "Bandeja vacía",
+        "description": "Cuando lleguen reportes para revisar, los verás aquí agrupados por estado."
+      },
+      "tabs": {
+        "pending": "Pendientes",
+        "approved": "Aprobadas",
+        "rejected": "Rechazadas"
+      },
+      "nothing": "Nada por aquí ahora mismo.",
+      "reportLabel": "Reporte #{{id}}",
+      "approvalLabel": "Aprobación #{{id}}",
+      "reviewer": "Revisor #{{id}}",
+      "rejectAria": "Rechazar",
+      "approveAria": "Aprobar",
+      "approvedToast": "Reporte aprobado",
+      "approveErrorToast": "No se pudo aprobar",
+      "rejectedToast": "Reporte rechazado",
+      "rejectErrorToast": "No se pudo rechazar",
+      "rejectModal": {
+        "title": "Rechazar reporte",
+        "reasonLabel": "Motivo (opcional)",
+        "reasonPlaceholder": "Cuéntale al empleado qué cambiar antes de reenviar.",
+        "rejecting": "Rechazando…"
+      }
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Gestiona el workspace, departamentos, reglas de horas extra y miembros.",
+    "noTenant": {
+      "title": "Selecciona un workspace",
+      "description": "Necesitas crear o seleccionar una organización para ver los ajustes.",
+      "cta": "Crear primera organización →"
+    },
+    "tabs": {
+      "org": "Organización",
+      "depts": "Departamentos",
+      "ot": "Horas extra",
+      "members": "Miembros"
+    },
+    "org": {
+      "title": "Perfil de organización",
+      "subtitle": "Nombre público, calendario fiscal y moneda para los reportes de coste.",
+      "fields": {
+        "name": "Nombre del workspace",
+        "legalName": "Razón social",
+        "country": "País",
+        "timezone": "Zona horaria",
+        "currency": "Moneda",
+        "fiscalYear": "Inicio de año fiscal (MM-DD)"
+      },
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "reset": "Restablecer",
+      "updated": "Organización actualizada"
+    },
+    "ot": {
+      "title": "Reglas de horas extra",
+      "subtitle": "Las horas por encima de los umbrales se pagan al multiplicador configurado al calcular costes.",
+      "fields": {
+        "weeklyThreshold": "Umbral semanal (horas)",
+        "weeklyMultiplier": "Multiplicador semanal",
+        "dailyThreshold": "Umbral diario (horas)",
+        "dailyMultiplier": "Multiplicador diario"
+      },
+      "previewTitle": "Vista previa de coste",
+      "previewText": "Un empleado a 50 €/h trabajando 50 horas en una semana (con una jornada de 10 horas) costaría <0>{{value}} €</0> con estas reglas.",
+      "save": "Guardar reglas",
+      "saving": "Guardando…",
+      "reset": "Restablecer",
+      "updated": "Reglas de horas extra actualizadas"
+    },
+    "members": {
+      "title": "Miembros y roles",
+      "subtitle": "Personas con acceso a este workspace.",
+      "invite": "Invitar miembro",
+      "userLabel": "Usuario #{{id}}",
+      "joined": "Se unió {{date}}",
+      "inactive": "Inactivo",
+      "empty": "Aún no hay miembros.",
+      "loading": "Cargando…"
+    },
+    "depts": {
+      "title": "Departamentos",
+      "subtitle": "Agrupa empleados para reportes y asignación de costes.",
+      "new": "Nuevo departamento",
+      "createTitle": "Crear departamento",
+      "editTitle": "Editar departamento",
+      "personOne": "1 persona",
+      "personOther": "{{count}} personas",
+      "edit": "Editar",
+      "inactive": "Inactivo",
+      "empty": "Aún no hay departamentos. Crea el primero para empezar.",
+      "createdToast": "Departamento creado",
+      "updatedToast": "Departamento actualizado",
+      "updateError": "No se pudo actualizar",
+      "confirmDeactivate": "¿Desactivar {{name}}?",
+      "fields": {
+        "name": "Nombre",
+        "color": "Color"
+      },
+      "namePlaceholder": "p. ej. Ingeniería",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "colorAria": "Color {{color}}"
+    }
+  },
+  "audit": {
+    "noWorkspace": {
+      "title": "No workspace selected",
+      "description": "Pick a workspace from the sidebar to see its audit log."
+    },
+    "title": "Registro de auditoría",
+    "subtitle": "Cada acción tomada en este workspace, en orden cronológico inverso.",
+    "filters": {
+      "action": "Acción contiene",
+      "actionPlaceholder": "p. ej. time_report.submitted",
+      "resource": "Tipo de recurso",
+      "resourcePlaceholder": "p. ej. TimeReport",
+      "outcome": "Resultado",
+      "actor": "Actor",
+      "any": "Cualquiera",
+      "success": "Éxito",
+      "failure": "Fallo",
+      "clear": "Limpiar"
+    },
+    "table": {
+      "loading": "Cargando…",
+      "eventCount": "{{count}} eventos",
+      "columns": {
+        "time": "Hora",
+        "actor": "Actor",
+        "action": "Acción",
+        "resource": "Recurso",
+        "outcome": "Resultado"
+      },
+      "empty": "Ningún evento coincide con los filtros.",
+      "userFallback": "Usuario #{{id}}",
+      "goToResource": "Ir a {{type}} #{{id}}",
+      "goToResourceTooltip": "Ir al recurso"
+    },
+    "detail": {
+      "metadata": "Metadata",
+      "notes": "Notas",
+      "noNotes": "Sin notas todavía.",
+      "editNotesAria": "Editar notas"
+    },
+    "editNotes": {
+      "title": "Editar notas",
+      "eventLine": "Evento #{{id}} — ",
+      "placeholder": "Contexto, seguimiento, notas de investigación…",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "successToast": "Notas actualizadas",
+      "errorToast": "No se pudieron guardar las notas"
+    },
+    "relative": {
+      "seconds": "hace {{n}}s",
+      "minutes": "hace {{n}}m",
+      "hours": "hace {{n}}h",
+      "days": "hace {{n}}d"
+    }
+  },
+  "costing": {
+    "noTenant": {
+      "title": "Selecciona un workspace",
+      "description": "Necesitas crear o seleccionar una organización para ver el coste laboral.",
+      "cta": "Crear primera organización →"
+    },
+    "title": "Costing",
+    "subtitle": "Coste laboral con {{weekly}}h/semana y {{daily}}h/día como umbrales de horas extra.",
+    "latestPeriod": "Último periodo",
+    "exportCsv": "Exportar CSV",
+    "csvFilename": "coste-{{label}}.csv",
+    "csvHeaders": {
+      "employee": "Empleado",
+      "department": "Departamento",
+      "hourlyRate": "Tarifa por hora",
+      "hours": "Horas",
+      "overtime": "Horas extra",
+      "totalCost": "Coste total"
+    },
+    "empty": {
+      "title": "Aún no hay coste laboral",
+      "description": "Cuando haya reportes con horas imputadas en este workspace, verás aquí los KPIs, el desglose por departamento y por empleado."
+    },
+    "kpi": {
+      "total": "Coste total",
+      "totalHint": "{{hours}} horas imputadas",
+      "regular": "Coste regular",
+      "regularHint": "{{hours}} h regulares",
+      "overtime": "Coste de horas extra",
+      "overtimeHint": "{{hours}} h extra",
+      "avgRate": "Tarifa media",
+      "avgRateHint": "Coste por hora efectivo"
+    },
+    "byDept": {
+      "title": "Coste por departamento",
+      "breakdown": "Desglose por departamento",
+      "calculating": "Calculando…",
+      "noData": "Sin datos para este periodo",
+      "empty": "Sin datos"
+    },
+    "byEmployee": {
+      "title": "Coste por empleado",
+      "countBadge": "{{count}} personas",
+      "columns": {
+        "employee": "Empleado",
+        "department": "Departamento",
+        "rate": "Tarifa",
+        "hours": "Horas",
+        "overtime": "Extra",
+        "cost": "Coste"
+      },
+      "empty": "Sin datos de coste para este periodo"
+    }
+  },
+  "costingRules": {
+    "title": "Reglas de coste",
+    "summary": "{{active}} activas · {{inactive}} inactivas",
+    "new": "Nueva regla",
+    "createTitle": "Nueva regla de coste",
+    "editTitle": "Editar regla",
+    "columns": {
+      "name": "Nombre",
+      "multiplier": "Multiplicador",
+      "priority": "Prioridad",
+      "conditions": "Condiciones",
+      "status": "Estado"
+    },
+    "empty": "Sin reglas de coste.",
+    "view": "Ver →",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "notFound": "Regla no encontrada.",
+    "backToList": "← Volver a reglas",
+    "detailDescription": "Prioridad {{priority}} · Multiplicador ×{{multiplier}}",
+    "edit": "Editar",
+    "deactivate": "Desactivar",
+    "deactivating": "Desactivando…",
+    "fields": {
+      "multiplier": "Multiplicador",
+      "priority": "Prioridad",
+      "created": "Creado",
+      "updated": "Actualizado"
+    },
+    "conditions": {
+      "title": "Condiciones",
+      "subtitle": "La regla se aplica cuando se cumplen todas las condiciones",
+      "columns": {
+        "type": "Tipo",
+        "value": "Valor"
+      },
+      "empty": "Sin condiciones.",
+      "type": "Tipo",
+      "value": "Valor",
+      "add": "+ Añadir"
+    },
+    "form": {
+      "name": "Nombre",
+      "multiplier": "Multiplicador",
+      "priority": "Prioridad",
+      "conditionType": "Tipo de condición",
+      "conditionValue": "Valor de condición"
+    },
+    "conditionTypes": {
+      "dayOfWeek": "Día de la semana",
+      "hoursPerDay": "Horas por día",
+      "hoursPerWeek": "Horas por semana"
+    }
+  },
+  "workforce": {
+    "employees": {
+      "title": "Empleados",
+      "summary": "{{total}} en plantilla · {{active}} activos",
+      "new": "Nuevo empleado",
+      "empty": {
+        "title": "Sin empleados",
+        "description": "Añade el primer empleado para empezar a registrar horas y costes."
+      },
+      "searchPlaceholder": "Buscar por nombre o email…",
+      "filterStatusPlaceholder": "Estado",
+      "columns": {
+        "name": "Nombre",
+        "email": "Email",
+        "hired": "Contratado",
+        "status": "Estado"
+      },
+      "noMatch": "Ningún empleado coincide con los filtros.",
+      "detail": {
+        "emailLabel": "Email",
+        "hiredLabel": "Contratado"
+      },
+      "deactivate": "Desactivar empleado",
+      "deactivating": "Desactivando…",
+      "create": {
+        "title": "Nuevo empleado",
+        "subtitle": "Añade alguien al workspace y asígnale departamento y rol.",
+        "fullName": "Nombre completo",
+        "email": "Email",
+        "department": "Departamento",
+        "role": "Rol",
+        "hourlyRate": "Tarifa por hora (€)",
+        "weeklyHours": "Horas contrato/semana",
+        "hiredAt": "Fecha de contratación",
+        "selectPlaceholder": "— Selecciona —"
+      },
+      "notFound": "Empleado no encontrado.",
+      "backToList": "← Volver a empleados",
+      "fields": {
+        "hireDate": "Fecha de contratación",
+        "manager": "Manager",
+        "id": "ID",
+        "createdAt": "Creado"
+      }
+    },
+    "departments": {
+      "title": "Departamentos",
+      "subtitle": "Estructura organizativa de la empresa",
+      "new": "Nuevo departamento",
+      "createTitle": "Nuevo departamento",
+      "columns": {
+        "name": "Nombre",
+        "status": "Estado",
+        "created": "Creado"
+      },
+      "empty": "Sin departamentos."
+    },
+    "roles": {
+      "title": "Roles",
+      "subtitle": "Puestos disponibles en la organización",
+      "new": "Nuevo rol",
+      "createTitle": "Nuevo rol",
+      "columns": {
+        "name": "Nombre",
+        "status": "Estado",
+        "created": "Creado"
+      },
+      "empty": "Sin roles."
+    }
+  }
+}
