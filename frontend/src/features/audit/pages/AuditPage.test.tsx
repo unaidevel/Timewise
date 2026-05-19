@@ -100,7 +100,7 @@ describe("AuditPage", () => {
 
     expect(await screen.findByText("time_report.submitted")).toBeTruthy();
     expect(screen.getByText("Maya Patel")).toBeTruthy();
-    expect(screen.getByText("1 eventos")).toBeTruthy();
+    expect(screen.getByText("1 events")).toBeTruthy();
   });
 
   it("shows a fallback label when the actor is not in the employees list", async () => {
@@ -110,7 +110,7 @@ describe("AuditPage", () => {
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    expect(await screen.findByText("Usuario #7")).toBeTruthy();
+    expect(await screen.findByText("User #7")).toBeTruthy();
   });
 
   it("shows an empty message when no events match the filters", async () => {
@@ -120,7 +120,7 @@ describe("AuditPage", () => {
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    expect(await screen.findByText("Ningún evento coincide con los filtros.")).toBeTruthy();
+    expect(await screen.findByText("No event matches the filters.")).toBeTruthy();
   });
 
   it("renders the edit-notes button for admins", async () => {
@@ -130,7 +130,7 @@ describe("AuditPage", () => {
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    expect(await screen.findByRole("button", { name: "Editar notas" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Edit notes" })).toBeTruthy();
   });
 
   it("hides the edit-notes button for non-admin members", async () => {
@@ -141,7 +141,7 @@ describe("AuditPage", () => {
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
     await screen.findByText("time_report.submitted");
-    expect(screen.queryByRole("button", { name: "Editar notas" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit notes" })).toBeNull();
   });
 
   it("forwards the action filter as a query param", async () => {
@@ -176,7 +176,7 @@ describe("AuditPage", () => {
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    const link = await screen.findByRole("link", { name: "Ir a TimeReport #42" });
+    const link = await screen.findByRole("link", { name: "Go to TimeReport #42" });
     expect(link.getAttribute("href")).toBe("/reports/42");
   });
 
@@ -188,7 +188,7 @@ describe("AuditPage", () => {
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
     await screen.findByText("time_report.submitted");
-    expect(screen.queryByRole("link", { name: /^Ir a / })).toBeNull();
+    expect(screen.queryByRole("link", { name: /^Go to / })).toBeNull();
   });
 
   it("hides the resource link for unsupported resource types", async () => {
@@ -201,7 +201,7 @@ describe("AuditPage", () => {
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
     await screen.findByText("auth.login");
-    expect(screen.queryByRole("link", { name: /^Ir a / })).toBeNull();
+    expect(screen.queryByRole("link", { name: /^Go to / })).toBeNull();
   });
 
   it("opens the edit-notes dialog when an admin clicks the pencil", async () => {
@@ -211,9 +211,9 @@ describe("AuditPage", () => {
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    const btn = await screen.findByRole("button", { name: "Editar notas" });
+    const btn = await screen.findByRole("button", { name: "Edit notes" });
     await userEvent.click(btn);
 
-    expect(await screen.findByRole("heading", { name: "Editar notas" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Edit notes" })).toBeTruthy();
   });
 });
