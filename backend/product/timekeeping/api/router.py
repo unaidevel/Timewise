@@ -266,6 +266,23 @@ def reject_time_report(
     )
 
 
+@router.post(
+    "/reports/{report_id}/reopen",
+    response_model=TimeReportOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def reopen_time_report(
+    tenant_id: int,
+    report_id: int,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> TimeReportOut:
+    return TimekeepingOrchestrator.reopen_time_report(
+        tenant_id, report_id, current_user.id
+    )
+
+
 @router.get(
     "/reports/{report_id}/history",
     response_model=list[TimeReportStatusHistoryOut],

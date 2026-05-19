@@ -221,6 +221,27 @@ class TimekeepingService:
 
     @any_employee
     @staticmethod
+    def reopen_time_report(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> TimeReportOut:
+        report = TimekeepingRepository.get_time_report_by_id(report_id)
+        if not report or report.tenant_id != tenant_id:
+            raise NotFound(f"Time report {report_id} not found.")
+        if report.status != TimeReportStatus.REJECTED:
+            raise Conflict(f"Cannot reopen report in status '{report.status}'.")
+        result = TimekeepingRepository.reopen_time_report(report_id, user_id)
+        if result is None:
+            raise NotFound(f"Time report {report_id} not found.")
+        TimekeepingRepository.create_status_history(
+            report_id,
+            from_status=report.status,
+            to_status=str(TimeReportStatus.DRAFT),
+            user_id=user_id,
+        )
+        return result
+
+    @any_employee
+    @staticmethod
     def list_report_history(
         tenant_id: int, report_id: int, user_id: int
     ) -> list[TimeReportStatusHistoryOut]:

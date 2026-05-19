@@ -252,6 +252,40 @@ class TimekeepingOrchestrator:
 
     @any_employee
     @staticmethod
+    def reopen_time_report(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> TimeReportOut:
+        try:
+            with transaction.atomic():
+                report = TimekeepingService.reopen_time_report(
+                    tenant_id, report_id, user_id
+                )
+                AuditService.create(
+                    tenant_id,
+                    AuditEventIn(
+                        action="time_report.reopened",
+                        resource_type="TimeReport",
+                        outcome=AuditOutcome.SUCCESS.value,
+                        resource_id=report.id,
+                        metadata={"to_status": report.status},
+                    ),
+                    user_id,
+                )
+                return report
+        except AUDITED_FAILURES as exc:
+            record_failure(
+                tenant_id,
+                user_id,
+                action="time_report.reopened",
+                resource_type="TimeReport",
+                resource_id=report_id,
+                metadata={},
+                exc=exc,
+            )
+            raise
+
+    @any_employee
+    @staticmethod
     def create_time_entry(
         tenant_id: int,
         report_id: int,
