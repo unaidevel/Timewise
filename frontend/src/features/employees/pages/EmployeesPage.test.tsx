@@ -54,8 +54,8 @@ describe("EmployeesPage", () => {
 
     render(<EmployeesPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByRole("heading", { name: "Sin empleados" })).toBeTruthy();
-    expect(screen.getByText(/Añade el primer empleado/i)).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "No employees" })).toBeTruthy();
+    expect(screen.getByText(/Add the first employee/i)).toBeTruthy();
   });
 
   it("lists employees with their status badges", async () => {
@@ -68,9 +68,9 @@ describe("EmployeesPage", () => {
 
     expect(await screen.findByRole("link", { name: "Maya Patel" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "James O'Connor" })).toBeTruthy();
-    expect(screen.getByText(/2 en plantilla · 1 activos/)).toBeTruthy();
-    expect(screen.getByText("Activo")).toBeTruthy();
-    expect(screen.getByText("Inactivo")).toBeTruthy();
+    expect(screen.getByText(/2 on staff · 1 active/)).toBeTruthy();
+    expect(screen.getByText("Active")).toBeTruthy();
+    expect(screen.getByText("Inactive")).toBeTruthy();
   });
 
   it("filters employees by search input", async () => {
@@ -83,7 +83,7 @@ describe("EmployeesPage", () => {
 
     await screen.findByRole("link", { name: "Maya Patel" });
 
-    const search = screen.getByPlaceholderText(/Buscar por nombre o email/i);
+    const search = screen.getByPlaceholderText(/Search by name or email/i);
     await userEvent.type(search, "james");
 
     await waitFor(() => expect(screen.queryByRole("link", { name: "Maya Patel" })).toBeNull());
@@ -101,7 +101,7 @@ describe("EmployeesPage", () => {
     await screen.findByRole("link", { name: "Maya Patel" });
 
     await userEvent.click(screen.getByRole("combobox"));
-    await userEvent.click(await screen.findByRole("option", { name: "Inactivos" }));
+    await userEvent.click(await screen.findByRole("option", { name: "Inactive" }));
 
     await waitFor(() => expect(screen.queryByRole("link", { name: "Maya Patel" })).toBeNull());
     expect(screen.getByRole("link", { name: "James O'Connor" })).toBeTruthy();
@@ -119,7 +119,7 @@ describe("EmployeesPage", () => {
     await userEvent.click(row);
 
     expect(await screen.findByRole("heading", { name: "Maya Patel", level: 2 })).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Ver detalle/ })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /View detail/ })).toBeTruthy();
   });
 
   it("shows a 'no match' row when filters exclude everyone", async () => {
@@ -132,9 +132,9 @@ describe("EmployeesPage", () => {
 
     await screen.findByRole("link", { name: "Maya Patel" });
 
-    const search = screen.getByPlaceholderText(/Buscar por nombre o email/i);
+    const search = screen.getByPlaceholderText(/Search by name or email/i);
     await userEvent.type(search, "zzz-no-match");
 
-    expect(await screen.findByText("Ningún empleado coincide con los filtros.")).toBeTruthy();
+    expect(await screen.findByText("No employee matches the filters.")).toBeTruthy();
   });
 });

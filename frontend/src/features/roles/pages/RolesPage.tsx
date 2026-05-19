@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -13,14 +14,15 @@ import { useCreateRole, useDeactivateRole, useRoles } from "../hooks";
 export default function RolesPage() {
   const tenantId = useCurrentTenantId();
   const { data, isLoading } = useRoles(tenantId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <Card>
       <CardHeader
-        title="Roles"
-        description="Puestos disponibles en la organización"
-        action={<Button onClick={() => setOpen(true)}>Nuevo rol</Button>}
+        title={t("workforce.roles.title")}
+        description={t("workforce.roles.subtitle")}
+        action={<Button onClick={() => setOpen(true)}>{t("workforce.roles.new")}</Button>}
       />
       <CardBody className="p-0">
         {isLoading ? (
@@ -31,14 +33,16 @@ export default function RolesPage() {
           <Table>
             <thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th>Estado</Th>
-                <Th>Creado</Th>
+                <Th>{t("workforce.roles.columns.name")}</Th>
+                <Th>{t("workforce.roles.columns.status")}</Th>
+                <Th>{t("workforce.roles.columns.created")}</Th>
                 <Th></Th>
               </tr>
             </thead>
             <tbody>
-              {(!data || data.length === 0) && <EmptyRow colSpan={4} message="Sin roles." />}
+              {(!data || data.length === 0) && (
+                <EmptyRow colSpan={4} message={t("workforce.roles.empty")} />
+              )}
               {data?.map((r) => (
                 <RoleRow
                   key={r.id}
@@ -71,11 +75,14 @@ function RoleRow({
 }) {
   const tenantId = useCurrentTenantId();
   const deactivate = useDeactivateRole(tenantId);
+  const { t } = useTranslation();
   return (
     <tr>
       <Td className="font-medium">{name}</Td>
       <Td>
-        <Badge status={isActive ? "active" : "inactive"}>{isActive ? "Activo" : "Inactivo"}</Badge>
+        <Badge status={isActive ? "active" : "inactive"}>
+          {isActive ? t("common.active") : t("common.inactive")}
+        </Badge>
       </Td>
       <Td>{formatDate(createdAt)}</Td>
       <Td className="text-right">
@@ -85,7 +92,7 @@ function RoleRow({
             onClick={() => deactivate.mutate(id)}
             disabled={deactivate.isPending}
           >
-            Desactivar
+            {t("common.deactivate")}
           </Button>
         )}
       </Td>
@@ -96,6 +103,7 @@ function RoleRow({
 function CreateRoleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const create = useCreateRole(tenantId);
+  const { t } = useTranslation();
   const [name, setName] = useState("");
 
   function onSubmit(e: React.FormEvent) {
@@ -112,15 +120,20 @@ function CreateRoleModal({ open, onClose }: { open: boolean; onClose: () => void
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nuevo rol">
+    <Modal open={open} onClose={onClose} title={t("workforce.roles.createTitle")}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input
+          label={t("common.name")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Creando…" : "Crear"}
+            {create.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </form>

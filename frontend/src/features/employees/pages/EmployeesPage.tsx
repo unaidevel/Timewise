@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import type { EmployeeOut } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
@@ -55,6 +56,7 @@ const statusStyle = {
 export default function EmployeesPage() {
   const tenantId = useCurrentTenantId();
   const employees = useEmployees(tenantId);
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [selected, setSelected] = useState<EmployeeOut | null>(null);
@@ -78,24 +80,24 @@ export default function EmployeesPage() {
     <div className="space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Empleados</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("workforce.employees.title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {total} en plantilla · {activeCount} activos
+            {t("workforce.employees.summary", { total, active: activeCount })}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="size-4 mr-2" /> Nuevo empleado
+          <Plus className="size-4 mr-2" /> {t("workforce.employees.new")}
         </Button>
       </header>
 
       {isEmpty ? (
         <EmptyState
           icon={Users}
-          title="Sin empleados"
-          description="Añade el primer empleado para empezar a registrar horas y costes."
+          title={t("workforce.employees.empty.title")}
+          description={t("workforce.employees.empty.description")}
           action={
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4 mr-2" /> Nuevo empleado
+              <Plus className="size-4 mr-2" /> {t("workforce.employees.new")}
             </Button>
           }
         />
@@ -105,7 +107,7 @@ export default function EmployeesPage() {
             <div className="relative flex-1 min-w-[220px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre o email…"
+                placeholder={t("workforce.employees.searchPlaceholder")}
                 className="pl-9"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
@@ -114,12 +116,12 @@ export default function EmployeesPage() {
             <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
               <SelectTrigger className="w-[160px]">
                 <Filter className="size-3.5 mr-1.5" />
-                <SelectValue placeholder="Estado" />
+                <SelectValue placeholder={t("workforce.employees.filterStatusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
+                <SelectItem value="all">{t("common.all")}</SelectItem>
+                <SelectItem value="active">{t("common.active")}</SelectItem>
+                <SelectItem value="inactive">{t("common.inactive")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -129,10 +131,10 @@ export default function EmployeesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Contratado</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>{t("workforce.employees.columns.name")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.email")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.hired")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -181,7 +183,7 @@ export default function EmployeesPage() {
                             e.is_active ? statusStyle.active : statusStyle.inactive,
                           )}
                         >
-                          {e.is_active ? "Activo" : "Inactivo"}
+                          {e.is_active ? t("common.active") : t("common.inactive")}
                         </Badge>
                       </TableCell>
                     </motion.tr>
@@ -192,7 +194,7 @@ export default function EmployeesPage() {
                         colSpan={4}
                         className="text-center text-sm text-muted-foreground py-12"
                       >
-                        Ningún empleado coincide con los filtros.
+                        {t("workforce.employees.noMatch")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -221,10 +223,14 @@ export default function EmployeesPage() {
                 </div>
               </SheetHeader>
               <div className="px-1 space-y-4 mt-2">
-                <DetailRow icon={Mail} label="Email" value={selected.email} />
+                <DetailRow
+                  icon={Mail}
+                  label={t("workforce.employees.detail.emailLabel")}
+                  value={selected.email}
+                />
                 <DetailRow
                   icon={Calendar}
-                  label="Contratado"
+                  label={t("workforce.employees.detail.hiredLabel")}
                   value={formatDate(selected.hired_at)}
                 />
                 <div className="pt-2 flex items-center gap-2">
@@ -232,13 +238,13 @@ export default function EmployeesPage() {
                     variant="outline"
                     className={cn(selected.is_active ? statusStyle.active : statusStyle.inactive)}
                   >
-                    {selected.is_active ? "Activo" : "Inactivo"}
+                    {selected.is_active ? t("common.active") : t("common.inactive")}
                   </Badge>
                   <Link
                     to={`/employees/${selected.id}`}
                     className="ml-auto text-sm font-medium text-primary hover:underline"
                   >
-                    Ver detalle →
+                    {t("common.viewDetail")}
                   </Link>
                 </div>
                 {selected.is_active && (
@@ -278,6 +284,7 @@ function DetailRow({
 function DeactivateButton({ id, onDone }: { id: number; onDone: () => void }) {
   const tenantId = useCurrentTenantId();
   const deactivate = useDeactivateEmployee(tenantId);
+  const { t } = useTranslation();
   return (
     <Button
       variant="outline"
@@ -285,7 +292,9 @@ function DeactivateButton({ id, onDone }: { id: number; onDone: () => void }) {
       disabled={deactivate.isPending}
       onClick={() => deactivate.mutate(id, { onSuccess: onDone })}
     >
-      {deactivate.isPending ? "Desactivando…" : "Desactivar empleado"}
+      {deactivate.isPending
+        ? t("workforce.employees.deactivating")
+        : t("workforce.employees.deactivate")}
     </Button>
   );
 }
@@ -295,6 +304,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
   const departments = useDepartments(tenantId);
   const roles = useRoles(tenantId);
   const create = useCreateEmployee(tenantId);
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({
     full_name: "",
@@ -343,20 +353,18 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>Nuevo empleado</SheetTitle>
-          <SheetDescription>
-            Añade alguien al workspace y asígnale departamento y rol.
-          </SheetDescription>
+          <SheetTitle>{t("workforce.employees.create.title")}</SheetTitle>
+          <SheetDescription>{t("workforce.employees.create.subtitle")}</SheetDescription>
         </SheetHeader>
         <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          <Field label="Nombre completo" required>
+          <Field label={t("workforce.employees.create.fullName")} required>
             <Input
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
               required
             />
           </Field>
-          <Field label="Email" required>
+          <Field label={t("workforce.employees.create.email")} required>
             <Input
               type="email"
               value={form.email}
@@ -364,13 +372,13 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               required
             />
           </Field>
-          <Field label="Departamento" required>
+          <Field label={t("workforce.employees.create.department")} required>
             <Select
               value={form.department_id}
               onValueChange={(v) => setForm({ ...form, department_id: v })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="— Selecciona —" />
+                <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {(departments.data ?? [])
@@ -383,10 +391,10 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Rol" required>
+          <Field label={t("workforce.employees.create.role")} required>
             <Select value={form.role_id} onValueChange={(v) => setForm({ ...form, role_id: v })}>
               <SelectTrigger>
-                <SelectValue placeholder="— Selecciona —" />
+                <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {(roles.data ?? [])
@@ -399,7 +407,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Tarifa por hora (€)" required>
+          <Field label={t("workforce.employees.create.hourlyRate")} required>
             <Input
               type="number"
               step="0.01"
@@ -408,7 +416,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               required
             />
           </Field>
-          <Field label="Horas contrato/semana" required>
+          <Field label={t("workforce.employees.create.weeklyHours")} required>
             <Input
               type="number"
               value={form.contract_hours_per_week}
@@ -416,7 +424,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               required
             />
           </Field>
-          <Field label="Fecha de contratación" required>
+          <Field label={t("workforce.employees.create.hiredAt")} required>
             <Input
               type="date"
               value={form.hired_at}
@@ -426,10 +434,10 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
           </Field>
           <div className="col-span-full flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? "Creando…" : "Crear"}
+              {create.isPending ? t("common.creating") : t("common.create")}
             </Button>
           </div>
         </form>

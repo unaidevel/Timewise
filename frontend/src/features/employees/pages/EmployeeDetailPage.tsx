@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -11,6 +12,7 @@ export default function EmployeeDetailPage() {
   const tenantId = useCurrentTenantId();
   const employeeId = id ? Number(id) : null;
   const { data: employee, isLoading } = useEmployee(tenantId, employeeId);
+  const { t } = useTranslation();
 
   if (isLoading)
     return (
@@ -18,12 +20,12 @@ export default function EmployeeDetailPage() {
         <Spinner />
       </div>
     );
-  if (!employee) return <p className="text-slate-600">Empleado no encontrado.</p>;
+  if (!employee) return <p className="text-slate-600">{t("workforce.employees.notFound")}</p>;
 
   return (
     <div className="space-y-4">
       <Link to="/employees" className="text-sm text-slate-600 hover:underline">
-        ← Volver a empleados
+        {t("workforce.employees.backToList")}
       </Link>
 
       <Card>
@@ -32,16 +34,25 @@ export default function EmployeeDetailPage() {
           description={employee.email}
           action={
             <Badge status={employee.is_active ? "active" : "inactive"}>
-              {employee.is_active ? "Activo" : "Inactivo"}
+              {employee.is_active ? t("common.active") : t("common.inactive")}
             </Badge>
           }
         />
         <CardBody>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Fecha de contratación" value={formatDate(employee.hired_at)} />
-            <Field label="Manager" value={employee.manager_id ? `#${employee.manager_id}` : "—"} />
-            <Field label="ID" value={`#${employee.id}`} />
-            <Field label="Creado" value={formatDate(employee.created_at)} />
+            <Field
+              label={t("workforce.employees.fields.hireDate")}
+              value={formatDate(employee.hired_at)}
+            />
+            <Field
+              label={t("workforce.employees.fields.manager")}
+              value={employee.manager_id ? `#${employee.manager_id}` : "—"}
+            />
+            <Field label={t("workforce.employees.fields.id")} value={`#${employee.id}`} />
+            <Field
+              label={t("workforce.employees.fields.createdAt")}
+              value={formatDate(employee.created_at)}
+            />
           </dl>
         </CardBody>
       </Card>

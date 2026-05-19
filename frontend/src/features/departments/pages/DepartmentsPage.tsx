@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -13,14 +14,15 @@ import { useCreateDepartment, useDeactivateDepartment, useDepartments } from "..
 export default function DepartmentsPage() {
   const tenantId = useCurrentTenantId();
   const { data, isLoading } = useDepartments(tenantId);
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <Card>
       <CardHeader
-        title="Departamentos"
-        description="Estructura organizativa de la empresa"
-        action={<Button onClick={() => setOpen(true)}>Nuevo departamento</Button>}
+        title={t("workforce.departments.title")}
+        description={t("workforce.departments.subtitle")}
+        action={<Button onClick={() => setOpen(true)}>{t("workforce.departments.new")}</Button>}
       />
       <CardBody className="p-0">
         {isLoading ? (
@@ -31,15 +33,15 @@ export default function DepartmentsPage() {
           <Table>
             <thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th>Estado</Th>
-                <Th>Creado</Th>
+                <Th>{t("workforce.departments.columns.name")}</Th>
+                <Th>{t("workforce.departments.columns.status")}</Th>
+                <Th>{t("workforce.departments.columns.created")}</Th>
                 <Th></Th>
               </tr>
             </thead>
             <tbody>
               {(!data || data.length === 0) && (
-                <EmptyRow colSpan={4} message="Sin departamentos." />
+                <EmptyRow colSpan={4} message={t("workforce.departments.empty")} />
               )}
               {data?.map((d) => (
                 <DepartmentRow
@@ -73,11 +75,14 @@ function DepartmentRow({
 }) {
   const tenantId = useCurrentTenantId();
   const deactivate = useDeactivateDepartment(tenantId);
+  const { t } = useTranslation();
   return (
     <tr>
       <Td className="font-medium">{name}</Td>
       <Td>
-        <Badge status={isActive ? "active" : "inactive"}>{isActive ? "Activo" : "Inactivo"}</Badge>
+        <Badge status={isActive ? "active" : "inactive"}>
+          {isActive ? t("common.active") : t("common.inactive")}
+        </Badge>
       </Td>
       <Td>{formatDate(createdAt)}</Td>
       <Td className="text-right">
@@ -87,7 +92,7 @@ function DepartmentRow({
             onClick={() => deactivate.mutate(id)}
             disabled={deactivate.isPending}
           >
-            Desactivar
+            {t("common.deactivate")}
           </Button>
         )}
       </Td>
@@ -98,6 +103,7 @@ function DepartmentRow({
 function CreateDepartmentModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const create = useCreateDepartment(tenantId);
+  const { t } = useTranslation();
   const [name, setName] = useState("");
 
   function onSubmit(e: React.FormEvent) {
@@ -114,15 +120,20 @@ function CreateDepartmentModal({ open, onClose }: { open: boolean; onClose: () =
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nuevo departamento">
+    <Modal open={open} onClose={onClose} title={t("workforce.departments.createTitle")}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input
+          label={t("common.name")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Creando…" : "Crear"}
+            {create.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </form>
