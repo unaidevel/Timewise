@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
@@ -64,6 +65,7 @@ const nav: NavItem[] = [
 export function Layout() {
   const location = useLocation();
   const { theme, toggle } = useTheme();
+  const { i18n, t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const { data: tenants = [] } = useTenants();
@@ -195,6 +197,28 @@ export function Layout() {
             <Button variant="ghost" size="icon" onClick={toggle} aria-label="Cambiar tema">
               {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="font-medium uppercase"
+                  aria-label="Language"
+                >
+                  {i18n.resolvedLanguage ?? i18n.language}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => i18n.changeLanguage("en")}>
+                  {t("language.english")}
+                  {i18n.resolvedLanguage === "en" && <Check className="size-4 ml-auto" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => i18n.changeLanguage("es")}>
+                  {t("language.spanish")}
+                  {i18n.resolvedLanguage === "es" && <Check className="size-4 ml-auto" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="icon" className="relative" aria-label="Notificaciones">
               <Bell className="size-4" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary" />
