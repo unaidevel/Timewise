@@ -56,6 +56,8 @@ class EmployeeIn(BaseModel):
     contract_hours_per_week: int = Field(ge=1, le=168)
     hired_at: date
     user_id: int | None = None
+    manager_id: int | None = None
+    is_department_manager: bool = False
 
 
 class EmployeeOut(BaseModel):

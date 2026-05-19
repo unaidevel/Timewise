@@ -239,6 +239,11 @@ class WorkforceService:
                 f"An employee with email '{employee_entity.email}' already exists in this tenant."
             )
 
+        if entity.manager_id is not None:
+            manager = WorkforceRepository.get_employee_by_id(entity.manager_id)
+            if not manager or manager.tenant_id != tenant_id:
+                raise NotFound(f"Manager employee {entity.manager_id} not found.")
+
         with transaction.atomic():
             employee = WorkforceRepository.create_employee(
                 employee_entity,
@@ -252,6 +257,17 @@ class WorkforceService:
             WorkforceRepository.assign_role(
                 employee.id, entity.role_id, role_entity, user_id
             )
+            if entity.manager_id is not None:
+                WorkforceRepository.set_employee_manager(
+                    SetEmployeeManagerEntity(
+                        employee_id=employee.id, manager_id=entity.manager_id
+                    ),
+                    user_id,
+                )
+            if entity.is_department_manager:
+                WorkforceRepository.assign_department_manager(
+                    entity.department_id, employee.id, user_id
+                )
 
         return employee
 

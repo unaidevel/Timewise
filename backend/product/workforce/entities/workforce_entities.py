@@ -148,6 +148,8 @@ class CreateEmployeeEntity:
     hourly_rate: Decimal
     contract_hours_per_week: int
     user_id: int | None = None
+    manager_id: int | None = None
+    is_department_manager: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(
