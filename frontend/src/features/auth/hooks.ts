@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LoginRequest, RegisterRequest } from "@/client";
 import {
   getMeApiV1AuthMeGet,
@@ -6,6 +6,7 @@ import {
   logoutUserApiV1AuthLogoutPost,
   registerApiV1AuthRegisterPost,
 } from "@/client";
+import { useTenantStore } from "@/features/tenants/store";
 import { useAuthStore } from "./store";
 
 export function useLogin() {
@@ -32,6 +33,7 @@ export function useRegister() {
 
 export function useLogout() {
   const logout = useAuthStore((s) => s.logout);
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       try {
@@ -40,7 +42,11 @@ export function useLogout() {
         /* ignore — local logout still happens */
       }
     },
-    onSettled: () => logout(),
+    onSettled: () => {
+      logout();
+      useTenantStore.getState().setCurrentTenantId(null);
+      qc.clear();
+    },
   });
 }
 
