@@ -10,6 +10,7 @@ import {
   listReportHistoryApiV1TenantsTenantIdReportsReportIdHistoryGet,
   listTimeEntriesApiV1TenantsTenantIdReportsReportIdEntriesGet,
   rejectTimeReportApiV1TenantsTenantIdReportsReportIdRejectPost,
+  reopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPost,
   submitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPost,
   updateTimeEntryApiV1TenantsTenantIdReportsReportIdEntriesEntryIdPut,
 } from "@/client";
@@ -82,6 +83,20 @@ export function useRejectReport(tenantId: number | null, reportId: number | null
       const { data, error } = await rejectTimeReportApiV1TenantsTenantIdReportsReportIdRejectPost({
         path: { tenant_id: tenantId!, report_id: reportId! },
         body,
+      });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["time-report", tenantId, reportId] }),
+  });
+}
+
+export function useReopenReport(tenantId: number | null, reportId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await reopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPost({
+        path: { tenant_id: tenantId!, report_id: reportId! },
       });
       if (error || !data) throw error;
       return data;

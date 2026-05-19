@@ -1409,6 +1409,50 @@ export type SubmitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPostRespons
 
 export type SubmitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPostResponse = SubmitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPostResponses[keyof SubmitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPostResponses];
 
+export type ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostData = {
+    body?: never;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+        /**
+         * Report Id
+         */
+        report_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/reports/{report_id}/reopen';
+};
+
+export type ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Conflict
+     */
+    409: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: TimeReportOut;
+};
+
+export type ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostResponse = ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostResponses[keyof ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostResponses];
+
 export type ApproveReportApiV1TenantsTenantIdApprovalsApprovalIdApprovePostData = {
     body?: never;
     path: {

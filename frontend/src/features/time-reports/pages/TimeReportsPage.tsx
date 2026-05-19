@@ -149,7 +149,6 @@ export default function TimeReportsPage() {
                 <TableHead>{t("timekeeping.reports.columns.period")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.employee")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.status")}</TableHead>
-                <TableHead>{t("timekeeping.reports.columns.version")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.submitted")}</TableHead>
                 <TableHead className="text-right">
                   {t("timekeeping.reports.columns.action")}
@@ -160,7 +159,7 @@ export default function TimeReportsPage() {
               {isLoading &&
                 ["a", "b", "c", "d", "e"].map((row) => (
                   <TableRow key={row}>
-                    {["id", "period", "emp", "status", "ver", "sub", "act"].map((col) => (
+                    {["id", "period", "emp", "status", "sub", "act"].map((col) => (
                       <TableCell key={col}>
                         <Skeleton className="h-5 w-24" />
                       </TableCell>
@@ -186,7 +185,6 @@ export default function TimeReportsPage() {
                       {r.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">v{r.version}</TableCell>
                   <TableCell className="text-sm">{formatDate(r.submitted_at)}</TableCell>
                   <TableCell className="text-right">
                     <Link
@@ -201,7 +199,7 @@ export default function TimeReportsPage() {
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="text-center text-sm text-muted-foreground py-12"
                   >
                     {t("timekeeping.reports.noMatch")}

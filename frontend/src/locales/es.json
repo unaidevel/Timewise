@@ -257,7 +257,6 @@
         "period": "Periodo",
         "employee": "Empleado",
         "status": "Estado",
-        "version": "Versión",
         "submitted": "Enviado",
         "action": "Acción"
       },
@@ -266,7 +265,7 @@
       "notFound": "Reporte no encontrado.",
       "backToList": "← Volver a reportes",
       "header": "Reporte #{{id}}",
-      "subheader": "Empleado #{{employee}} · Periodo #{{period}} · v{{version}}",
+      "subheader": "Empleado #{{employee}} · Periodo #{{period}}",
       "fields": {
         "submitted": "Enviado",
         "approved": "Aprobado",
@@ -277,6 +276,7 @@
       "submit": "Enviar para aprobación",
       "approve": "Aprobar",
       "reject": "Rechazar",
+      "reopen": "Reabrir para edición",
       "entries": {
         "title": "Imputaciones de horas",
         "totalLabel": "Total: {{hours}} h",

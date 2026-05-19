@@ -257,7 +257,6 @@
         "period": "Period",
         "employee": "Employee",
         "status": "Status",
-        "version": "Version",
         "submitted": "Submitted",
         "action": "Action"
       },
@@ -266,7 +265,7 @@
       "notFound": "Report not found.",
       "backToList": "← Back to reports",
       "header": "Report #{{id}}",
-      "subheader": "Employee #{{employee}} · Period #{{period}} · v{{version}}",
+      "subheader": "Employee #{{employee}} · Period #{{period}}",
       "fields": {
         "submitted": "Submitted",
         "approved": "Approved",
@@ -277,6 +276,7 @@
       "submit": "Submit for approval",
       "approve": "Approve",
       "reject": "Reject",
+      "reopen": "Reopen for editing",
       "entries": {
         "title": "Hour entries",
         "totalLabel": "Total: {{hours}} h",

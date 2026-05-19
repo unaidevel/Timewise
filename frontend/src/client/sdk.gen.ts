@@ -28,6 +28,15 @@ export const submitTimeReportApiV1TenantsTenantIdReportsReportIdSubmitPost = <Th
 });
 
 /**
+ * Reopen Time Report
+ */
+export const reopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPost = <ThrowOnError extends boolean = false>(options: Options<ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostData, ThrowOnError>) => (options.client ?? client).post<ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostResponses, ReopenTimeReportApiV1TenantsTenantIdReportsReportIdReopenPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/tenants/{tenant_id}/reports/{report_id}/reopen',
+    ...options
+});
+
+/**
  * Approve Report
  */
 export const approveReportApiV1TenantsTenantIdApprovalsApprovalIdApprovePost = <ThrowOnError extends boolean = false>(options: Options<ApproveReportApiV1TenantsTenantIdApprovalsApprovalIdApprovePostData, ThrowOnError>) => (options.client ?? client).post<ApproveReportApiV1TenantsTenantIdApprovalsApprovalIdApprovePostResponses, ApproveReportApiV1TenantsTenantIdApprovalsApprovalIdApprovePostErrors, ThrowOnError>({
