@@ -12,12 +12,8 @@ const TENANT_ID = 1;
 
 function mockEmpty() {
   server.use(
-    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/departments`, () =>
-      HttpResponse.json([]),
-    ),
-    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () =>
-      HttpResponse.json([]),
-    ),
+    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/departments`, () => HttpResponse.json([])),
+    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () => HttpResponse.json([])),
   );
 }
 
@@ -26,9 +22,7 @@ function mockNonEmpty() {
     http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/departments`, () =>
       HttpResponse.json([{ id: 1, name: "Engineering" }]),
     ),
-    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () =>
-      HttpResponse.json([]),
-    ),
+    http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () => HttpResponse.json([])),
   );
 }
 

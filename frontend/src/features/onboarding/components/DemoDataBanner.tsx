@@ -2,11 +2,7 @@ import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
-import {
-  useCurrentTenantId,
-  useSeedDemoData,
-  useTenantIsEmpty,
-} from "@/features/tenants/hooks";
+import { useCurrentTenantId, useSeedDemoData, useTenantIsEmpty } from "@/features/tenants/hooks";
 
 export function DemoDataBanner() {
   const tenantId = useCurrentTenantId();
@@ -20,12 +16,10 @@ export function DemoDataBanner() {
     <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
       <Sparkles className="size-5 text-primary shrink-0" />
       <div className="flex-1 text-sm">
-        <p className="font-medium text-foreground">
-          Carga datos para ver el flujo de la app
-        </p>
+        <p className="font-medium text-foreground">Carga datos para ver el flujo de la app</p>
         <p className="text-muted-foreground">
-          Creamos un equipo de ejemplo (departamentos, empleados, periodos,
-          reportes). Puedes editarlos o borrarlos después.
+          Creamos un equipo de ejemplo (departamentos, empleados, periodos, reportes). Puedes
+          editarlos o borrarlos después.
         </p>
       </div>
       <Button
