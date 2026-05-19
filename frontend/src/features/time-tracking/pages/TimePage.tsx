@@ -317,17 +317,19 @@ function PeriodEditor({
   }
 
   if (!myReport) {
-    return <NoReportCard
-      periodName={periodName}
-      periodStart={periodStart}
-      periodEnd={periodEnd}
-      canGoPrev={canGoPrev}
-      canGoNext={canGoNext}
-      onPrev={onPrev}
-      onNext={onNext}
-      isCreating={createReport.isPending}
-      onCreate={() => createReport.mutate()}
-    />;
+    return (
+      <NoReportCard
+        periodName={periodName}
+        periodStart={periodStart}
+        periodEnd={periodEnd}
+        canGoPrev={canGoPrev}
+        canGoNext={canGoNext}
+        onPrev={onPrev}
+        onNext={onNext}
+        isCreating={createReport.isPending}
+        onCreate={() => createReport.mutate()}
+      />
+    );
   }
 
   return (
@@ -573,7 +575,9 @@ function ReportEditor({
             disabled={!editable || totalHours === 0 || submitReport.isPending}
           >
             <Send className="size-4 mr-2" />
-            {submitReport.isPending ? t("timekeeping.time.submitting") : t("timekeeping.time.submit")}
+            {submitReport.isPending
+              ? t("timekeeping.time.submitting")
+              : t("timekeeping.time.submit")}
           </Button>
         </div>
       </CardHeader>

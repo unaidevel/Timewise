@@ -80,7 +80,9 @@ export default function EmployeesPage() {
     <div className="space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t("workforce.employees.title")}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("workforce.employees.title")}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t("workforce.employees.summary", { total, active: activeCount })}
           </p>

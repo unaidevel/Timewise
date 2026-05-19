@@ -110,10 +110,26 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   ];
 
   const activity = [
-    { who: "Maya Patel", action: t("dashboard.activity.sentTimesheet"), when: t("dashboard.activity.ago12m") },
-    { who: "James O'Connor", action: t("dashboard.activity.approvedReports"), when: t("dashboard.activity.ago1h") },
-    { who: "Lina Hoffmann", action: t("dashboard.activity.addedRule"), when: t("dashboard.activity.ago3h") },
-    { who: "Diego Alvarez", action: t("dashboard.activity.joinedDept"), when: t("dashboard.activity.yesterday") },
+    {
+      who: "Maya Patel",
+      action: t("dashboard.activity.sentTimesheet"),
+      when: t("dashboard.activity.ago12m"),
+    },
+    {
+      who: "James O'Connor",
+      action: t("dashboard.activity.approvedReports"),
+      when: t("dashboard.activity.ago1h"),
+    },
+    {
+      who: "Lina Hoffmann",
+      action: t("dashboard.activity.addedRule"),
+      when: t("dashboard.activity.ago3h"),
+    },
+    {
+      who: "Diego Alvarez",
+      action: t("dashboard.activity.joinedDept"),
+      when: t("dashboard.activity.yesterday"),
+    },
   ];
 
   return (
@@ -285,7 +301,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
             </div>
             <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-primary" /> {t("dashboard.hoursByDept.base")}
+                <span className="size-2.5 rounded-sm bg-primary" />{" "}
+                {t("dashboard.hoursByDept.base")}
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-sm bg-chart-3" />{" "}

@@ -113,7 +113,9 @@ export default function ApprovalsPage() {
                 <div className="mx-auto size-12 rounded-full bg-muted grid place-items-center mb-3">
                   <Inbox className="size-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">{t("timekeeping.approvals.nothing")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("timekeeping.approvals.nothing")}
+                </p>
               </CardContent>
             </Card>
           ) : (

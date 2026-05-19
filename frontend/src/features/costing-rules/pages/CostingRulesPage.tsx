@@ -49,9 +49,7 @@ export default function CostingRulesPage() {
               </tr>
             </thead>
             <tbody>
-              {rules.length === 0 && (
-                <EmptyRow colSpan={6} message={t("costingRules.empty")} />
-              )}
+              {rules.length === 0 && <EmptyRow colSpan={6} message={t("costingRules.empty")} />}
               {rules.map((rule) => (
                 <tr key={rule.id}>
                   <Td className="font-medium">

@@ -90,7 +90,7 @@ export function OvertimeTab({ tenantId }: { tenantId: number }) {
                 <Trans
                   i18nKey="settings.ot.previewText"
                   values={{ value: preview.toFixed(0) }}
-                  components={[<span className="font-mono text-foreground" />]}
+                  components={{ 0: <span className="font-mono text-foreground" /> }}
                 />
               </p>
             </div>

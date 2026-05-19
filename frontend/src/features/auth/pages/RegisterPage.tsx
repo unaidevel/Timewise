@@ -99,11 +99,7 @@ export default function RegisterPage() {
               <p className="text-xs text-muted-foreground">{t("auth.register.passwordHint")}</p>
             </div>
             <Button type="submit" className="w-full h-11" disabled={submitting}>
-              {submitting ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                t("auth.register.submit")
-              )}
+              {submitting ? <Loader2 className="size-4 animate-spin" /> : t("auth.register.submit")}
             </Button>
           </form>
 

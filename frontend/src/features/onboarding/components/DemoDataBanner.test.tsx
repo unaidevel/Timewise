@@ -45,9 +45,7 @@ describe("DemoDataBanner", () => {
 
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
-    await waitFor(() =>
-      expect(screen.queryByText("Load demo data to explore the app")).toBeNull(),
-    );
+    await waitFor(() => expect(screen.queryByText("Load demo data to explore the app")).toBeNull());
   });
 
   it("shows the modal when the tenant is empty and triggers the seed on click", async () => {
@@ -88,8 +86,6 @@ describe("DemoDataBanner", () => {
     const skip = await screen.findByRole("button", { name: "Start from scratch" });
     await userEvent.click(skip);
 
-    await waitFor(() =>
-      expect(screen.queryByText("Load demo data to explore the app")).toBeNull(),
-    );
+    await waitFor(() => expect(screen.queryByText("Load demo data to explore the app")).toBeNull());
   });
 });

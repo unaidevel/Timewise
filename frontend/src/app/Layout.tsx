@@ -193,7 +193,12 @@ export function Layout() {
             <kbd className="hidden sm:inline-flex text-[10px] border rounded px-1.5 py-0.5">⌘K</kbd>
           </button>
           <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("layout.themeToggle")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggle}
+              aria-label={t("layout.themeToggle")}
+            >
               {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
             <DropdownMenu>
@@ -218,7 +223,12 @@ export function Layout() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="icon" className="relative" aria-label={t("layout.notifications")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label={t("layout.notifications")}
+            >
               <Bell className="size-4" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary" />
             </Button>
