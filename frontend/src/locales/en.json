@@ -643,6 +643,9 @@
         "hourlyRate": "Hourly rate (€)",
         "weeklyHours": "Contract hours/week",
         "hiredAt": "Hire date",
+        "manager": "Manager",
+        "managerPlaceholder": "No manager assigned",
+        "noneOption": "None",
         "selectPlaceholder": "— Select —"
       },
       "notFound": "Employee not found.",

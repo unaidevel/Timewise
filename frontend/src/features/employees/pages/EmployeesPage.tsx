@@ -351,6 +351,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
   const tenantId = useCurrentTenantId();
   const departments = useDepartments(tenantId);
   const roles = useRoles(tenantId);
+  const employees = useEmployees(tenantId);
   const create = useCreateEmployee(tenantId);
   const { t } = useTranslation();
 
@@ -362,7 +363,11 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
     hourly_rate: "",
     contract_hours_per_week: "40",
     hired_at: new Date().toISOString().slice(0, 10),
+    manager_id: "",
   });
+
+  const selectedRole = (roles.data ?? []).find((r) => String(r.id) === form.role_id);
+  const isManagerRole = selectedRole?.name === "Manager";
 
   function reset() {
     setForm({
@@ -373,6 +378,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
       hourly_rate: "",
       contract_hours_per_week: "40",
       hired_at: new Date().toISOString().slice(0, 10),
+      manager_id: "",
     });
   }
 
@@ -387,6 +393,8 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
         hourly_rate: form.hourly_rate,
         contract_hours_per_week: Number(form.contract_hours_per_week),
         hired_at: form.hired_at,
+        manager_id: isManagerRole ? null : (form.manager_id ? Number(form.manager_id) : null),
+        is_department_manager: isManagerRole,
       },
       {
         onSuccess: () => {
@@ -440,7 +448,13 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
             </Select>
           </Field>
           <Field label={t("workforce.employees.create.role")} required>
-            <Select value={form.role_id} onValueChange={(v) => setForm({ ...form, role_id: v })}>
+            <Select
+              value={form.role_id}
+              onValueChange={(v) => {
+                const roleName = (roles.data ?? []).find((r) => String(r.id) === v)?.name;
+                setForm({ ...form, role_id: v, manager_id: roleName === "Manager" ? "" : form.manager_id });
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
               </SelectTrigger>
@@ -479,6 +493,27 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               onChange={(e) => setForm({ ...form, hired_at: e.target.value })}
               required
             />
+          </Field>
+          <Field label={t("workforce.employees.create.manager")}>
+            <Select
+              value={form.manager_id}
+              onValueChange={(v) => setForm({ ...form, manager_id: v === "_none" ? "" : v })}
+              disabled={isManagerRole}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("workforce.employees.create.managerPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">{t("workforce.employees.create.noneOption")}</SelectItem>
+                {(employees.data ?? [])
+                  .filter((e) => e.is_active)
+                  .map((e) => (
+                    <SelectItem key={e.id} value={String(e.id)}>
+                      {e.full_name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </Field>
           <div className="col-span-full flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>

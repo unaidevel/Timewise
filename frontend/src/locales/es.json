@@ -643,6 +643,9 @@
         "hourlyRate": "Tarifa por hora (€)",
         "weeklyHours": "Horas contrato/semana",
         "hiredAt": "Fecha de contratación",
+        "manager": "Manager",
+        "managerPlaceholder": "Sin manager asignado",
+        "noneOption": "Ninguno",
         "selectPlaceholder": "— Selecciona —"
       },
       "notFound": "Empleado no encontrado.",

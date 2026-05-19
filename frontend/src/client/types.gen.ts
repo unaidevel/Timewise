@@ -400,6 +400,14 @@ export type EmployeeIn = {
      * User Id
      */
     user_id?: number | null;
+    /**
+     * Manager Id
+     */
+    manager_id?: number | null;
+    /**
+     * Is Department Manager
+     */
+    is_department_manager?: boolean;
 };
 
 /**
