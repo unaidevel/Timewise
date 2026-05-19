@@ -1,6 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import {
@@ -34,6 +35,7 @@ export function DemoDataBanner() {
   const tenantId = useCurrentTenantId();
   const isEmpty = useTenantIsEmpty(tenantId);
   const seed = useSeedDemoData(tenantId);
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() =>
     tenantId == null ? false : isDismissed(tenantId),
   );
@@ -60,27 +62,26 @@ export function DemoDataBanner() {
               <Sparkles className="size-6 text-primary" />
             </div>
             <DialogTitle className="text-center text-xl">
-              Carga datos para ver el flujo de la app
+              {t("onboarding.demoModal.title")}
             </DialogTitle>
             <DialogDescription className="text-center">
-              Creamos un equipo de ejemplo (departamentos, empleados, periodos, reportes). Puedes
-              editarlos o borrarlos después.
+              {t("onboarding.demoModal.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center gap-2">
             <Button variant="outline" onClick={handleStartEmpty} disabled={seed.isPending}>
-              Empezar de cero
+              {t("onboarding.demoModal.startEmpty")}
             </Button>
             <Button
               onClick={() =>
                 seed.mutate(undefined, {
-                  onSuccess: () => toast.success("Datos de demo cargados"),
-                  onError: () => toast.error("No se pudieron cargar los datos"),
+                  onSuccess: () => toast.success(t("onboarding.demoModal.successToast")),
+                  onError: () => toast.error(t("onboarding.demoModal.errorToast")),
                 })
               }
               disabled={seed.isPending}
             >
-              {seed.isPending ? "Cargando…" : "Cargar demo"}
+              {seed.isPending ? t("onboarding.demoModal.loading") : t("onboarding.demoModal.load")}
             </Button>
           </DialogFooter>
         </DialogPrimitive.Content>

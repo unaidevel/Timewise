@@ -36,7 +36,7 @@ describe("DemoDataBanner", () => {
 
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
-    expect(screen.queryByText("Carga datos para ver el flujo de la app")).toBeNull();
+    expect(screen.queryByText("Load demo data to explore the app")).toBeNull();
   });
 
   it("does not show the modal when the tenant has data", async () => {
@@ -46,7 +46,7 @@ describe("DemoDataBanner", () => {
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
     await waitFor(() =>
-      expect(screen.queryByText("Carga datos para ver el flujo de la app")).toBeNull(),
+      expect(screen.queryByText("Load demo data to explore the app")).toBeNull(),
     );
   });
 
@@ -73,7 +73,7 @@ describe("DemoDataBanner", () => {
 
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
-    const btn = await screen.findByRole("button", { name: "Cargar demo" });
+    const btn = await screen.findByRole("button", { name: "Load demo" });
     await userEvent.click(btn);
 
     await waitFor(() => expect(seedCalled).toBe(true));
@@ -85,11 +85,11 @@ describe("DemoDataBanner", () => {
 
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
-    const skip = await screen.findByRole("button", { name: "Empezar de cero" });
+    const skip = await screen.findByRole("button", { name: "Start from scratch" });
     await userEvent.click(skip);
 
     await waitFor(() =>
-      expect(screen.queryByText("Carga datos para ver el flujo de la app")).toBeNull(),
+      expect(screen.queryByText("Load demo data to explore the app")).toBeNull(),
     );
   });
 });
