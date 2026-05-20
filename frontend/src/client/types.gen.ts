@@ -589,6 +589,16 @@ export type HourCostBreakdownOut = {
 };
 
 /**
+ * LinkEmployeeUserRequest
+ */
+export type LinkEmployeeUserRequest = {
+    /**
+     * User Id
+     */
+    user_id: number;
+};
+
+/**
  * LoginRequest
  */
 export type LoginRequest = {
@@ -3494,6 +3504,56 @@ export type UpdateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPutResponses = 
 };
 
 export type UpdateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPutResponse = UpdateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPutResponses[keyof UpdateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPutResponses];
+
+export type LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutData = {
+    body: LinkEmployeeUserRequest;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+        /**
+         * Employee Id
+         */
+        employee_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/employees/{employee_id}/user';
+};
+
+export type LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Conflict
+     */
+    409: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutError = LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutErrors[keyof LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutErrors];
+
+export type LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EmployeeOut;
+};
+
+export type LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutResponse = LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutResponses[keyof LinkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPutResponses];
 
 export type SetEmployeeManagerApiV1TenantsTenantIdEmployeesEmployeeIdManagerPutData = {
     body: SetEmployeeManagerRequest;
