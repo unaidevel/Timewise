@@ -133,6 +133,6 @@ def list_report_calculations(
     current_user: RateLimitedUser,
     request: Request,
 ) -> list[HourCostBreakdownOut]:
-    return CostingService.list_report_calculations(
+    return CostingOrchestrator.list_report_calculations(
         tenant_id, report_id, current_user.id
     )
