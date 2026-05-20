@@ -24,6 +24,7 @@ from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     RoleEntity,
 )
+from product.workforce.models import EmployeeModel
 from product.workforce.services.workforce_service import WorkforceService
 
 
@@ -50,12 +51,14 @@ def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
     )
 
 
-def make_employee(tenant_id: int, email: str = "emp@example.com"):
+def make_employee(
+    tenant_id: int, email: str = "emp@example.com", user_id: int | None = None
+):
     dept = WorkforceService.create_department(
         tenant_id, DepartmentEntity(name=f"Dept-{email}")
     )
     role = WorkforceService.create_role(tenant_id, RoleEntity(name=f"Role-{email}"))
-    return WorkforceService.create_employee(
+    employee = WorkforceService.create_employee(
         tenant_id,
         CreateEmployeeEntity(
             full_name="Test Employee",
@@ -67,6 +70,9 @@ def make_employee(tenant_id: int, email: str = "emp@example.com"):
             hired_at=date(2024, 1, 1),
         ),
     )
+    if user_id is not None:
+        EmployeeModel.objects.filter(id=employee.id).update(user_id=user_id)
+    return employee
 
 
 def make_period(tenant_id: int, user_id: int):
@@ -105,7 +111,7 @@ class ApprovalsServiceSubmitTests(TestCase):
         self.tenant = make_tenant(self.manager_user.id)
         add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id, self.employee.id, self.period.id, self.employee_user.id
@@ -151,16 +157,20 @@ class ApprovalsServiceSubmitTests(TestCase):
             )
 
     def test_submit_raises_if_report_is_empty(self):
-        other_employee = make_employee(self.tenant.id, "other-emp@example.com")
+        other_user = make_user("other-emp-user@example.com")
+        add_member(self.tenant.id, other_user.id, MembershipRoles.EMPLOYEE)
+        other_employee = make_employee(
+            self.tenant.id, "other-emp@example.com", user_id=other_user.id
+        )
         empty_report = TimekeepingRepository.create_time_report(
             employee_id=other_employee.id,
             period_id=self.period.id,
             tenant_id=self.tenant.id,
-            user_id=self.employee_user.id,
+            user_id=other_user.id,
         )
         with pytest.raises(Conflict, match="empty"):
             ApprovalsOrchestrator.submit_report_for_approval(
-                self.tenant.id, empty_report.id, user_id=self.employee_user.id
+                self.tenant.id, empty_report.id, user_id=other_user.id
             )
 
     def test_submit_raises_if_approval_already_exists(self):
@@ -181,9 +191,9 @@ class ApprovalsServiceApproveRejectTests(TestCase):
         self.employee_user = make_user("emp@example.com")
         self.manager_user = make_user("mgr@example.com")
         self.tenant = make_tenant(self.manager_user.id)
-        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
+        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.ADMIN)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id, self.employee.id, self.period.id, self.employee_user.id
@@ -304,9 +314,9 @@ class ApprovalsServiceListGetTests(TestCase):
         self.employee_user = make_user("emp@example.com")
         self.manager_user = make_user("mgr@example.com")
         self.tenant = make_tenant(self.manager_user.id)
-        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
+        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.ADMIN)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id, self.employee.id, self.period.id, self.employee_user.id
