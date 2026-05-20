@@ -50,3 +50,21 @@ class Password:
 
     def __str__(self) -> str:
         return self.value
+
+
+@dataclass(frozen=True, slots=True)
+class UpdateUserNameEntity:
+    user_id: int
+    full_name: FullName
+
+
+@dataclass(frozen=True, slots=True)
+class UpdateUserEmailEntity:
+    user_id: int
+    email: Email
+
+
+@dataclass(frozen=True, slots=True)
+class UpdateUserPasswordEntity:
+    user_id: int
+    new_password_hash: str

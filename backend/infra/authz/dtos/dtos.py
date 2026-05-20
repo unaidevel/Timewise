@@ -35,3 +35,16 @@ class LoginResponse(BaseModel):
     expires_at: datetime
     refresh_expires_at: datetime
     user: UserResponse
+
+
+class UpdateNameRequest(BaseModel):
+    full_name: str = Field(min_length=1, max_length=200)
+
+
+class UpdateEmailRequest(BaseModel):
+    email: str = Field(min_length=5, max_length=254)
+
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
