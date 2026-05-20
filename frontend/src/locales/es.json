@@ -170,6 +170,10 @@
     }
   },
   "timekeeping": {
+    "scope": {
+      "mine": "Míos",
+      "all": "Toda la empresa"
+    },
     "periods": {
       "title": "Periodos",
       "subtitle": "Ventanas temporales de imputación de horas",
@@ -257,7 +261,6 @@
         "period": "Periodo",
         "employee": "Empleado",
         "status": "Estado",
-        "version": "Versión",
         "submitted": "Enviado",
         "action": "Acción"
       },
@@ -266,7 +269,7 @@
       "notFound": "Reporte no encontrado.",
       "backToList": "← Volver a reportes",
       "header": "Reporte #{{id}}",
-      "subheader": "Empleado #{{employee}} · Periodo #{{period}} · v{{version}}",
+      "subheader": "Empleado #{{employee}} · Periodo #{{period}}",
       "fields": {
         "submitted": "Enviado",
         "approved": "Aprobado",
@@ -277,6 +280,7 @@
       "submit": "Enviar para aprobación",
       "approve": "Aprobar",
       "reject": "Rechazar",
+      "reopen": "Reabrir para edición",
       "entries": {
         "title": "Imputaciones de horas",
         "totalLabel": "Total: {{hours}} h",
@@ -619,12 +623,16 @@
       "columns": {
         "name": "Nombre",
         "email": "Email",
+        "department": "Departamento",
+        "role": "Rol",
         "hired": "Contratado",
         "status": "Estado"
       },
       "noMatch": "Ningún empleado coincide con los filtros.",
       "detail": {
         "emailLabel": "Email",
+        "departmentLabel": "Departamento",
+        "roleLabel": "Rol",
         "hiredLabel": "Contratado"
       },
       "deactivate": "Desactivar empleado",
@@ -639,6 +647,9 @@
         "hourlyRate": "Tarifa por hora (€)",
         "weeklyHours": "Horas contrato/semana",
         "hiredAt": "Fecha de contratación",
+        "manager": "Manager",
+        "managerPlaceholder": "Sin manager asignado",
+        "noneOption": "Ninguno",
         "selectPlaceholder": "— Selecciona —"
       },
       "notFound": "Empleado no encontrado.",

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
+import { Briefcase, Building2, Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -35,6 +35,7 @@ import {
 } from "@/components/shadcn/table";
 import { useDepartments } from "@/features/departments/hooks";
 import { useRoles } from "@/features/roles/hooks";
+import { colorForDepartment, useDepartmentColors } from "@/features/settings/local-store";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ const statusStyle = {
 export default function EmployeesPage() {
   const tenantId = useCurrentTenantId();
   const employees = useEmployees(tenantId);
+  const colors = useDepartmentColors(tenantId);
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
@@ -135,6 +137,8 @@ export default function EmployeesPage() {
                   <TableRow className="hover:bg-transparent">
                     <TableHead>{t("workforce.employees.columns.name")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.email")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.department")}</TableHead>
+                    <TableHead>{t("workforce.employees.columns.role")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.hired")}</TableHead>
                     <TableHead>{t("workforce.employees.columns.status")}</TableHead>
                   </TableRow>
@@ -143,7 +147,7 @@ export default function EmployeesPage() {
                   {employees.isLoading &&
                     ["a", "b", "c", "d", "e", "f"].map((row) => (
                       <TableRow key={row}>
-                        {["name", "email", "hired", "status"].map((col) => (
+                        {["name", "email", "department", "role", "hired", "status"].map((col) => (
                           <TableCell key={col}>
                             <Skeleton className="h-5 w-32" />
                           </TableCell>
@@ -176,6 +180,24 @@ export default function EmployeesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.email}</TableCell>
+                      <TableCell className="text-sm">
+                        {e.current_department_id != null && e.current_department_name ? (
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="size-2.5 rounded-full shrink-0"
+                              style={{
+                                background: colorForDepartment(colors, e.current_department_id),
+                              }}
+                            />
+                            {e.current_department_name}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {e.current_role_name ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                       <TableCell className="text-sm">{formatDate(e.hired_at)}</TableCell>
                       <TableCell>
                         <Badge
@@ -193,7 +215,7 @@ export default function EmployeesPage() {
                   {!employees.isLoading && filtered.length === 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={6}
                         className="text-center text-sm text-muted-foreground py-12"
                       >
                         {t("workforce.employees.noMatch")}
@@ -230,6 +252,21 @@ export default function EmployeesPage() {
                   label={t("workforce.employees.detail.emailLabel")}
                   value={selected.email}
                 />
+                {selected.current_department_id != null && selected.current_department_name && (
+                  <DetailRow
+                    icon={Building2}
+                    label={t("workforce.employees.detail.departmentLabel")}
+                    value={selected.current_department_name}
+                    dotColor={colorForDepartment(colors, selected.current_department_id)}
+                  />
+                )}
+                {selected.current_role_name && (
+                  <DetailRow
+                    icon={Briefcase}
+                    label={t("workforce.employees.detail.roleLabel")}
+                    value={selected.current_role_name}
+                  />
+                )}
                 <DetailRow
                   icon={Calendar}
                   label={t("workforce.employees.detail.hiredLabel")}
@@ -267,17 +304,24 @@ function DetailRow({
   icon: Icon,
   label,
   value,
+  dotColor,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  dotColor?: string;
 }) {
   return (
     <div className="flex items-start gap-3 text-sm">
       <Icon className="size-4 text-muted-foreground mt-0.5" />
       <div className="flex-1">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="font-medium">{value}</div>
+        <div className="font-medium flex items-center gap-1.5">
+          {dotColor && (
+            <span className="size-2.5 rounded-full shrink-0" style={{ background: dotColor }} />
+          )}
+          {value}
+        </div>
       </div>
     </div>
   );
@@ -305,6 +349,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
   const tenantId = useCurrentTenantId();
   const departments = useDepartments(tenantId);
   const roles = useRoles(tenantId);
+  const employees = useEmployees(tenantId);
   const create = useCreateEmployee(tenantId);
   const { t } = useTranslation();
 
@@ -316,7 +361,11 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
     hourly_rate: "",
     contract_hours_per_week: "40",
     hired_at: new Date().toISOString().slice(0, 10),
+    manager_id: "",
   });
+
+  const selectedRole = (roles.data ?? []).find((r) => String(r.id) === form.role_id);
+  const isManagerRole = selectedRole?.name === "Manager";
 
   function reset() {
     setForm({
@@ -327,6 +376,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
       hourly_rate: "",
       contract_hours_per_week: "40",
       hired_at: new Date().toISOString().slice(0, 10),
+      manager_id: "",
     });
   }
 
@@ -341,6 +391,8 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
         hourly_rate: form.hourly_rate,
         contract_hours_per_week: Number(form.contract_hours_per_week),
         hired_at: form.hired_at,
+        manager_id: isManagerRole ? null : form.manager_id ? Number(form.manager_id) : null,
+        is_department_manager: isManagerRole,
       },
       {
         onSuccess: () => {
@@ -394,7 +446,17 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
             </Select>
           </Field>
           <Field label={t("workforce.employees.create.role")} required>
-            <Select value={form.role_id} onValueChange={(v) => setForm({ ...form, role_id: v })}>
+            <Select
+              value={form.role_id}
+              onValueChange={(v) => {
+                const roleName = (roles.data ?? []).find((r) => String(r.id) === v)?.name;
+                setForm({
+                  ...form,
+                  role_id: v,
+                  manager_id: roleName === "Manager" ? "" : form.manager_id,
+                });
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
               </SelectTrigger>
@@ -433,6 +495,27 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               onChange={(e) => setForm({ ...form, hired_at: e.target.value })}
               required
             />
+          </Field>
+          <Field label={t("workforce.employees.create.manager")}>
+            <Select
+              value={form.manager_id}
+              onValueChange={(v) => setForm({ ...form, manager_id: v === "_none" ? "" : v })}
+              disabled={isManagerRole}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("workforce.employees.create.managerPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">{t("workforce.employees.create.noneOption")}</SelectItem>
+                {(employees.data ?? [])
+                  .filter((e) => e.is_active)
+                  .map((e) => (
+                    <SelectItem key={e.id} value={String(e.id)}>
+                      {e.full_name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </Field>
           <div className="col-span-full flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>

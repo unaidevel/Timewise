@@ -15,6 +15,7 @@ class DepartmentOut(BaseModel):
     tenant_id: int
     name: str
     is_active: bool
+    employee_count: int = 0
     created_by_id: int | None
     updated_by_id: int | None
     created_at: datetime
@@ -55,6 +56,8 @@ class EmployeeIn(BaseModel):
     contract_hours_per_week: int = Field(ge=1, le=168)
     hired_at: date
     user_id: int | None = None
+    manager_id: int | None = None
+    is_department_manager: bool = False
 
 
 class EmployeeOut(BaseModel):
@@ -68,6 +71,9 @@ class EmployeeOut(BaseModel):
     email: str
     is_active: bool
     hired_at: date
+    current_department_id: int | None = None
+    current_department_name: str | None = None
+    current_role_name: str | None = None
     created_by_id: int | None
     updated_by_id: int | None
     created_at: datetime

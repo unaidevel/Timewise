@@ -25,10 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/shadcn/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { usePeriods } from "@/features/periods/hooks";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useIsTenantAdmin } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type Scope = "mine" | "all";
 
 const statusStyle: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",
@@ -39,21 +42,25 @@ const statusStyle: Record<string, string> = {
 
 export default function TimeReportsPage() {
   const tenantId = useCurrentTenantId();
+  const isAdmin = useIsTenantAdmin(tenantId);
   const periods = usePeriods(tenantId);
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "draft" | "submitted" | "approved" | "rejected">(
     "all",
   );
+  const [scope, setScope] = useState<Scope>("mine");
+  const effectiveScope: Scope = isAdmin ? scope : "mine";
 
   const reportQueries = useQueries({
     queries: (periods.data ?? []).map((period) => ({
-      queryKey: ["periods", tenantId, period.id, "reports"],
+      queryKey: ["periods", tenantId, period.id, "reports", effectiveScope],
       enabled: tenantId != null,
       queryFn: async () => {
         const { data, error } =
           await listTimeReportsForPeriodApiV1TenantsTenantIdPeriodsPeriodIdReportsGet({
             path: { tenant_id: tenantId!, period_id: period.id },
+            query: { scope: effectiveScope },
           });
         if (error || !data) throw error;
         return data.map((r) => ({ ...r, period }));
@@ -87,11 +94,23 @@ export default function TimeReportsPage() {
   if (!isLoading && total === 0) {
     return (
       <div className="space-y-6">
-        <header>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {t("timekeeping.reports.title")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("timekeeping.reports.subtitle")}</p>
+        <header className="flex items-end justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {t("timekeeping.reports.title")}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("timekeeping.reports.subtitle")}
+            </p>
+          </div>
+          {isAdmin && (
+            <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+              <TabsList>
+                <TabsTrigger value="mine">{t("timekeeping.scope.mine")}</TabsTrigger>
+                <TabsTrigger value="all">{t("timekeeping.scope.all")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </header>
         <EmptyState
           icon={Clock}
@@ -113,6 +132,14 @@ export default function TimeReportsPage() {
             {t("timekeeping.reports.summary", { total, submitted, approved })}
           </p>
         </div>
+        {isAdmin && (
+          <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+            <TabsList>
+              <TabsTrigger value="mine">{t("timekeeping.scope.mine")}</TabsTrigger>
+              <TabsTrigger value="all">{t("timekeeping.scope.all")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </header>
 
       <div className="flex flex-wrap gap-2 items-center">
@@ -149,7 +176,6 @@ export default function TimeReportsPage() {
                 <TableHead>{t("timekeeping.reports.columns.period")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.employee")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.status")}</TableHead>
-                <TableHead>{t("timekeeping.reports.columns.version")}</TableHead>
                 <TableHead>{t("timekeeping.reports.columns.submitted")}</TableHead>
                 <TableHead className="text-right">
                   {t("timekeeping.reports.columns.action")}
@@ -160,7 +186,7 @@ export default function TimeReportsPage() {
               {isLoading &&
                 ["a", "b", "c", "d", "e"].map((row) => (
                   <TableRow key={row}>
-                    {["id", "period", "emp", "status", "ver", "sub", "act"].map((col) => (
+                    {["id", "period", "emp", "status", "sub", "act"].map((col) => (
                       <TableCell key={col}>
                         <Skeleton className="h-5 w-24" />
                       </TableCell>
@@ -186,7 +212,6 @@ export default function TimeReportsPage() {
                       {r.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">v{r.version}</TableCell>
                   <TableCell className="text-sm">{formatDate(r.submitted_at)}</TableCell>
                   <TableCell className="text-right">
                     <Link
@@ -201,7 +226,7 @@ export default function TimeReportsPage() {
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="text-center text-sm text-muted-foreground py-12"
                   >
                     {t("timekeeping.reports.noMatch")}

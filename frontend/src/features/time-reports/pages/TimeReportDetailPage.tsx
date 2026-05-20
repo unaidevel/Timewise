@@ -16,6 +16,7 @@ import {
   useCreateTimeEntry,
   useDeleteTimeEntry,
   useRejectReport,
+  useReopenReport,
   useReportCostBreakdown,
   useReportHistory,
   useSubmitReport,
@@ -30,6 +31,7 @@ export default function TimeReportDetailPage() {
   const { data: report, isLoading } = useTimeReport(tenantId, reportId);
   const submit = useSubmitReport(tenantId, reportId);
   const approve = useApproveReport(tenantId, reportId);
+  const reopen = useReopenReport(tenantId, reportId);
   const { t } = useTranslation();
   const [rejecting, setRejecting] = useState(false);
 
@@ -43,6 +45,7 @@ export default function TimeReportDetailPage() {
 
   const isDraft = report.status === "draft";
   const isPending = report.status === "pending" || report.status === "submitted";
+  const isRejected = report.status === "rejected";
 
   return (
     <div className="space-y-4">
@@ -56,7 +59,6 @@ export default function TimeReportDetailPage() {
           description={t("timekeeping.reports.subheader", {
             employee: report.employee_id,
             period: report.period_id,
-            version: report.version,
           })}
           action={<Badge status={report.status}>{report.status}</Badge>}
         />
@@ -99,6 +101,11 @@ export default function TimeReportDetailPage() {
                   {t("timekeeping.reports.reject")}
                 </Button>
               </>
+            )}
+            {isRejected && (
+              <Button onClick={() => reopen.mutate()} disabled={reopen.isPending}>
+                {t("timekeeping.reports.reopen")}
+              </Button>
             )}
           </div>
         </CardBody>

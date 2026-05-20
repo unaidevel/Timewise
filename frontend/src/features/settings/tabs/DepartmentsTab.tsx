@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DepartmentOut } from "@/client";
@@ -26,7 +26,6 @@ import {
   useDepartments,
   useUpdateDepartment,
 } from "@/features/departments/hooks";
-import { useEmployees } from "@/features/employees/hooks";
 import {
   COLOR_PALETTE,
   colorForDepartment,
@@ -36,7 +35,6 @@ import {
 
 export function DepartmentsTab({ tenantId }: { tenantId: number }) {
   const departments = useDepartments(tenantId);
-  const employees = useEmployees(tenantId);
   const colors = useDepartmentColors(tenantId);
   const { t } = useTranslation();
   const [openCreate, setOpenCreate] = useState(false);
@@ -45,16 +43,6 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
   const create = useCreateDepartment(tenantId);
   const update = useUpdateDepartment(tenantId);
   const deactivate = useDeactivateDepartment(tenantId);
-
-  const counts = useMemo(() => {
-    const m: Record<number, number> = {};
-    for (const e of employees.data ?? []) {
-      // We don't have department_id on EmployeeOut directly, so we can't compute reliable counts
-      // without an extra request per employee. Show 0 when unknown.
-      void e;
-    }
-    return m;
-  }, [employees.data]);
 
   function handleCreate(name: string, color: string) {
     create.mutate(
@@ -114,17 +102,25 @@ export function DepartmentsTab({ tenantId }: { tenantId: number }) {
         <div className="divide-y">
           {(departments.data ?? []).map((d) => (
             <div key={d.id} className="flex items-center gap-4 px-6 py-3.5">
-              <span
-                className="size-3 rounded-full shrink-0"
-                style={{ background: colorForDepartment(colors, d.id) }}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{d.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {(counts[d.id] ?? 0) === 1
+              <div className="flex-1 min-w-0 flex items-center gap-3">
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-sm font-medium"
+                  style={{
+                    background: `color-mix(in oklch, ${colorForDepartment(colors, d.id)} 15%, transparent)`,
+                    color: colorForDepartment(colors, d.id),
+                  }}
+                >
+                  <span
+                    className="size-2 rounded-full shrink-0"
+                    style={{ background: colorForDepartment(colors, d.id) }}
+                  />
+                  {d.name}
+                </span>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {d.employee_count === 1
                     ? t("settings.depts.personOne")
-                    : t("settings.depts.personOther", { count: counts[d.id] ?? 0 })}
-                </div>
+                    : t("settings.depts.personOther", { count: d.employee_count })}
+                </span>
               </div>
               {d.is_active ? (
                 <>

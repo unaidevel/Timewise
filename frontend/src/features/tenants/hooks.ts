@@ -7,9 +7,12 @@ import {
   listMembersApiV1TenantsTenantIdMembersGet,
   seedDemoDataApiV1TenantsTenantIdDemoDataPost,
 } from "@/client";
+import { useAuthStore } from "@/features/auth/store";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
 import { useTenantStore } from "./store";
+
+const ELEVATED_ROLES = new Set(["owner", "admin"]);
 
 export function useTenants() {
   return useQuery({
@@ -86,6 +89,19 @@ export function useSeedDemoData(tenantId: number | null) {
       qc.invalidateQueries({ queryKey: ["audit", tenantId] });
     },
   });
+}
+
+export function useCurrentMembershipRole(tenantId: number | null): string | null {
+  const user = useAuthStore((s) => s.user);
+  const members = useMembers(tenantId);
+  if (!user || !members.data) return null;
+  const mine = members.data.find((m) => m.user_id === user.id && m.left_at == null);
+  return mine?.role ?? null;
+}
+
+export function useIsTenantAdmin(tenantId: number | null): boolean {
+  const role = useCurrentMembershipRole(tenantId);
+  return role != null && ELEVATED_ROLES.has(role);
 }
 
 export function useTenantIsEmpty(tenantId: number | null): boolean {

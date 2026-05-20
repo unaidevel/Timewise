@@ -195,6 +195,7 @@ class TimekeepingApiTests(TestCase):
             period.id,
             self.user,
             request=build_request(),
+            scope="all",
         )
         assert len(reports) == 1
 

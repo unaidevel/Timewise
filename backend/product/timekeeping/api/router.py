@@ -112,7 +112,7 @@ def create_time_report(
 @router.get(
     "/periods/{period_id}/reports",
     response_model=list[TimeReportOut],
-    responses=responses_for(TooManyRequests),
+    responses=responses_for(Forbidden, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_time_reports_for_period(
@@ -120,16 +120,20 @@ def list_time_reports_for_period(
     period_id: int,
     current_user: RateLimitedUser,
     request: Request,
+    scope: str = Query(default="mine", pattern="^(mine|all)$"),
 ) -> list[TimeReportOut]:
-    return TimekeepingService.list_time_reports(
-        tenant_id, current_user.id, period_id=period_id
+    return TimekeepingOrchestrator.list_time_reports(
+        tenant_id,
+        current_user.id,
+        period_id,
+        scope,
     )
 
 
 @router.get(
     "/reports/{report_id}",
     response_model=TimeReportOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_time_report(
@@ -138,7 +142,9 @@ def get_time_report(
     current_user: RateLimitedUser,
     request: Request,
 ) -> TimeReportOut:
-    return TimekeepingService.get_time_report(tenant_id, report_id, current_user.id)
+    return TimekeepingOrchestrator.get_time_report(
+        tenant_id, report_id, current_user.id
+    )
 
 
 @router.post(
@@ -163,7 +169,7 @@ def create_time_entry(
 @router.get(
     "/reports/{report_id}/entries",
     response_model=list[TimeEntryOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_time_entries(
@@ -172,7 +178,9 @@ def list_time_entries(
     current_user: RateLimitedUser,
     request: Request,
 ) -> list[TimeEntryOut]:
-    return TimekeepingService.list_time_entries(tenant_id, report_id, current_user.id)
+    return TimekeepingOrchestrator.list_time_entries(
+        tenant_id, report_id, current_user.id
+    )
 
 
 @router.put(
@@ -266,10 +274,27 @@ def reject_time_report(
     )
 
 
+@router.post(
+    "/reports/{report_id}/reopen",
+    response_model=TimeReportOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def reopen_time_report(
+    tenant_id: int,
+    report_id: int,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> TimeReportOut:
+    return TimekeepingOrchestrator.reopen_time_report(
+        tenant_id, report_id, current_user.id
+    )
+
+
 @router.get(
     "/reports/{report_id}/history",
     response_model=list[TimeReportStatusHistoryOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_report_history(
@@ -278,4 +303,6 @@ def list_report_history(
     current_user: RateLimitedUser,
     request: Request,
 ) -> list[TimeReportStatusHistoryOut]:
-    return TimekeepingService.list_report_history(tenant_id, report_id, current_user.id)
+    return TimekeepingOrchestrator.list_report_history(
+        tenant_id, report_id, current_user.id
+    )

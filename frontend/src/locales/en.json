@@ -170,6 +170,10 @@
     }
   },
   "timekeeping": {
+    "scope": {
+      "mine": "Mine",
+      "all": "All company"
+    },
     "periods": {
       "title": "Periods",
       "subtitle": "Time-tracking windows for hour reporting",
@@ -257,7 +261,6 @@
         "period": "Period",
         "employee": "Employee",
         "status": "Status",
-        "version": "Version",
         "submitted": "Submitted",
         "action": "Action"
       },
@@ -266,7 +269,7 @@
       "notFound": "Report not found.",
       "backToList": "← Back to reports",
       "header": "Report #{{id}}",
-      "subheader": "Employee #{{employee}} · Period #{{period}} · v{{version}}",
+      "subheader": "Employee #{{employee}} · Period #{{period}}",
       "fields": {
         "submitted": "Submitted",
         "approved": "Approved",
@@ -277,6 +280,7 @@
       "submit": "Submit for approval",
       "approve": "Approve",
       "reject": "Reject",
+      "reopen": "Reopen for editing",
       "entries": {
         "title": "Hour entries",
         "totalLabel": "Total: {{hours}} h",
@@ -619,12 +623,16 @@
       "columns": {
         "name": "Name",
         "email": "Email",
+        "department": "Department",
+        "role": "Role",
         "hired": "Hired",
         "status": "Status"
       },
       "noMatch": "No employee matches the filters.",
       "detail": {
         "emailLabel": "Email",
+        "departmentLabel": "Department",
+        "roleLabel": "Role",
         "hiredLabel": "Hired"
       },
       "deactivate": "Deactivate employee",
@@ -639,6 +647,9 @@
         "hourlyRate": "Hourly rate (€)",
         "weeklyHours": "Contract hours/week",
         "hiredAt": "Hire date",
+        "manager": "Manager",
+        "managerPlaceholder": "No manager assigned",
+        "noneOption": "None",
         "selectPlaceholder": "— Select —"
       },
       "notFound": "Employee not found.",

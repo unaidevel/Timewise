@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Query, Request, status
 
 from infra.authz.api.dependencies import RateLimitedUser
 from infra.common.exceptions import (
@@ -18,7 +18,6 @@ from product.approvals.dtos.dtos import (
 from product.approvals.orchestrators.approvals_orchestrator import (
     ApprovalsOrchestrator,
 )
-from product.approvals.services.approvals_service import ApprovalsService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["approvals"])
 
@@ -87,8 +86,14 @@ def list_approvals(
     current_user: RateLimitedUser,
     request: Request,
     status: str | None = None,
+    scope: str = Query(default="mine", pattern="^(mine|all)$"),
 ) -> list[ApprovalOut]:
-    return ApprovalsService.list_approvals(tenant_id, current_user.id, status)
+    return ApprovalsOrchestrator.list_approvals(
+        tenant_id,
+        current_user.id,
+        status,
+        scope,
+    )
 
 
 @router.get(
@@ -103,7 +108,7 @@ def get_approval(
     current_user: RateLimitedUser,
     request: Request,
 ) -> ApprovalOut:
-    return ApprovalsService.get_approval(tenant_id, approval_id, current_user.id)
+    return ApprovalsOrchestrator.get_approval(tenant_id, approval_id, current_user.id)
 
 
 @router.get(
@@ -118,6 +123,6 @@ def list_approval_events(
     current_user: RateLimitedUser,
     request: Request,
 ) -> list[ApprovalEventOut]:
-    return ApprovalsService.list_approval_events(
+    return ApprovalsOrchestrator.list_approval_events(
         tenant_id, approval_id, current_user.id
     )

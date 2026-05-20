@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.db.models import Count, OuterRef, Q, Subquery
+
 from product.workforce.dtos.dtos import (
     DepartmentManagerOut,
     DepartmentOut,
@@ -58,12 +60,17 @@ class WorkforceRepository:
 
     @staticmethod
     def list_departments(tenant_id: int) -> list[DepartmentOut]:
-        return [
-            DepartmentOut.model_validate(m)
-            for m in DepartmentModel.objects.filter(tenant_id=tenant_id).order_by(
-                "name"
+        qs = (
+            DepartmentModel.objects.filter(tenant_id=tenant_id)
+            .annotate(
+                employee_count=Count(
+                    "employee_assignments",
+                    filter=Q(employee_assignments__left_at__isnull=True),
+                )
             )
-        ]
+            .order_by("name")
+        )
+        return [DepartmentOut.model_validate(m) for m in qs]
 
     @staticmethod
     def update_department(
@@ -181,9 +188,14 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def bulk_create_roles(tenant_id: int, names: list[str]) -> list[RoleOut]:
+    def bulk_create_roles(
+        tenant_id: int, roles: list[tuple[str, str]]
+    ) -> list[RoleOut]:
         models = RoleModel.objects.bulk_create(
-            [RoleModel(tenant_id=tenant_id, name=name) for name in names]
+            [
+                RoleModel(tenant_id=tenant_id, name=name, role_type=role_type)
+                for name, role_type in roles
+            ]
         )
         return [RoleOut.model_validate(m) for m in models]
 
@@ -246,13 +258,46 @@ class WorkforceRepository:
         return EmployeeOut.model_validate(model) if model else None
 
     @staticmethod
-    def list_employees(tenant_id: int) -> list[EmployeeOut]:
-        return [
-            EmployeeOut.model_validate(m)
-            for m in EmployeeModel.objects.filter(tenant_id=tenant_id).order_by(
-                "full_name"
+    def find_employee_by_user_id(tenant_id: int, user_id: int) -> EmployeeOut | None:
+        model = EmployeeModel.objects.filter(
+            tenant_id=tenant_id, user_id=user_id
+        ).first()
+        return EmployeeOut.model_validate(model) if model else None
+
+    @staticmethod
+    def get_active_role_type_for_employee(employee_id: int) -> str | None:
+        return (
+            EmployeeRoleModel.objects.filter(
+                employee_id=employee_id, left_at__isnull=True
             )
-        ]
+            .values_list("role__role_type", flat=True)
+            .first()
+        )
+
+    @staticmethod
+    def list_employees(tenant_id: int) -> list[EmployeeOut]:
+        active_dept_qs = EmployeeDepartmentModel.objects.filter(
+            employee=OuterRef("pk"), left_at__isnull=True
+        )
+        role_name_sq = Subquery(
+            EmployeeRoleModel.objects.filter(
+                employee=OuterRef("pk"), left_at__isnull=True
+            ).values("role__name")[:1]
+        )
+        qs = (
+            EmployeeModel.objects.filter(tenant_id=tenant_id)
+            .annotate(
+                current_department_id=Subquery(
+                    active_dept_qs.values("department_id")[:1]
+                ),
+                current_department_name=Subquery(
+                    active_dept_qs.values("department__name")[:1]
+                ),
+                current_role_name=role_name_sq,
+            )
+            .order_by("full_name")
+        )
+        return [EmployeeOut.model_validate(m) for m in qs]
 
     @staticmethod
     def update_employee(

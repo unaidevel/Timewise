@@ -16,10 +16,10 @@ import {
 } from "@/components/shadcn/sheet";
 import { Skeleton } from "@/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useIsTenantAdmin } from "@/features/tenants/hooks";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useApprovals, useApproveApproval, useRejectApproval } from "../hooks";
+import { type Scope, useApprovals, useApproveApproval, useRejectApproval } from "../hooks";
 
 type Tab = "pending" | "approved" | "rejected";
 
@@ -31,7 +31,10 @@ const statusStyle: Record<string, string> = {
 
 export default function ApprovalsPage() {
   const tenantId = useCurrentTenantId();
-  const approvals = useApprovals(tenantId);
+  const isAdmin = useIsTenantAdmin(tenantId);
+  const [scope, setScope] = useState<Scope>("mine");
+  const effectiveScope: Scope = isAdmin ? scope : "mine";
+  const approvals = useApprovals(tenantId, effectiveScope);
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("pending");
   const [rejecting, setRejecting] = useState<ApprovalOut | null>(null);
@@ -54,11 +57,23 @@ export default function ApprovalsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {t("timekeeping.approvals.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("timekeeping.approvals.subtitle")}</p>
+      <header className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("timekeeping.approvals.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("timekeeping.approvals.subtitle")}
+          </p>
+        </div>
+        {isAdmin && (
+          <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+            <TabsList>
+              <TabsTrigger value="mine">{t("timekeeping.scope.mine")}</TabsTrigger>
+              <TabsTrigger value="all">{t("timekeeping.scope.all")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </header>
 
       {isEmpty ? (

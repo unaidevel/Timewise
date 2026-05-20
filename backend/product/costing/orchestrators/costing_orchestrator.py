@@ -1,7 +1,8 @@
 from django.db import transaction
 
-from infra.tenants.decorators import only_admin, only_manager
+from infra.tenants.decorators import any_employee, only_admin, only_manager
 from product.costing.dtos.dtos import (
+    HourCostBreakdownOut,
     OvertimeRuleIn,
     OvertimeRuleOut,
     OvertimeRuleUpdate,
@@ -12,6 +13,8 @@ from product.costing.entities.costing_entities import (
     OvertimeRuleUpdateEntity,
 )
 from product.costing.services.costing_service import CostingService
+from product.timekeeping.services.timekeeping_service import TimekeepingService
+from product.workforce.services.workforce_service import WorkforceService
 from shared.audit.dtos.dtos import AuditEventIn
 from shared.audit.services.audit_service import AuditService
 from shared.audit.utils import AUDITED_FAILURES, AuditOutcome, record_failure
@@ -151,6 +154,10 @@ class CostingOrchestrator:
         report_id: int,
         user_id: int,
     ) -> ReportCostSummaryOut:
+        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, report.employee_id
+        )
         try:
             with transaction.atomic():
                 summary = CostingService.calculate_report_cost(
@@ -183,3 +190,16 @@ class CostingOrchestrator:
                 exc=exc,
             )
             raise
+
+    @any_employee
+    @staticmethod
+    def list_report_calculations(
+        tenant_id: int,
+        report_id: int,
+        user_id: int,
+    ) -> list[HourCostBreakdownOut]:
+        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, report.employee_id
+        )
+        return CostingService.list_report_calculations(tenant_id, report_id, user_id)

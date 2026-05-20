@@ -91,6 +91,7 @@ class ApprovalsApiTests(TestCase):
                 hourly_rate=Decimal("30.00"),
                 contract_hours_per_week=40,
                 hired_at=date(2024, 1, 1),
+                user_id=self.employee_user.id,
             ),
             self.manager,
             request=build_request(),
@@ -224,6 +225,7 @@ class ApprovalsApiTests(TestCase):
             self.tenant.id,
             current_user=self.manager,
             request=build_request(),
+            scope="all",
         )
 
         assert len(approvals) == 1
@@ -243,12 +245,14 @@ class ApprovalsApiTests(TestCase):
             current_user=self.manager,
             status="pending",
             request=build_request(),
+            scope="all",
         )
         approved = approvals_router.list_approvals(
             self.tenant.id,
             current_user=self.manager,
             status="approved",
             request=build_request(),
+            scope="all",
         )
 
         assert len(pending) == 0

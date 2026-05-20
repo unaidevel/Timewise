@@ -8,13 +8,16 @@ import {
   rejectReportApiV1TenantsTenantIdApprovalsApprovalIdRejectPost,
 } from "@/client";
 
-export function useApprovals(tenantId: number | null) {
+export type Scope = "mine" | "all";
+
+export function useApprovals(tenantId: number | null, scope: Scope = "mine") {
   return useQuery({
-    queryKey: ["approvals", tenantId],
+    queryKey: ["approvals", tenantId, scope],
     enabled: tenantId != null,
     queryFn: async () => {
       const { data, error } = await listApprovalsApiV1TenantsTenantIdApprovalsGet({
         path: { tenant_id: tenantId! },
+        query: { scope },
       });
       if (error || !data) throw error;
       return data;

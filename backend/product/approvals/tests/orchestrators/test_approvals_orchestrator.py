@@ -27,6 +27,7 @@ from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     RoleEntity,
 )
+from product.workforce.models import EmployeeModel
 from product.workforce.services.workforce_service import WorkforceService
 
 
@@ -53,12 +54,14 @@ def add_member(tenant_id: int, user_id: int, role: MembershipRoles):
     )
 
 
-def make_employee(tenant_id: int, email: str = "emp@example.com"):
+def make_employee(
+    tenant_id: int, email: str = "emp@example.com", user_id: int | None = None
+):
     dept = WorkforceService.create_department(
         tenant_id, DepartmentEntity(name=f"Dept-{email}")
     )
     role = WorkforceService.create_role(tenant_id, RoleEntity(name=f"Role-{email}"))
-    return WorkforceService.create_employee(
+    employee = WorkforceService.create_employee(
         tenant_id,
         CreateEmployeeEntity(
             full_name="Test Employee",
@@ -70,6 +73,9 @@ def make_employee(tenant_id: int, email: str = "emp@example.com"):
             hired_at=date(2024, 1, 1),
         ),
     )
+    if user_id is not None:
+        EmployeeModel.objects.filter(id=employee.id).update(user_id=user_id)
+    return employee
 
 
 def make_period(tenant_id: int, user_id: int):
@@ -114,9 +120,9 @@ class ApprovalsOrchestratorSubmitTransactionTests(TestCase):
         self.employee_user = make_user("emp@example.com")
         self.manager_user = make_user("mgr@example.com")
         self.tenant = make_tenant(self.manager_user.id)
-        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
+        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.ADMIN)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id,
@@ -169,9 +175,9 @@ class ApprovalsOrchestratorApproveTransactionTests(TestCase):
         self.employee_user = make_user("emp@example.com")
         self.manager_user = make_user("mgr@example.com")
         self.tenant = make_tenant(self.manager_user.id)
-        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
+        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.ADMIN)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id,
@@ -227,9 +233,9 @@ class ApprovalsOrchestratorRejectTransactionTests(TestCase):
         self.employee_user = make_user("emp@example.com")
         self.manager_user = make_user("mgr@example.com")
         self.tenant = make_tenant(self.manager_user.id)
-        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.MANAGER)
+        add_member(self.tenant.id, self.manager_user.id, MembershipRoles.ADMIN)
         add_member(self.tenant.id, self.employee_user.id, MembershipRoles.EMPLOYEE)
-        self.employee = make_employee(self.tenant.id)
+        self.employee = make_employee(self.tenant.id, user_id=self.employee_user.id)
         self.period = make_period(self.tenant.id, self.manager_user.id)
         self.report = make_report_with_entry(
             self.tenant.id,

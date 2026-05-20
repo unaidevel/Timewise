@@ -10,6 +10,7 @@ from product.timekeeping.dtos.dtos import (
     TimeEntryUpdate,
     TimeReportIn,
     TimeReportOut,
+    TimeReportStatusHistoryOut,
 )
 from product.timekeeping.entities.timekeeping_entities import (
     PeriodEntity,
@@ -19,6 +20,7 @@ from product.timekeeping.entities.timekeeping_entities import (
     TimeReportEntity,
 )
 from product.timekeeping.services.timekeeping_service import TimekeepingService
+from product.workforce.services.workforce_service import Scope, WorkforceService
 from shared.audit.dtos.dtos import AuditEventIn
 from shared.audit.services.audit_service import AuditService
 from shared.audit.utils import AUDITED_FAILURES, AuditOutcome, record_failure
@@ -106,6 +108,9 @@ class TimekeepingOrchestrator:
         user_id: int,
     ) -> TimeReportOut:
         entity = TimeReportEntity(**payload.model_dump())
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, entity.employee_id
+        )
         try:
             with transaction.atomic():
                 report = TimekeepingService.create_time_report(
@@ -146,6 +151,10 @@ class TimekeepingOrchestrator:
     def submit_time_report(
         tenant_id: int, report_id: int, user_id: int
     ) -> TimeReportOut:
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 report = TimekeepingService.submit_time_report(
@@ -180,6 +189,10 @@ class TimekeepingOrchestrator:
     def approve_time_report(
         tenant_id: int, report_id: int, user_id: int
     ) -> TimeReportOut:
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 report = TimekeepingService.approve_time_report(
@@ -218,6 +231,10 @@ class TimekeepingOrchestrator:
         user_id: int,
     ) -> TimeReportOut:
         entity = RejectReportEntity(**payload.model_dump())
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 report = TimekeepingService.reject_time_report(
@@ -252,6 +269,44 @@ class TimekeepingOrchestrator:
 
     @any_employee
     @staticmethod
+    def reopen_time_report(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> TimeReportOut:
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
+        try:
+            with transaction.atomic():
+                report = TimekeepingService.reopen_time_report(
+                    tenant_id, report_id, user_id
+                )
+                AuditService.create(
+                    tenant_id,
+                    AuditEventIn(
+                        action="time_report.reopened",
+                        resource_type="TimeReport",
+                        outcome=AuditOutcome.SUCCESS.value,
+                        resource_id=report.id,
+                        metadata={"to_status": report.status},
+                    ),
+                    user_id,
+                )
+                return report
+        except AUDITED_FAILURES as exc:
+            record_failure(
+                tenant_id,
+                user_id,
+                action="time_report.reopened",
+                resource_type="TimeReport",
+                resource_id=report_id,
+                metadata={},
+                exc=exc,
+            )
+            raise
+
+    @any_employee
+    @staticmethod
     def create_time_entry(
         tenant_id: int,
         report_id: int,
@@ -259,6 +314,10 @@ class TimekeepingOrchestrator:
         user_id: int,
     ) -> TimeEntryOut:
         entity = TimeEntryEntity(**payload.model_dump())
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 created = TimekeepingService.create_time_entry(
@@ -306,6 +365,10 @@ class TimekeepingOrchestrator:
         user_id: int,
     ) -> TimeEntryOut:
         entity = TimeEntryUpdateEntity(entry_id=entry_id, **payload.model_dump())
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 updated = TimekeepingService.update_time_entry(
@@ -351,6 +414,10 @@ class TimekeepingOrchestrator:
         entry_id: int,
         user_id: int,
     ) -> None:
+        existing = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, existing.employee_id
+        )
         try:
             with transaction.atomic():
                 TimekeepingService.delete_time_entry(
@@ -378,3 +445,48 @@ class TimekeepingOrchestrator:
                 exc=exc,
             )
             raise
+
+    @any_employee
+    @staticmethod
+    def get_time_report(tenant_id: int, report_id: int, user_id: int) -> TimeReportOut:
+        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, report.employee_id
+        )
+        return report
+
+    @any_employee
+    @staticmethod
+    def list_time_reports(
+        tenant_id: int,
+        user_id: int,
+        period_id: int | None = None,
+        scope: Scope = "mine",
+    ) -> list[TimeReportOut]:
+        visible = WorkforceService.get_visible_employee_ids(tenant_id, user_id, scope)
+        reports = TimekeepingService.list_time_reports(tenant_id, user_id, period_id)
+        if visible is None:
+            return reports
+        return [r for r in reports if r.employee_id in visible]
+
+    @any_employee
+    @staticmethod
+    def list_time_entries(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> list[TimeEntryOut]:
+        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, report.employee_id
+        )
+        return TimekeepingService.list_time_entries(tenant_id, report_id, user_id)
+
+    @any_employee
+    @staticmethod
+    def list_report_history(
+        tenant_id: int, report_id: int, user_id: int
+    ) -> list[TimeReportStatusHistoryOut]:
+        report = TimekeepingService.get_time_report(tenant_id, report_id, user_id)
+        WorkforceService.ensure_can_access_employee(
+            tenant_id, user_id, report.employee_id
+        )
+        return TimekeepingService.list_report_history(tenant_id, report_id, user_id)

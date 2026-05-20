@@ -1,5 +1,7 @@
 from datetime import date, datetime
 
+from django.db import models
+
 from product.common.classes import PeriodStatus, TimeReportStatus
 from product.timekeeping.dtos.dtos import (
     PeriodOut,
@@ -189,6 +191,20 @@ class TimekeepingRepository:
             updated_by_id=user_id,
             rejection_reason=rejection_reason,
             rejected_at=rejected_at,
+        )
+        if rows == 0:
+            return None
+        return TimeReportOut.model_validate(TimeReportModel.objects.get(id=report_id))
+
+    @staticmethod
+    def reopen_time_report(report_id: int, user_id: int) -> TimeReportOut | None:
+        rows = TimeReportModel.objects.filter(id=report_id).update(
+            status=TimeReportStatus.DRAFT,
+            updated_by_id=user_id,
+            submitted_at=None,
+            rejected_at=None,
+            rejection_reason="",
+            version=models.F("version") + 1,
         )
         if rows == 0:
             return None
