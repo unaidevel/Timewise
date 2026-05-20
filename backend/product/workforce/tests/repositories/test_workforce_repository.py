@@ -420,7 +420,8 @@ class RoleRepositoryAdditionalTests(TestCase):
 
     def test_bulk_create_roles_returns_created_roles(self):
         roles = WorkforceRepository.bulk_create_roles(
-            self.tenant.id, EXPECTED_DEFAULT_ROLE_NAMES
+            self.tenant.id,
+            [(name, "custom") for name in EXPECTED_DEFAULT_ROLE_NAMES],
         )
 
         assert len(roles) == len(EXPECTED_DEFAULT_ROLE_NAMES)

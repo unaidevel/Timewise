@@ -1,4 +1,17 @@
+from enum import StrEnum
+
 from django.db import models
+
+
+class WorkforceRoles(StrEnum):
+    MANAGER = "manager"
+    EMPLOYEE = "employee"
+    INTERN = "intern"
+    FREELANCE = "freelance"
+    CUSTOM = "custom"
+
+
+WORKFORCE_ROLE_CHOICES = [(role.value, role.name.title()) for role in WorkforceRoles]
 
 
 class PeriodStatus(models.TextChoices):

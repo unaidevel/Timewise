@@ -2,6 +2,7 @@ from django.db import models
 
 from infra.authz.models import AuthUserModel
 from infra.tenants.models import TenantModel
+from product.common.classes import WORKFORCE_ROLE_CHOICES, WorkforceRoles
 
 
 class DepartmentModel(models.Model):
@@ -55,6 +56,11 @@ class RoleModel(models.Model):
         related_name="roles",
     )
     name = models.CharField(max_length=200)
+    role_type = models.CharField(
+        max_length=20,
+        choices=WORKFORCE_ROLE_CHOICES,
+        default=WorkforceRoles.CUSTOM.value,
+    )
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         AuthUserModel,

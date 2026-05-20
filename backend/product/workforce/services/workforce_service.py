@@ -1,8 +1,13 @@
+from typing import Literal
+
 from django.db import transaction
 from django.utils import timezone
 
-from infra.common.exceptions import Conflict, NotFound
+from infra.common.classes import MembershipRoles
+from infra.common.exceptions import Conflict, Forbidden, NotFound
 from infra.tenants.decorators import only_admin
+from infra.tenants.repositories.tenants_repository import TenantRepository
+from product.common.classes import WorkforceRoles
 from product.workforce.dtos.dtos import (
     DepartmentManagerOut,
     DepartmentOut,
@@ -28,17 +33,95 @@ from product.workforce.entities.workforce_entities import (
 )
 from product.workforce.repositories.workforce_repository import WorkforceRepository
 
+Scope = Literal["mine", "all"]
+
+ELEVATED_MEMBERSHIP_ROLES = frozenset(
+    {MembershipRoles.OWNER.value, MembershipRoles.ADMIN.value}
+)
+
 
 class WorkforceService:
-    _DEFAULT_ROLE_NAMES = ["Manager", "Employee", "Intern", "Freelance"]
+    _DEFAULT_ROLES: list[tuple[str, str]] = [
+        ("Manager", WorkforceRoles.MANAGER.value),
+        ("Employee", WorkforceRoles.EMPLOYEE.value),
+        ("Intern", WorkforceRoles.INTERN.value),
+        ("Freelance", WorkforceRoles.FREELANCE.value),
+    ]
 
     @staticmethod
     def create_default_roles(tenant_id: int) -> None:
         WorkforceRepository.bulk_create_roles(
-            tenant_id, WorkforceService._DEFAULT_ROLE_NAMES
+            tenant_id, WorkforceService._DEFAULT_ROLES
         )
 
-    # --- Departments ---
+    @staticmethod
+    def get_visible_employee_ids(
+        tenant_id: int, user_id: int, scope: Scope = "mine"
+    ) -> set[int] | None:
+        """
+        Returns the set of employee_ids the caller may see, or None meaning
+        "no restriction" (owner/admin with scope='all').
+
+        Raises Forbidden if the caller is not a tenant member, or if a
+        non-elevated caller requests scope='all'.
+        """
+        membership = TenantRepository.find_active_membership(tenant_id, user_id)
+        if not membership:
+            raise Forbidden("Not a member of this tenant.")
+
+        is_elevated = membership.role in ELEVATED_MEMBERSHIP_ROLES
+        own = WorkforceRepository.find_employee_by_user_id(tenant_id, user_id)
+
+        if is_elevated:
+            if scope == "all":
+                return None
+            return {own.id} if own else set()
+
+        if scope == "all":
+            raise Forbidden("You may only view your own records.")
+
+        if not own:
+            return set()
+
+        role_type = WorkforceRepository.get_active_role_type_for_employee(own.id)
+        if role_type == WorkforceRoles.MANAGER.value:
+            reports = WorkforceRepository.get_direct_reports(own.id)
+            return {own.id, *(r.id for r in reports)}
+
+        return {own.id}
+
+    @staticmethod
+    def ensure_can_access_employee(
+        tenant_id: int, user_id: int, employee_id: int
+    ) -> None:
+        """
+        Raises Forbidden if the caller cannot act on resources owned by
+        the given employee.
+
+        Owner/admin (tenant membership) always pass. Workforce managers
+        pass for self and direct reports. Everyone else passes only for
+        themselves.
+        """
+        membership = TenantRepository.find_active_membership(tenant_id, user_id)
+        if not membership:
+            raise Forbidden("Not a member of this tenant.")
+
+        if membership.role in ELEVATED_MEMBERSHIP_ROLES:
+            return
+
+        own = WorkforceRepository.find_employee_by_user_id(tenant_id, user_id)
+        if not own:
+            raise Forbidden("No employee profile for this user in tenant.")
+        if own.id == employee_id:
+            return
+
+        role_type = WorkforceRepository.get_active_role_type_for_employee(own.id)
+        if role_type == WorkforceRoles.MANAGER.value:
+            reports = WorkforceRepository.get_direct_reports(own.id)
+            if any(r.id == employee_id for r in reports):
+                return
+
+        raise Forbidden("You may not access this resource.")
 
     @staticmethod
     def create_department(
@@ -151,8 +234,6 @@ class WorkforceService:
             )
         return result
 
-    # --- Roles ---
-
     @staticmethod
     def create_role(
         tenant_id: int,
@@ -204,8 +285,6 @@ class WorkforceService:
                 f"A role named '{entity.name}' already exists in this tenant."
             )
         return WorkforceRepository.update_role(entity, user_id)
-
-    # --- Employees ---
 
     @staticmethod
     def create_employee(
@@ -341,8 +420,6 @@ class WorkforceService:
             raise NotFound(f"Employee {employee_id} not found.")
         return WorkforceRepository.get_direct_reports(employee_id)
 
-    # --- Department assignments ---
-
     @staticmethod
     def assign_department(
         tenant_id: int,
@@ -391,8 +468,6 @@ class WorkforceService:
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
         return WorkforceRepository.list_department_assignments(employee_id)
-
-    # --- Role assignments ---
 
     @staticmethod
     def assign_role(

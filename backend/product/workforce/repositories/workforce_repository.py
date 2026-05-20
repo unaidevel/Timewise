@@ -188,9 +188,14 @@ class WorkforceRepository:
         ]
 
     @staticmethod
-    def bulk_create_roles(tenant_id: int, names: list[str]) -> list[RoleOut]:
+    def bulk_create_roles(
+        tenant_id: int, roles: list[tuple[str, str]]
+    ) -> list[RoleOut]:
         models = RoleModel.objects.bulk_create(
-            [RoleModel(tenant_id=tenant_id, name=name) for name in names]
+            [
+                RoleModel(tenant_id=tenant_id, name=name, role_type=role_type)
+                for name, role_type in roles
+            ]
         )
         return [RoleOut.model_validate(m) for m in models]
 
@@ -251,6 +256,23 @@ class WorkforceRepository:
     def find_employee_by_email(tenant_id: int, email: str) -> EmployeeOut | None:
         model = EmployeeModel.objects.filter(tenant_id=tenant_id, email=email).first()
         return EmployeeOut.model_validate(model) if model else None
+
+    @staticmethod
+    def find_employee_by_user_id(tenant_id: int, user_id: int) -> EmployeeOut | None:
+        model = EmployeeModel.objects.filter(
+            tenant_id=tenant_id, user_id=user_id
+        ).first()
+        return EmployeeOut.model_validate(model) if model else None
+
+    @staticmethod
+    def get_active_role_type_for_employee(employee_id: int) -> str | None:
+        return (
+            EmployeeRoleModel.objects.filter(
+                employee_id=employee_id, left_at__isnull=True
+            )
+            .values_list("role__role_type", flat=True)
+            .first()
+        )
 
     @staticmethod
     def list_employees(tenant_id: int) -> list[EmployeeOut]:
