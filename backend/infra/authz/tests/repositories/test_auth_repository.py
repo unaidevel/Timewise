@@ -3,10 +3,18 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 
+from infra.authz.entities.auth_entities import (
+    Email,
+    FullName,
+    UpdateUserEmailEntity,
+    UpdateUserNameEntity,
+    UpdateUserPasswordEntity,
+)
 from infra.authz.models import (
     AuthLoginAttemptModel,
     AuthLoginEventModel,
     AuthTokenModel,
+    AuthUserModel,
 )
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
@@ -278,3 +286,70 @@ class AuthRepositoryTests(TestCase):
         event = AuthLoginEventModel.objects.get()
         self.assertIsNone(event.user_id)
         self.assertEqual(event.email, "ghost@example.com")
+
+    def test_update_user_name_changes_full_name(self):
+        user = self._create_user()
+
+        updated = AuthRepository.update_user_name(
+            UpdateUserNameEntity(user_id=user.id, full_name=FullName("New Name"))
+        )
+
+        self.assertEqual(updated.full_name, "New Name")
+        self.assertEqual(AuthUserModel.objects.get(id=user.id).full_name, "New Name")
+
+    def test_update_user_name_rejects_wrong_entity_type(self):
+        user = self._create_user()
+
+        with self.assertRaises(TypeError):
+            AuthRepository.update_user_name(
+                {"user_id": user.id, "full_name": "X"}  # type: ignore[arg-type]
+            )
+
+    def test_update_user_email_changes_email(self):
+        user = self._create_user()
+
+        updated = AuthRepository.update_user_email(
+            UpdateUserEmailEntity(user_id=user.id, email=Email("new@example.com"))
+        )
+
+        self.assertEqual(updated.email, "new@example.com")
+        self.assertEqual(AuthUserModel.objects.get(id=user.id).email, "new@example.com")
+
+    def test_update_user_email_raises_conflict_on_duplicate(self):
+        first = self._create_user("first@example.com")
+        self._create_user("second@example.com")
+
+        with self.assertRaises(Conflict):
+            AuthRepository.update_user_email(
+                UpdateUserEmailEntity(
+                    user_id=first.id,
+                    email=Email("second@example.com"),
+                )
+            )
+
+    def test_update_user_email_rejects_wrong_entity_type(self):
+        user = self._create_user()
+
+        with self.assertRaises(TypeError):
+            AuthRepository.update_user_email(
+                {"user_id": user.id, "email": "x@example.com"}  # type: ignore[arg-type]
+            )
+
+    def test_update_user_password_changes_hash(self):
+        user = self._create_user()
+        new_hash = AuthService._hash_password("AnotherPass456!")
+
+        updated = AuthRepository.update_user_password(
+            UpdateUserPasswordEntity(user_id=user.id, new_password_hash=new_hash)
+        )
+
+        self.assertEqual(updated.password_hash, new_hash)
+        self.assertEqual(AuthUserModel.objects.get(id=user.id).password_hash, new_hash)
+
+    def test_update_user_password_rejects_wrong_entity_type(self):
+        user = self._create_user()
+
+        with self.assertRaises(TypeError):
+            AuthRepository.update_user_password(
+                {"user_id": user.id, "new_password_hash": "x"}  # type: ignore[arg-type]
+            )
