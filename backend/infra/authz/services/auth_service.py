@@ -16,10 +16,18 @@ if TYPE_CHECKING:
     from django.contrib.auth.base_user import AbstractBaseUser
 
 from infra.authz.dtos.auth_dtos import AuthSession, AuthUser, ClientContext
-from infra.authz.entities.auth_entities import Email, FullName, Password
+from infra.authz.entities.auth_entities import (
+    Email,
+    FullName,
+    Password,
+    UpdateUserEmailEntity,
+    UpdateUserNameEntity,
+    UpdateUserPasswordEntity,
+)
 from infra.authz.models import AuthLoginEventModel
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.common.exceptions import (
+    NotFound,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -74,6 +82,69 @@ class AuthService:
             email=email_entity.value,
             full_name=full_name_entity.value,
             password_hash=password_hash,
+        )
+
+    @staticmethod
+    def update_user_name(user_id: int, full_name: str) -> AuthUser:
+        if not AuthRepository.find_user_by_id(user_id):
+            raise NotFound(f"User {user_id} not found.")
+        entity = UpdateUserNameEntity(
+            user_id=user_id,
+            full_name=FullName(full_name),
+        )
+        return AuthRepository.update_user_name(entity)
+
+    @staticmethod
+    def update_user_email(user_id: int, email: str) -> AuthUser:
+        if not AuthRepository.find_user_by_id(user_id):
+            raise NotFound(f"User {user_id} not found.")
+        entity = UpdateUserEmailEntity(
+            user_id=user_id,
+            email=Email(email),
+        )
+        return AuthRepository.update_user_email(entity)
+
+    @staticmethod
+    def update_user_password(
+        user_id: int,
+        current_password: str,
+        new_password: str,
+    ) -> AuthUser:
+        user = AuthRepository.find_user_by_id(user_id)
+        if not user:
+            raise NotFound(f"User {user_id} not found.")
+        if not AuthService._verify_password(current_password, user.password_hash):
+            raise Unauthorized("Current password is incorrect")
+        new_password_entity = Password(new_password)
+        AuthService._validate_password(
+            new_password_entity,
+            Email(user.email),
+            FullName(user.full_name),
+        )
+        new_hash = AuthService._hash_password(new_password_entity.value)
+        entity = UpdateUserPasswordEntity(
+            user_id=user_id,
+            new_password_hash=new_hash,
+        )
+        return AuthRepository.update_user_password(entity)
+
+    @staticmethod
+    def rotate_session_after_password_change(
+        user: AuthUser,
+        client: ClientContext,
+    ) -> AuthSession:
+        """Revoke every existing session for the user and issue a fresh one.
+
+        Called after a password change so other devices are forced to log in
+        again while the current request continues with a new access token.
+        """
+        AuthRepository.revoke_all_user_tokens(user.id, revoked_at=timezone.now())
+        return AuthService._issue_session(
+            user=user,
+            family_id=AuthService._new_family_id(),
+            auth_settings=get_auth_security_settings(),
+            client_ip=AuthService._normalize_client_ip(client.ip),
+            user_agent=AuthService._normalize_user_agent(client.user_agent),
         )
 
     @staticmethod
