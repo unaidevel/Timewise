@@ -16,6 +16,7 @@ from product.workforce.entities.workforce_entities import (
     EmployeeEntity,
     EmployeeRoleEntity,
     EmployeeUpdateEntity,
+    LinkEmployeeUserEntity,
     RoleEntity,
     RoleUpdateEntity,
     SetEmployeeManagerEntity,
@@ -343,6 +344,25 @@ class WorkforceRepository:
             updated_by_id=user_id,
         )
         model.save(update_fields=["manager_id", "updated_by_id", "updated_at"])
+        return EmployeeOut.model_validate(
+            EmployeeModel.objects.get(id=entity.employee_id)
+        )
+
+    @staticmethod
+    def link_user(
+        entity: LinkEmployeeUserEntity,
+        user_id: int | None = None,
+    ) -> EmployeeOut:
+        if not isinstance(entity, LinkEmployeeUserEntity):
+            raise TypeError(
+                f"Expected LinkEmployeeUserEntity, got {type(entity).__name__}"
+            )
+        model = EmployeeModel(
+            id=entity.employee_id,
+            user_id=entity.user_id,
+            updated_by_id=user_id,
+        )
+        model.save(update_fields=["user_id", "updated_by_id", "updated_at"])
         return EmployeeOut.model_validate(
             EmployeeModel.objects.get(id=entity.employee_id)
         )
