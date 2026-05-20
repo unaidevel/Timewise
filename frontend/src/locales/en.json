@@ -170,6 +170,10 @@
     }
   },
   "timekeeping": {
+    "scope": {
+      "mine": "Mine",
+      "all": "All company"
+    },
     "periods": {
       "title": "Periods",
       "subtitle": "Time-tracking windows for hour reporting",

@@ -170,6 +170,10 @@
     }
   },
   "timekeeping": {
+    "scope": {
+      "mine": "Míos",
+      "all": "Toda la empresa"
+    },
     "periods": {
       "title": "Periodos",
       "subtitle": "Ventanas temporales de imputación de horas",

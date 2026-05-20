@@ -25,10 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/shadcn/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { usePeriods } from "@/features/periods/hooks";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useIsTenantAdmin } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type Scope = "mine" | "all";
 
 const statusStyle: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",
@@ -39,21 +42,25 @@ const statusStyle: Record<string, string> = {
 
 export default function TimeReportsPage() {
   const tenantId = useCurrentTenantId();
+  const isAdmin = useIsTenantAdmin(tenantId);
   const periods = usePeriods(tenantId);
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "draft" | "submitted" | "approved" | "rejected">(
     "all",
   );
+  const [scope, setScope] = useState<Scope>("mine");
+  const effectiveScope: Scope = isAdmin ? scope : "mine";
 
   const reportQueries = useQueries({
     queries: (periods.data ?? []).map((period) => ({
-      queryKey: ["periods", tenantId, period.id, "reports"],
+      queryKey: ["periods", tenantId, period.id, "reports", effectiveScope],
       enabled: tenantId != null,
       queryFn: async () => {
         const { data, error } =
           await listTimeReportsForPeriodApiV1TenantsTenantIdPeriodsPeriodIdReportsGet({
             path: { tenant_id: tenantId!, period_id: period.id },
+            query: { scope: effectiveScope },
           });
         if (error || !data) throw error;
         return data.map((r) => ({ ...r, period }));
@@ -87,11 +94,23 @@ export default function TimeReportsPage() {
   if (!isLoading && total === 0) {
     return (
       <div className="space-y-6">
-        <header>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {t("timekeeping.reports.title")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("timekeeping.reports.subtitle")}</p>
+        <header className="flex items-end justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {t("timekeeping.reports.title")}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("timekeeping.reports.subtitle")}
+            </p>
+          </div>
+          {isAdmin && (
+            <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+              <TabsList>
+                <TabsTrigger value="mine">{t("timekeeping.scope.mine")}</TabsTrigger>
+                <TabsTrigger value="all">{t("timekeeping.scope.all")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </header>
         <EmptyState
           icon={Clock}
@@ -113,6 +132,14 @@ export default function TimeReportsPage() {
             {t("timekeeping.reports.summary", { total, submitted, approved })}
           </p>
         </div>
+        {isAdmin && (
+          <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
+            <TabsList>
+              <TabsTrigger value="mine">{t("timekeeping.scope.mine")}</TabsTrigger>
+              <TabsTrigger value="all">{t("timekeeping.scope.all")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </header>
 
       <div className="flex flex-wrap gap-2 items-center">
