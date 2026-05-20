@@ -28,6 +28,12 @@ def record_event(
     current_user: RateLimitedUser,
     request: Request,
 ) -> AuditEventOut:
+    """
+    Records a single audit event under the tenant, stamping actor + tenant from the caller's context.
+    Returns AuditEventOut with HTTP 201 carrying the persisted event row.
+    On error returns 403 (caller lacks audit write rights), 422 (invalid action/resource), or 429.
+    Designed for app-internal callers; values are stored verbatim and are not freely editable later.
+    """
     return AuditService.create(tenant_id, payload, current_user.id)
 
 
@@ -47,6 +53,12 @@ def list_events(
     actor_id: int | None = Query(default=None),
     outcome: str | None = Query(default=None),
 ) -> list[AuditEventOut]:
+    """
+    Lists audit events for the tenant with optional filters (action, resource, actor, outcome).
+    Returns list[AuditEventOut]; the array is empty when no events match the filters.
+    On error returns 429 (rate limit); the tenant scope is always enforced regardless of filters.
+    All filters are AND-ed together; supplying none returns every event for the tenant.
+    """
     return AuditService.get_all(
         tenant_id,
         current_user.id,
@@ -70,6 +82,12 @@ def get_event(
     current_user: RateLimitedUser,
     request: Request,
 ) -> AuditEventOut:
+    """
+    Fetches a single audit event by id, scoped to the tenant.
+    Returns AuditEventOut with the full event payload (actor, action, resource, outcome, metadata).
+    On error returns 404 (event missing or belongs to a different tenant) or 429 (rate limit).
+    Cross-tenant lookups are blocked even if the event id is known.
+    """
     return AuditService.get_by_id(tenant_id, event_id, current_user.id)
 
 
@@ -86,6 +104,12 @@ def update_event(
     current_user: RateLimitedUser,
     request: Request,
 ) -> AuditEventOut:
+    """
+    Patches a mutable subset of fields on an existing audit event (e.g., outcome or metadata).
+    Returns AuditEventOut with the post-update event row.
+    On error returns 403 (caller lacks write rights), 404 (event missing), 422, or 429.
+    Core fields (actor, tenant, action, timestamp) remain immutable to preserve auditability.
+    """
     return AuditService.update(tenant_id, event_id, payload, current_user.id)
 
 
@@ -101,4 +125,10 @@ def delete_event(
     current_user: RateLimitedUser,
     request: Request,
 ) -> None:
+    """
+    Deletes an audit event scoped to the tenant; intended for compliance-driven scrubbing only.
+    Returns HTTP 204 with no body on success.
+    On error returns 403 (caller lacks delete rights), 404 (event missing), or 429 (rate limit).
+    Hard delete — the row is removed; restrict to admin/compliance flows in callers.
+    """
     AuditService.delete(tenant_id, event_id, current_user.id)
