@@ -5,7 +5,14 @@ from starlette.requests import Request
 
 from infra.authz.api import router as auth_router
 from infra.authz.api.dependencies import _resolve_client_ip, get_current_user
-from infra.authz.dtos.dtos import LoginRequest, RefreshRequest, RegisterRequest
+from infra.authz.dtos.dtos import (
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    UpdateEmailRequest,
+    UpdateNameRequest,
+    UpdatePasswordRequest,
+)
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 
 
@@ -274,3 +281,148 @@ class AuthApiAdditionalTests(TestCase):
             get_current_user(credentials=None)
 
         self.assertEqual(exc.exception.status_code, 401)
+
+
+class ProfileUpdateApiTests(TestCase):
+    def setUp(self):
+        AuthService.register_user(
+            email="user@example.com",
+            full_name="Original Name",
+            password="SecurePass123!",
+        )
+        self.login_response = auth_router.login_user(
+            LoginRequest(email="user@example.com", password="SecurePass123!"),
+            build_request("/api/v1/auth/login"),
+        )
+        self.credentials = HTTPAuthorizationCredentials(
+            scheme="Bearer",
+            credentials=self.login_response.access_token,
+        )
+        self.current_user = get_current_user(self.credentials)
+
+    def test_update_my_name_changes_full_name(self):
+        response = auth_router.update_my_name(
+            UpdateNameRequest(full_name="  New Name  "),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/name"),
+        )
+
+        self.assertEqual(response.full_name, "New Name")
+        self.assertEqual(response.email, "user@example.com")
+
+    def test_update_my_name_rejects_blank(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_name(
+                UpdateNameRequest(full_name="   "),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/name"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 422)
+
+    def test_update_my_email_changes_email(self):
+        response = auth_router.update_my_email(
+            UpdateEmailRequest(email="NEW@example.com"),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/email"),
+        )
+
+        self.assertEqual(response.email, "new@example.com")
+
+    def test_update_my_email_rejects_invalid(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_email(
+                UpdateEmailRequest(email="not-an-email"),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/email"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 422)
+
+    def test_update_my_email_returns_409_on_duplicate(self):
+        AuthService.register_user(
+            email="taken@example.com",
+            full_name="Other",
+            password="SecurePass123!",
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_email(
+                UpdateEmailRequest(email="taken@example.com"),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/email"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 409)
+
+    def test_update_my_password_returns_new_session(self):
+        response = auth_router.update_my_password(
+            UpdatePasswordRequest(
+                current_password="SecurePass123!",
+                new_password="AnotherPass456!",
+            ),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/password"),
+        )
+
+        self.assertNotEqual(response.access_token, self.login_response.access_token)
+        self.assertNotEqual(response.refresh_token, self.login_response.refresh_token)
+        self.assertEqual(response.user.email, "user@example.com")
+
+    def test_update_my_password_revokes_existing_sessions(self):
+        auth_router.update_my_password(
+            UpdatePasswordRequest(
+                current_password="SecurePass123!",
+                new_password="AnotherPass456!",
+            ),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/password"),
+        )
+
+        # Old access token must no longer authenticate.
+        with self.assertRaises(HTTPException) as exc:
+            get_current_user(self.credentials)
+        self.assertEqual(exc.exception.status_code, 401)
+
+    def test_update_my_password_rejects_wrong_current_password(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_password(
+                UpdatePasswordRequest(
+                    current_password="not-the-right-password",
+                    new_password="AnotherPass456!",
+                ),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/password"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 401)
+
+    def test_update_my_password_rejects_weak_new_password(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_password(
+                UpdatePasswordRequest(
+                    current_password="SecurePass123!",
+                    new_password="password",
+                ),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/password"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 422)
+
+    def test_update_my_password_new_credentials_work_for_login(self):
+        auth_router.update_my_password(
+            UpdatePasswordRequest(
+                current_password="SecurePass123!",
+                new_password="AnotherPass456!",
+            ),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/password"),
+        )
+
+        new_login = auth_router.login_user(
+            LoginRequest(email="user@example.com", password="AnotherPass456!"),
+            build_request("/api/v1/auth/login"),
+        )
+
+        self.assertEqual(new_login.user.email, "user@example.com")

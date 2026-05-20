@@ -98,6 +98,10 @@ class SetEmployeeManagerRequest(BaseModel):
     manager_id: int | None
 
 
+class LinkEmployeeUserRequest(BaseModel):
+    user_id: int
+
+
 class AssignDepartmentRequest(BaseModel):
     department_id: int
     reason: str = ""

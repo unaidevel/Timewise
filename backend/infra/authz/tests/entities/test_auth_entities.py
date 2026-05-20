@@ -1,6 +1,13 @@
 import pytest
 
-from infra.authz.entities.auth_entities import Email, FullName, Password
+from infra.authz.entities.auth_entities import (
+    Email,
+    FullName,
+    Password,
+    UpdateUserEmailEntity,
+    UpdateUserNameEntity,
+    UpdateUserPasswordEntity,
+)
 from infra.common.exceptions import UnprocessableEntity
 
 
@@ -77,3 +84,45 @@ def test_email_is_frozen():
 
     with pytest.raises(AttributeError):
         email.value = "other@example.com"
+
+
+def test_update_user_name_entity_holds_validated_full_name():
+    entity = UpdateUserNameEntity(user_id=7, full_name=FullName("  New Name  "))
+
+    assert entity.user_id == 7
+    assert entity.full_name.value == "New Name"
+
+
+def test_update_user_name_entity_is_frozen():
+    entity = UpdateUserNameEntity(user_id=1, full_name=FullName("Test User"))
+
+    with pytest.raises(AttributeError):
+        entity.user_id = 2
+
+
+def test_update_user_email_entity_holds_validated_email():
+    entity = UpdateUserEmailEntity(user_id=3, email=Email("USER@example.com"))
+
+    assert entity.user_id == 3
+    assert entity.email.value == "user@example.com"
+
+
+def test_update_user_email_entity_is_frozen():
+    entity = UpdateUserEmailEntity(user_id=1, email=Email("user@example.com"))
+
+    with pytest.raises(AttributeError):
+        entity.email = Email("other@example.com")
+
+
+def test_update_user_password_entity_stores_hash():
+    entity = UpdateUserPasswordEntity(user_id=5, new_password_hash="hashed-value")
+
+    assert entity.user_id == 5
+    assert entity.new_password_hash == "hashed-value"
+
+
+def test_update_user_password_entity_is_frozen():
+    entity = UpdateUserPasswordEntity(user_id=1, new_password_hash="hashed")
+
+    with pytest.raises(AttributeError):
+        entity.new_password_hash = "other"

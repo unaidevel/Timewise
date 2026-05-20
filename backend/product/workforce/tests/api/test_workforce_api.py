@@ -22,6 +22,7 @@ from product.workforce.dtos.dtos import (
     DepartmentUpdate,
     EmployeeIn,
     EmployeeUpdate,
+    LinkEmployeeUserRequest,
     RemoveDepartmentManagerRequest,
     RoleIn,
     RoleUpdate,
@@ -492,6 +493,101 @@ class WorkforceApiTests(TestCase):
         )
         assert len(reports) == 1
         assert reports[0].id == emp.id
+
+    # --- Link user endpoint ---
+
+    def test_link_employee_user_sets_user_id(self):
+        dept, role = self._create_dept_and_role()
+        emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
+        )
+        new_user = self._authenticate_user(email="alice@acme.io", full_name="Alice")
+
+        linked = workforce_router.link_employee_user(
+            self.tenant.id,
+            emp.id,
+            LinkEmployeeUserRequest(user_id=new_user.id),
+            self.user,
+            request=build_request(),
+        )
+
+        assert linked.user_id == new_user.id
+
+    def test_link_employee_user_returns_404_when_employee_missing(self):
+        new_user = self._authenticate_user(email="bob@acme.io", full_name="Bob")
+        with pytest.raises(HTTPException) as exc:
+            workforce_router.link_employee_user(
+                self.tenant.id,
+                999,
+                LinkEmployeeUserRequest(user_id=new_user.id),
+                self.user,
+                request=build_request(),
+            )
+        assert exc.value.status_code == 404
+
+    def test_link_employee_user_returns_409_when_employee_already_linked(self):
+        dept, role = self._create_dept_and_role()
+        first_user = self._authenticate_user(email="carol@acme.io", full_name="Carol")
+        emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id),
+            self.user,
+            request=build_request(),
+        )
+        workforce_router.link_employee_user(
+            self.tenant.id,
+            emp.id,
+            LinkEmployeeUserRequest(user_id=first_user.id),
+            self.user,
+            request=build_request(),
+        )
+
+        second_user = self._authenticate_user(email="dave@acme.io", full_name="Dave")
+        with pytest.raises(HTTPException) as exc:
+            workforce_router.link_employee_user(
+                self.tenant.id,
+                emp.id,
+                LinkEmployeeUserRequest(user_id=second_user.id),
+                self.user,
+                request=build_request(),
+            )
+        assert exc.value.status_code == 409
+
+    def test_link_employee_user_returns_409_when_user_already_linked_to_other(self):
+        dept, role = self._create_dept_and_role()
+        new_user = self._authenticate_user(email="eve@acme.io", full_name="Eve")
+        first_emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id, "first@acme.io"),
+            self.user,
+            request=build_request(),
+        )
+        workforce_router.link_employee_user(
+            self.tenant.id,
+            first_emp.id,
+            LinkEmployeeUserRequest(user_id=new_user.id),
+            self.user,
+            request=build_request(),
+        )
+        second_emp = workforce_router.create_employee(
+            self.tenant.id,
+            self._employee_payload(dept.id, role.id, "second@acme.io"),
+            self.user,
+            request=build_request(),
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            workforce_router.link_employee_user(
+                self.tenant.id,
+                second_emp.id,
+                LinkEmployeeUserRequest(user_id=new_user.id),
+                self.user,
+                request=build_request(),
+            )
+        assert exc.value.status_code == 409
 
 
 class WorkforceApiAdditionalTests(TestCase):

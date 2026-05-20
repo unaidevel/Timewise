@@ -14,6 +14,7 @@ from product.workforce.dtos.dtos import (
     EmployeeOut,
     EmployeeRoleOut,
     EmployeeUpdate,
+    LinkEmployeeUserRequest,
     RemoveDepartmentManagerRequest,
     RoleIn,
     RoleOut,
@@ -28,6 +29,7 @@ from product.workforce.entities.workforce_entities import (
     DepartmentEntity,
     DepartmentUpdateEntity,
     EmployeeUpdateEntity,
+    LinkEmployeeUserEntity,
     RemoveDepartmentManagerEntity,
     RoleEntity,
     RoleUpdateEntity,
@@ -441,6 +443,44 @@ class WorkforceOrchestrator:
                 resource_type="Employee",
                 resource_id=employee_id,
                 metadata={},
+                exc=exc,
+            )
+            raise
+
+    @only_admin
+    @staticmethod
+    def link_user(
+        tenant_id: int,
+        employee_id: int,
+        payload: LinkEmployeeUserRequest,
+        user_id: int,
+    ) -> EmployeeOut:
+        entity = LinkEmployeeUserEntity(
+            employee_id=employee_id, user_id=payload.user_id
+        )
+        try:
+            with transaction.atomic():
+                employee = WorkforceService.link_user(tenant_id, entity, user_id)
+                AuditService.create(
+                    tenant_id,
+                    AuditEventIn(
+                        action="employee.user_linked",
+                        resource_type="Employee",
+                        outcome=AuditOutcome.SUCCESS.value,
+                        resource_id=employee.id,
+                        metadata={"user_id": entity.user_id},
+                    ),
+                    user_id,
+                )
+                return employee
+        except AUDITED_FAILURES as exc:
+            record_failure(
+                tenant_id,
+                user_id,
+                action="employee.user_linked",
+                resource_type="Employee",
+                resource_id=employee_id,
+                metadata={"user_id": entity.user_id},
                 exc=exc,
             )
             raise

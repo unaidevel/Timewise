@@ -11,12 +11,16 @@ from infra.authz.dtos.dtos import (
     LoginResponse,
     RefreshRequest,
     RegisterRequest,
+    UpdateEmailRequest,
+    UpdateNameRequest,
+    UpdatePasswordRequest,
     UserResponse,
 )
 from infra.authz.dtos.mappers.auth_mapper import to_login_response, to_user_response
 from infra.authz.services.auth_service import AuthService
 from infra.common.exceptions import (
     Conflict,
+    NotFound,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -90,3 +94,65 @@ def logout_user(
 ) -> None:
     if credentials:
         AuthService.logout(credentials.credentials)
+
+
+@router.put(
+    "/me/name",
+    response_model=UserResponse,
+    responses=responses_for(
+        Unauthorized, NotFound, UnprocessableEntity, TooManyRequests
+    ),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def update_my_name(
+    payload: UpdateNameRequest,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> UserResponse:
+    user = AuthService.update_user_name(current_user.id, payload.full_name)
+    return to_user_response(user)
+
+
+@router.put(
+    "/me/email",
+    response_model=UserResponse,
+    responses=responses_for(
+        Unauthorized,
+        NotFound,
+        Conflict,
+        UnprocessableEntity,
+        TooManyRequests,
+    ),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def update_my_email(
+    payload: UpdateEmailRequest,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> UserResponse:
+    user = AuthService.update_user_email(current_user.id, payload.email)
+    return to_user_response(user)
+
+
+@router.put(
+    "/me/password",
+    response_model=LoginResponse,
+    responses=responses_for(
+        Unauthorized, NotFound, UnprocessableEntity, TooManyRequests
+    ),
+)
+@limiter.limit(AUTH_RATE_LIMIT)
+def update_my_password(
+    payload: UpdatePasswordRequest,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> LoginResponse:
+    user = AuthService.update_user_password(
+        current_user.id,
+        payload.current_password,
+        payload.new_password,
+    )
+    session = AuthService.rotate_session_after_password_change(
+        user, client=get_client_context(request)
+    )
+    return to_login_response(session)

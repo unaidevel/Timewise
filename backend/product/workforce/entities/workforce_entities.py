@@ -109,6 +109,12 @@ class SetEmployeeManagerEntity:
 
 
 @dataclass(frozen=True, slots=True)
+class LinkEmployeeUserEntity:
+    employee_id: int
+    user_id: int
+
+
+@dataclass(frozen=True, slots=True)
 class EmployeeRoleEntity:
     hourly_rate: Decimal
     contract_hours_per_week: int

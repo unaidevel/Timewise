@@ -1,5 +1,7 @@
 import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
@@ -10,12 +12,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shadcn/card";
-import { useMembers } from "@/features/tenants/hooks";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/shadcn/dialog";
+import { Input } from "@/components/shadcn/input";
+import { Label } from "@/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shadcn/select";
+import { useRegister } from "@/features/auth/hooks";
+import { useEmployees } from "@/features/employees/hooks";
+import { useAddMember, useLinkEmployeeUser, useMembers } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
+
+const MEMBER_ROLES = ["employee", "manager", "admin", "freelance"] as const;
+type MemberRole = (typeof MEMBER_ROLES)[number];
 
 export function MembersTab({ tenantId }: { tenantId: number }) {
   const members = useMembers(tenantId);
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
   const rows = members.data ?? [];
 
   return (
@@ -25,10 +50,15 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
           <CardTitle className="text-base">{t("settings.members.title")}</CardTitle>
           <CardDescription>{t("settings.members.subtitle")}</CardDescription>
         </div>
-        <Button variant="outline" disabled>
-          <Plus className="size-4 mr-1.5" />
-          {t("settings.members.invite")}
-        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <Plus className="size-4 mr-1.5" />
+              {t("settings.members.invite")}
+            </Button>
+          </DialogTrigger>
+          <InviteMemberDialog tenantId={tenantId} onDone={() => setOpen(false)} />
+        </Dialog>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y">
@@ -65,5 +95,144 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function InviteMemberDialog({ tenantId, onDone }: { tenantId: number; onDone: () => void }) {
+  const { t } = useTranslation();
+  const employees = useEmployees(tenantId);
+  const register = useRegister();
+  const addMember = useAddMember(tenantId);
+  const linkEmployee = useLinkEmployeeUser(tenantId);
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<MemberRole>("employee");
+  const [employeeId, setEmployeeId] = useState<string>("");
+
+  const unlinkedEmployees = useMemo(
+    () => (employees.data ?? []).filter((e) => e.user_id == null && e.is_active),
+    [employees.data],
+  );
+
+  const submitting = register.isPending || addMember.isPending || linkEmployee.isPending;
+  const canSubmit =
+    !!fullName.trim() && !!email.trim() && !!password && !!employeeId && !submitting;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    try {
+      const user = await register.mutateAsync({
+        email: email.trim(),
+        full_name: fullName.trim(),
+        password,
+      });
+      await addMember.mutateAsync({ user_id: user.id, role });
+      await linkEmployee.mutateAsync({
+        employeeId: Number(employeeId),
+        body: { user_id: user.id },
+      });
+      toast.success(t("settings.members.inviteDialog.successToast"));
+      onDone();
+    } catch {
+      toast.error(t("settings.members.inviteDialog.errorToast"));
+    }
+  }
+
+  return (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{t("settings.members.inviteDialog.title")}</DialogTitle>
+        <DialogDescription>{t("settings.members.inviteDialog.description")}</DialogDescription>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs" htmlFor="invite-fullname">
+            {t("settings.members.inviteDialog.fullName")}
+          </Label>
+          <Input
+            id="invite-fullname"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            autoComplete="off"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs" htmlFor="invite-email">
+            {t("settings.members.inviteDialog.email")}
+          </Label>
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="off"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs" htmlFor="invite-password">
+            {t("settings.members.inviteDialog.password")}
+          </Label>
+          <Input
+            id="invite-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">{t("settings.members.inviteDialog.role")}</Label>
+          <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MEMBER_ROLES.map((r) => (
+                <SelectItem key={r} value={r} className="capitalize">
+                  {t(`settings.members.roles.${r}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">{t("settings.members.inviteDialog.employee")}</Label>
+          <Select value={employeeId} onValueChange={setEmployeeId}>
+            <SelectTrigger>
+              <SelectValue placeholder={t("settings.members.inviteDialog.employeePlaceholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {unlinkedEmployees.length === 0 ? (
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                  {t("settings.members.inviteDialog.noUnlinked")}
+                </div>
+              ) : (
+                unlinkedEmployees.map((e) => (
+                  <SelectItem key={e.id} value={String(e.id)}>
+                    {e.full_name} · {e.email}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onDone} disabled={submitting}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" disabled={!canSubmit}>
+            {submitting
+              ? t("settings.members.inviteDialog.submitting")
+              : t("settings.members.inviteDialog.submit")}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
   );
 }

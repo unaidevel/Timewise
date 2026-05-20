@@ -28,6 +28,7 @@
     "languageMenu": "Idioma",
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
+    "profile": "Perfil",
     "workspaces": "Workspaces",
     "expand": "Expandir",
     "collapse": "Contraer",
@@ -364,6 +365,39 @@
       }
     }
   },
+  "profile": {
+    "title": "Tu perfil",
+    "description": "Actualiza tu nombre, email o contraseña.",
+    "save": "Guardar",
+    "submitting": "Guardando…",
+    "tabs": {
+      "name": "Nombre",
+      "email": "Email",
+      "password": "Contraseña"
+    },
+    "name": {
+      "label": "Nombre completo",
+      "successToast": "Nombre actualizado.",
+      "errorToast": "No se pudo actualizar el nombre."
+    },
+    "email": {
+      "label": "Dirección de email",
+      "successToast": "Email actualizado.",
+      "errorToast": "No se pudo actualizar el email.",
+      "conflictToast": "Ese email ya está en uso."
+    },
+    "password": {
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "mismatch": "Las contraseñas no coinciden.",
+      "save": "Cambiar contraseña",
+      "successToast": "Contraseña cambiada. Las demás sesiones fueron cerradas.",
+      "errorToast": "No se pudo cambiar la contraseña.",
+      "wrongCurrentToast": "La contraseña actual es incorrecta.",
+      "weakToast": "La nueva contraseña es demasiado débil."
+    }
+  },
   "settings": {
     "title": "Ajustes",
     "subtitle": "Gestiona el workspace, departamentos, reglas de horas extra y miembros.",
@@ -418,7 +452,29 @@
       "joined": "Se unió {{date}}",
       "inactive": "Inactivo",
       "empty": "Aún no hay miembros.",
-      "loading": "Cargando…"
+      "loading": "Cargando…",
+      "roles": {
+        "owner": "Propietario",
+        "admin": "Administrador",
+        "manager": "Manager",
+        "employee": "Empleado",
+        "freelance": "Freelance"
+      },
+      "inviteDialog": {
+        "title": "Invitar miembro",
+        "description": "Crea una cuenta y vincúlala a un perfil de empleado.",
+        "fullName": "Nombre completo",
+        "email": "Email",
+        "password": "Contraseña",
+        "role": "Rol en el workspace",
+        "employee": "Vincular a empleado",
+        "employeePlaceholder": "Selecciona un empleado…",
+        "noUnlinked": "No hay empleados sin vincular.",
+        "submit": "Crear e invitar",
+        "submitting": "Creando…",
+        "successToast": "Miembro invitado",
+        "errorToast": "No se pudo invitar al miembro"
+      }
     },
     "depts": {
       "title": "Departamentos",

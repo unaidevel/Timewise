@@ -16,6 +16,7 @@ import {
   Settings,
   Sun,
   Tag,
+  User,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -32,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/shadcn/dropdown-menu";
+import { ProfileDialog } from "@/features/auth/components/ProfileDialog";
 import { useLogout } from "@/features/auth/hooks";
 
 import { useAuthStore } from "@/features/auth/store";
@@ -71,6 +73,7 @@ export function Layout() {
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const [collapsed, setCollapsed] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const palette = useCommandPalette();
 
   useEffect(() => {
@@ -246,11 +249,18 @@ export function Layout() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
+                <DropdownMenuLabel
+                  className="cursor-pointer focus:bg-accent hover:bg-accent rounded-sm"
+                  onClick={() => setProfileOpen(true)}
+                >
                   <div className="text-sm font-medium">{user?.full_name}</div>
                   <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+                  <User className="size-4 mr-2" />
+                  {t("layout.profile")}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout.mutate()}>
                   <LogOut className="size-4 mr-2" />
                   {t("layout.logout")}
@@ -260,6 +270,7 @@ export function Layout() {
           </div>
         </header>
 
+        <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
 
         <main className="flex-1 overflow-auto">

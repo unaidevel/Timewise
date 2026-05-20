@@ -28,6 +28,7 @@
     "languageMenu": "Language",
     "notifications": "Notifications",
     "logout": "Log out",
+    "profile": "Profile",
     "workspaces": "Workspaces",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -364,6 +365,39 @@
       }
     }
   },
+  "profile": {
+    "title": "Your profile",
+    "description": "Update your name, email or password.",
+    "save": "Save",
+    "submitting": "Saving…",
+    "tabs": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password"
+    },
+    "name": {
+      "label": "Full name",
+      "successToast": "Name updated.",
+      "errorToast": "Couldn't update name."
+    },
+    "email": {
+      "label": "Email address",
+      "successToast": "Email updated.",
+      "errorToast": "Couldn't update email.",
+      "conflictToast": "That email is already in use."
+    },
+    "password": {
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match.",
+      "save": "Change password",
+      "successToast": "Password changed. Other sessions were signed out.",
+      "errorToast": "Couldn't change password.",
+      "wrongCurrentToast": "Current password is incorrect.",
+      "weakToast": "New password is too weak."
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage the workspace, departments, overtime rules and members.",
@@ -418,7 +452,29 @@
       "joined": "Joined {{date}}",
       "inactive": "Inactive",
       "empty": "No members yet.",
-      "loading": "Loading…"
+      "loading": "Loading…",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "manager": "Manager",
+        "employee": "Employee",
+        "freelance": "Freelance"
+      },
+      "inviteDialog": {
+        "title": "Invite member",
+        "description": "Create an account and link it to an employee profile.",
+        "fullName": "Full name",
+        "email": "Email",
+        "password": "Password",
+        "role": "Workspace role",
+        "employee": "Link to employee",
+        "employeePlaceholder": "Select an employee…",
+        "noUnlinked": "No unlinked employees available.",
+        "submit": "Create and invite",
+        "submitting": "Creating…",
+        "successToast": "Member invited",
+        "errorToast": "Could not invite member"
+      }
     },
     "depts": {
       "title": "Departments",

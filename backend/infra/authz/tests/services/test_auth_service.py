@@ -6,6 +6,7 @@ from django.utils import timezone
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser, ClientContext
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 from infra.common.exceptions import (
+    NotFound,
     TooManyRequests,
     Unauthorized,
     UnprocessableEntity,
@@ -377,6 +378,140 @@ def test_login_with_inactive_user_treated_as_invalid(monkeypatch):
     # Inactive users should NOT have failed-login attempts recorded against them.
     assert state["failed_logins"] == []
     assert any(e["event_type"] == "login_failure" for e in state["events"])
+
+
+def test_update_user_name_succeeds(monkeypatch):
+    user = make_user()
+    received: dict = {}
+
+    def fake_update(entity):
+        received["entity"] = entity
+        return user.model_copy(update={"full_name": entity.full_name.value})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "update_user_name", fake_update)
+
+    updated = AuthService.update_user_name(user.id, "  Renamed User  ")
+
+    assert updated.full_name == "Renamed User"
+    assert received["entity"].user_id == user.id
+    assert received["entity"].full_name.value == "Renamed User"
+
+
+def test_update_user_name_rejects_blank(monkeypatch):
+    user = make_user()
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+
+    with pytest.raises(UnprocessableEntity):
+        AuthService.update_user_name(user.id, "   ")
+
+
+def test_update_user_name_raises_not_found(monkeypatch):
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: None)
+
+    with pytest.raises(NotFound):
+        AuthService.update_user_name(99, "Whoever")
+
+
+def test_update_user_email_succeeds(monkeypatch):
+    user = make_user()
+    received: dict = {}
+
+    def fake_update(entity):
+        received["entity"] = entity
+        return user.model_copy(update={"email": entity.email.value})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "update_user_email", fake_update)
+
+    updated = AuthService.update_user_email(user.id, "  NEW@example.com ")
+
+    assert updated.email == "new@example.com"
+    assert received["entity"].email.value == "new@example.com"
+
+
+def test_update_user_email_rejects_invalid_email(monkeypatch):
+    user = make_user()
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+
+    with pytest.raises(UnprocessableEntity):
+        AuthService.update_user_email(user.id, "not-an-email")
+
+
+def test_update_user_email_raises_not_found(monkeypatch):
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: None)
+
+    with pytest.raises(NotFound):
+        AuthService.update_user_email(99, "new@example.com")
+
+
+def test_update_user_password_rejects_wrong_current_password(monkeypatch):
+    user = make_user(password="SecurePass123!")
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+
+    with pytest.raises(Unauthorized):
+        AuthService.update_user_password(user.id, "wrong-current", "AnotherPass456!")
+
+
+def test_update_user_password_rejects_weak_new_password(monkeypatch):
+    user = make_user(password="SecurePass123!")
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+
+    with pytest.raises(UnprocessableEntity):
+        AuthService.update_user_password(user.id, "SecurePass123!", "password")
+
+
+def test_update_user_password_raises_not_found(monkeypatch):
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: None)
+
+    with pytest.raises(NotFound):
+        AuthService.update_user_password(99, "anything", "AnotherPass456!")
+
+
+def test_update_user_password_succeeds_with_valid_inputs(monkeypatch):
+    user = make_user(password="SecurePass123!")
+    captured: dict = {}
+
+    def fake_update(entity):
+        captured["entity"] = entity
+        return user.model_copy(update={"password_hash": entity.new_password_hash})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "update_user_password", fake_update)
+
+    updated = AuthService.update_user_password(
+        user.id, "SecurePass123!", "AnotherPass456!"
+    )
+
+    assert updated.password_hash == captured["entity"].new_password_hash
+    assert AuthService._verify_password(
+        "AnotherPass456!", captured["entity"].new_password_hash
+    )
+
+
+def test_rotate_session_after_password_change_revokes_all_and_issues_new(monkeypatch):
+    user = make_user()
+    revoked: list[int] = []
+    created: list[dict] = []
+
+    patch_repo(
+        monkeypatch,
+        "revoke_all_user_tokens",
+        lambda user_id, revoked_at: revoked.append(user_id) or 3,
+    )
+    patch_repo(
+        monkeypatch,
+        "create_token",
+        lambda **kwargs: created.append(kwargs) or None,
+    )
+
+    session = AuthService.rotate_session_after_password_change(user, make_client())
+
+    assert revoked == [user.id]
+    assert len(created) == 1
+    assert session.user.id == user.id
+    assert session.access_token
+    assert session.refresh_token
 
 
 def test_hash_token_is_deterministic_and_changes_with_input():

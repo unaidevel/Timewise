@@ -3,6 +3,11 @@ from datetime import datetime
 from django.db import IntegrityError
 
 from infra.authz.dtos.auth_dtos import AuthToken, AuthUser
+from infra.authz.entities.auth_entities import (
+    UpdateUserEmailEntity,
+    UpdateUserNameEntity,
+    UpdateUserPasswordEntity,
+)
 from infra.authz.models import (
     AuthLoginAttemptModel,
     AuthLoginEventModel,
@@ -35,6 +40,39 @@ class AuthRepository:
             raise Conflict("A user with this email already exists") from exc
 
         return AuthUser.model_validate(user_model)
+
+    @staticmethod
+    def update_user_name(entity: UpdateUserNameEntity) -> AuthUser:
+        if not isinstance(entity, UpdateUserNameEntity):
+            raise TypeError(
+                f"Expected UpdateUserNameEntity, got {type(entity).__name__}"
+            )
+        model = AuthUserModel(id=entity.user_id, full_name=entity.full_name.value)
+        model.save(update_fields=["full_name", "updated_at"])
+        return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
+
+    @staticmethod
+    def update_user_email(entity: UpdateUserEmailEntity) -> AuthUser:
+        if not isinstance(entity, UpdateUserEmailEntity):
+            raise TypeError(
+                f"Expected UpdateUserEmailEntity, got {type(entity).__name__}"
+            )
+        try:
+            model = AuthUserModel(id=entity.user_id, email=entity.email.value)
+            model.save(update_fields=["email", "updated_at"])
+        except IntegrityError as exc:
+            raise Conflict("A user with this email already exists") from exc
+        return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
+
+    @staticmethod
+    def update_user_password(entity: UpdateUserPasswordEntity) -> AuthUser:
+        if not isinstance(entity, UpdateUserPasswordEntity):
+            raise TypeError(
+                f"Expected UpdateUserPasswordEntity, got {type(entity).__name__}"
+            )
+        model = AuthUserModel(id=entity.user_id, password_hash=entity.new_password_hash)
+        model.save(update_fields=["password_hash", "updated_at"])
+        return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
 
     @staticmethod
     def revoke_all_user_tokens(user_id: int, revoked_at: datetime) -> int:
