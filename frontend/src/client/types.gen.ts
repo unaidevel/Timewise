@@ -1318,6 +1318,40 @@ export type TimeReportStatusHistoryOut = {
 };
 
 /**
+ * UpdateEmailRequest
+ */
+export type UpdateEmailRequest = {
+    /**
+     * Email
+     */
+    email: string;
+};
+
+/**
+ * UpdateNameRequest
+ */
+export type UpdateNameRequest = {
+    /**
+     * Full Name
+     */
+    full_name: string;
+};
+
+/**
+ * UpdatePasswordRequest
+ */
+export type UpdatePasswordRequest = {
+    /**
+     * Current Password
+     */
+    current_password: string;
+    /**
+     * New Password
+     */
+    new_password: string;
+};
+
+/**
  * UserResponse
  */
 export type UserResponse = {
@@ -4036,6 +4070,115 @@ export type LogoutUserApiV1AuthLogoutPostResponses = {
 };
 
 export type LogoutUserApiV1AuthLogoutPostResponse = LogoutUserApiV1AuthLogoutPostResponses[keyof LogoutUserApiV1AuthLogoutPostResponses];
+
+export type UpdateMyNameApiV1AuthMeNamePutData = {
+    body: UpdateNameRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/me/name';
+};
+
+export type UpdateMyNameApiV1AuthMeNamePutErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type UpdateMyNameApiV1AuthMeNamePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type UpdateMyNameApiV1AuthMeNamePutResponse = UpdateMyNameApiV1AuthMeNamePutResponses[keyof UpdateMyNameApiV1AuthMeNamePutResponses];
+
+export type UpdateMyEmailApiV1AuthMeEmailPutData = {
+    body: UpdateEmailRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/me/email';
+};
+
+export type UpdateMyEmailApiV1AuthMeEmailPutErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Conflict
+     */
+    409: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type UpdateMyEmailApiV1AuthMeEmailPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type UpdateMyEmailApiV1AuthMeEmailPutResponse = UpdateMyEmailApiV1AuthMeEmailPutResponses[keyof UpdateMyEmailApiV1AuthMeEmailPutResponses];
+
+export type UpdateMyPasswordApiV1AuthMePasswordPutData = {
+    body: UpdatePasswordRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/me/password';
+};
+
+export type UpdateMyPasswordApiV1AuthMePasswordPutErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type UpdateMyPasswordApiV1AuthMePasswordPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: LoginResponse;
+};
+
+export type UpdateMyPasswordApiV1AuthMePasswordPutResponse = UpdateMyPasswordApiV1AuthMePasswordPutResponses[keyof UpdateMyPasswordApiV1AuthMePasswordPutResponses];
 
 export type ListForUserApiV1TenantsGetData = {
     body?: never;
