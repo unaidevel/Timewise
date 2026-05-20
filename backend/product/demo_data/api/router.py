@@ -26,4 +26,10 @@ router = APIRouter(prefix="/api/v1/tenants", tags=["demo-data"])
 def seed_demo_data(
     tenant_id: int, current_user: RateLimitedUser, request: Request
 ) -> dict[str, int]:
+    """
+    Seeds the given tenant with a deterministic set of demo employees, periods, reports, and rules.
+    Returns dict[str, int] with HTTP 201 mapping each seeded resource type to a count.
+    On error returns 403 (caller not owner), 404 (tenant missing), 409 (already seeded), or 429.
+    Idempotent guard: refuses to run twice on the same tenant to avoid duplicating demo data.
+    """
     return DemoDataOrchestrator.seed(tenant_id, current_user.id)
