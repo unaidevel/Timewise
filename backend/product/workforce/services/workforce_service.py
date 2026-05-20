@@ -26,6 +26,7 @@ from product.workforce.entities.workforce_entities import (
     EmployeeEntity,
     EmployeeRoleEntity,
     EmployeeUpdateEntity,
+    LinkEmployeeUserEntity,
     RemoveDepartmentManagerEntity,
     RoleEntity,
     RoleUpdateEntity,
@@ -396,6 +397,29 @@ class WorkforceService:
                 f"An employee with email '{entity.email}' already exists in this tenant."
             )
         return WorkforceRepository.update_employee(entity, user_id)
+
+    @only_admin
+    @staticmethod
+    def link_user(
+        tenant_id: int,
+        entity: LinkEmployeeUserEntity,
+        user_id: int,
+    ) -> EmployeeOut:
+        emp = WorkforceRepository.get_employee_by_id(entity.employee_id)
+        if not emp or emp.tenant_id != tenant_id:
+            raise NotFound(f"Employee {entity.employee_id} not found.")
+        if emp.user_id is not None:
+            raise Conflict(
+                f"Employee {entity.employee_id} is already linked to a user."
+            )
+        existing = WorkforceRepository.find_employee_by_user_id(
+            tenant_id, entity.user_id
+        )
+        if existing:
+            raise Conflict(
+                f"User {entity.user_id} is already linked to employee {existing.id} in this tenant."
+            )
+        return WorkforceRepository.link_user(entity, user_id)
 
     @only_admin
     @staticmethod
