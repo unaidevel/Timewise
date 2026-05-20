@@ -35,6 +35,12 @@ def submit_report_for_approval(
     current_user: RateLimitedUser,
     request: Request,
 ) -> ApprovalOut:
+    """
+    Submits a draft time report into the approval workflow, creating a pending Approval row.
+    Returns ApprovalOut with HTTP 201 describing the new approval and its initial state.
+    On error returns 403 (not the report owner), 404 (report missing), 409 (already submitted), or 429.
+    Transitions the underlying TimeReport from draft to pending_approval atomically.
+    """
     return ApprovalsOrchestrator.submit_report_for_approval(
         tenant_id, report_id, current_user.id
     )
@@ -52,6 +58,12 @@ def approve_report(
     current_user: RateLimitedUser,
     request: Request,
 ) -> ApprovalOut:
+    """
+    Marks the approval as approved by the caller (must be the assigned approver).
+    Returns ApprovalOut reflecting the approved state and decision timestamp.
+    On error returns 403 (caller not the approver), 404, 409 (already decided), or 429.
+    Also flips the linked TimeReport to approved and writes an ApprovalEvent for audit.
+    """
     return ApprovalsOrchestrator.approve_report(tenant_id, approval_id, current_user.id)
 
 
@@ -70,6 +82,12 @@ def reject_report(
     current_user: RateLimitedUser,
     request: Request,
 ) -> ApprovalOut:
+    """
+    Rejects the approval and records the required rejection reason from the payload.
+    Returns ApprovalOut with the rejected state and the stored reason.
+    On error returns 403, 404, 409 (already decided), 422 (reason missing/too short), or 429.
+    Flips the linked TimeReport back to rejected and emits an ApprovalEvent for audit.
+    """
     return ApprovalsOrchestrator.reject_report(
         tenant_id, approval_id, payload, current_user.id
     )
@@ -88,6 +106,12 @@ def list_approvals(
     status: str | None = None,
     scope: str = Query(default="mine", pattern="^(mine|all)$"),
 ) -> list[ApprovalOut]:
+    """
+    Lists approvals in the tenant filtered by optional status and a scope of mine|all.
+    Returns list[ApprovalOut]; scope=mine restricts to approvals assigned to the caller.
+    On error returns 403 (scope=all without permission), 404, or 429 (rate limit).
+    scope=all is intended for managers/admins; non-privileged callers are forced to mine.
+    """
     return ApprovalsOrchestrator.list_approvals(
         tenant_id,
         current_user.id,
@@ -108,6 +132,12 @@ def get_approval(
     current_user: RateLimitedUser,
     request: Request,
 ) -> ApprovalOut:
+    """
+    Fetches a single approval by id, scoped to the tenant and visible to the caller.
+    Returns ApprovalOut with the approval's current state, approver, and decision data.
+    On error returns 403 (caller can neither approve nor own the report), 404, or 429.
+    Visibility check covers both report-owners and the assigned approver chain.
+    """
     return ApprovalsOrchestrator.get_approval(tenant_id, approval_id, current_user.id)
 
 
@@ -123,6 +153,12 @@ def list_approval_events(
     current_user: RateLimitedUser,
     request: Request,
 ) -> list[ApprovalEventOut]:
+    """
+    Lists the chronological history of state transitions for a single approval.
+    Returns list[ApprovalEventOut] ordered oldest-first with actor, action, and timestamp.
+    On error returns 403 (caller cannot view this approval), 404, or 429 (rate limit).
+    Read-only audit trail — there is no endpoint to mutate or delete individual events.
+    """
     return ApprovalsOrchestrator.list_approval_events(
         tenant_id, approval_id, current_user.id
     )
