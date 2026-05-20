@@ -28,6 +28,7 @@
     "languageMenu": "Idioma",
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
+    "profile": "Perfil",
     "workspaces": "Workspaces",
     "expand": "Expandir",
     "collapse": "Contraer",
@@ -362,6 +363,39 @@
         "reasonPlaceholder": "Cuéntale al empleado qué cambiar antes de reenviar.",
         "rejecting": "Rechazando…"
       }
+    }
+  },
+  "profile": {
+    "title": "Tu perfil",
+    "description": "Actualiza tu nombre, email o contraseña.",
+    "save": "Guardar",
+    "submitting": "Guardando…",
+    "tabs": {
+      "name": "Nombre",
+      "email": "Email",
+      "password": "Contraseña"
+    },
+    "name": {
+      "label": "Nombre completo",
+      "successToast": "Nombre actualizado.",
+      "errorToast": "No se pudo actualizar el nombre."
+    },
+    "email": {
+      "label": "Dirección de email",
+      "successToast": "Email actualizado.",
+      "errorToast": "No se pudo actualizar el email.",
+      "conflictToast": "Ese email ya está en uso."
+    },
+    "password": {
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "mismatch": "Las contraseñas no coinciden.",
+      "save": "Cambiar contraseña",
+      "successToast": "Contraseña cambiada. Las demás sesiones fueron cerradas.",
+      "errorToast": "No se pudo cambiar la contraseña.",
+      "wrongCurrentToast": "La contraseña actual es incorrecta.",
+      "weakToast": "La nueva contraseña es demasiado débil."
     }
   },
   "settings": {

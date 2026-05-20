@@ -28,6 +28,7 @@
     "languageMenu": "Language",
     "notifications": "Notifications",
     "logout": "Log out",
+    "profile": "Profile",
     "workspaces": "Workspaces",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -362,6 +363,39 @@
         "reasonPlaceholder": "Tell the employee what to change before resubmitting.",
         "rejecting": "Rejecting…"
       }
+    }
+  },
+  "profile": {
+    "title": "Your profile",
+    "description": "Update your name, email or password.",
+    "save": "Save",
+    "submitting": "Saving…",
+    "tabs": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password"
+    },
+    "name": {
+      "label": "Full name",
+      "successToast": "Name updated.",
+      "errorToast": "Couldn't update name."
+    },
+    "email": {
+      "label": "Email address",
+      "successToast": "Email updated.",
+      "errorToast": "Couldn't update email.",
+      "conflictToast": "That email is already in use."
+    },
+    "password": {
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match.",
+      "save": "Change password",
+      "successToast": "Password changed. Other sessions were signed out.",
+      "errorToast": "Couldn't change password.",
+      "wrongCurrentToast": "Current password is incorrect.",
+      "weakToast": "New password is too weak."
     }
   },
   "settings": {
