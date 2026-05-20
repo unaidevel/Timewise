@@ -196,9 +196,7 @@ export default function EmployeesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {e.current_role_name ?? (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                        {e.current_role_name ?? <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell className="text-sm">{formatDate(e.hired_at)}</TableCell>
                       <TableCell>
@@ -393,7 +391,7 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
         hourly_rate: form.hourly_rate,
         contract_hours_per_week: Number(form.contract_hours_per_week),
         hired_at: form.hired_at,
-        manager_id: isManagerRole ? null : (form.manager_id ? Number(form.manager_id) : null),
+        manager_id: isManagerRole ? null : form.manager_id ? Number(form.manager_id) : null,
         is_department_manager: isManagerRole,
       },
       {
@@ -452,7 +450,11 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
               value={form.role_id}
               onValueChange={(v) => {
                 const roleName = (roles.data ?? []).find((r) => String(r.id) === v)?.name;
-                setForm({ ...form, role_id: v, manager_id: roleName === "Manager" ? "" : form.manager_id });
+                setForm({
+                  ...form,
+                  role_id: v,
+                  manager_id: roleName === "Manager" ? "" : form.manager_id,
+                });
               }}
             >
               <SelectTrigger>
