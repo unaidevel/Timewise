@@ -125,8 +125,8 @@ def list_time_reports_for_period(
     return TimekeepingOrchestrator.list_time_reports(
         tenant_id,
         current_user.id,
-        period_id=period_id,
-        scope=scope,  # type: ignore[arg-type]
+        period_id,
+        scope,
     )
 
 

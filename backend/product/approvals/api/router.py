@@ -92,7 +92,7 @@ def list_approvals(
         tenant_id,
         current_user.id,
         status,
-        scope,  # type: ignore[arg-type]
+        scope,
     )
 
 
