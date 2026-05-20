@@ -23,6 +23,7 @@ from product.workforce.dtos.dtos import (
     EmployeeOut,
     EmployeeRoleOut,
     EmployeeUpdate,
+    LinkEmployeeUserRequest,
     RemoveDepartmentManagerRequest,
     RoleIn,
     RoleOut,
@@ -315,6 +316,24 @@ def update_employee(
     request: Request,
 ) -> EmployeeOut:
     return WorkforceOrchestrator.update_employee(
+        tenant_id, employee_id, payload, user_id=current_user.id
+    )
+
+
+@router.put(
+    "/employees/{employee_id}/user",
+    response_model=EmployeeOut,
+    responses=responses_for(Forbidden, NotFound, Conflict, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def link_employee_user(
+    tenant_id: int,
+    employee_id: int,
+    payload: LinkEmployeeUserRequest,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> EmployeeOut:
+    return WorkforceOrchestrator.link_user(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
 
