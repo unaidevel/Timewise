@@ -418,7 +418,29 @@
       "joined": "Joined {{date}}",
       "inactive": "Inactive",
       "empty": "No members yet.",
-      "loading": "Loading…"
+      "loading": "Loading…",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "manager": "Manager",
+        "employee": "Employee",
+        "freelance": "Freelance"
+      },
+      "inviteDialog": {
+        "title": "Invite member",
+        "description": "Create an account and link it to an employee profile.",
+        "fullName": "Full name",
+        "email": "Email",
+        "password": "Password",
+        "role": "Workspace role",
+        "employee": "Link to employee",
+        "employeePlaceholder": "Select an employee…",
+        "noUnlinked": "No unlinked employees available.",
+        "submit": "Create and invite",
+        "submitting": "Creating…",
+        "successToast": "Member invited",
+        "errorToast": "Could not invite member"
+      }
     },
     "depts": {
       "title": "Departments",

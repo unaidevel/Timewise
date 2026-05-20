@@ -418,7 +418,29 @@
       "joined": "Se unió {{date}}",
       "inactive": "Inactivo",
       "empty": "Aún no hay miembros.",
-      "loading": "Cargando…"
+      "loading": "Cargando…",
+      "roles": {
+        "owner": "Propietario",
+        "admin": "Administrador",
+        "manager": "Manager",
+        "employee": "Empleado",
+        "freelance": "Freelance"
+      },
+      "inviteDialog": {
+        "title": "Invitar miembro",
+        "description": "Crea una cuenta y vincúlala a un perfil de empleado.",
+        "fullName": "Nombre completo",
+        "email": "Email",
+        "password": "Contraseña",
+        "role": "Rol en el workspace",
+        "employee": "Vincular a empleado",
+        "employeePlaceholder": "Selecciona un empleado…",
+        "noUnlinked": "No hay empleados sin vincular.",
+        "submit": "Crear e invitar",
+        "submitting": "Creando…",
+        "successToast": "Miembro invitado",
+        "errorToast": "No se pudo invitar al miembro"
+      }
     },
     "depts": {
       "title": "Departamentos",
