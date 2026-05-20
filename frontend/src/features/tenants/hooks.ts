@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { TenantIn } from "@/client";
+import type { AddMemberRequest, LinkEmployeeUserRequest, TenantIn } from "@/client";
 import {
+  addMemberApiV1TenantsTenantIdMembersPost,
   createApiV1TenantsPost,
   getByIdApiV1TenantsTenantIdGet,
+  linkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPut,
   listForUserApiV1TenantsGet,
   listMembersApiV1TenantsTenantIdMembersGet,
   seedDemoDataApiV1TenantsTenantIdDemoDataPost,
@@ -62,6 +64,41 @@ export function useMembers(tenantId: number | null) {
       if (error || !data) throw error;
       return data;
     },
+  });
+}
+
+export function useAddMember(tenantId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: AddMemberRequest) => {
+      const { data, error } = await addMemberApiV1TenantsTenantIdMembersPost({
+        path: { tenant_id: tenantId! },
+        body,
+      });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tenants", tenantId, "members"] }),
+  });
+}
+
+export function useLinkEmployeeUser(tenantId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      employeeId,
+      body,
+    }: { employeeId: number; body: LinkEmployeeUserRequest }) => {
+      const { data, error } = await linkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPut(
+        {
+          path: { tenant_id: tenantId!, employee_id: employeeId },
+          body,
+        },
+      );
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["employees", tenantId] }),
   });
 }
 
