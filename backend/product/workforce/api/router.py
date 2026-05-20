@@ -49,6 +49,12 @@ def create_department(
     current_user: RateLimitedUser,
     request: Request,
 ) -> DepartmentOut:
+    """
+    Creates a new department under the tenant with the given name/code/colour.
+    Returns DepartmentOut with HTTP 201 carrying the persisted department.
+    On error returns 409 (name/code collision), 422 (invalid fields), or 429 (rate limit).
+    Department code is unique per tenant; name collisions also raise 409.
+    """
     return WorkforceOrchestrator.create_department(
         tenant_id, payload, user_id=current_user.id
     )
@@ -63,6 +69,12 @@ def create_department(
 def list_departments(
     tenant_id: int, _: RateLimitedUser, request: Request
 ) -> list[DepartmentOut]:
+    """
+    Lists every department in the tenant (active and deactivated alike).
+    Returns list[DepartmentOut] ordered by name ascending.
+    On error returns 429 (rate limit); tenant scope is enforced via the URL path.
+    Frontends typically filter deactivated rows client-side; no server-side filter is applied here.
+    """
     return WorkforceService.list_departments(tenant_id)
 
 
@@ -75,6 +87,12 @@ def list_departments(
 def get_department(
     tenant_id: int, department_id: int, _: RateLimitedUser, request: Request
 ) -> DepartmentOut:
+    """
+    Fetches a single department by id, scoped to the tenant.
+    Returns DepartmentOut with name, code, colour, and active flag.
+    On error returns 404 (department missing in tenant) or 429 (rate limit).
+    Cross-tenant lookups are rejected even when the id is valid elsewhere.
+    """
     return WorkforceService.get_department(tenant_id, department_id)
 
 
@@ -90,6 +108,12 @@ def deactivate_department(
     current_user: RateLimitedUser,
     request: Request,
 ) -> DepartmentOut:
+    """
+    Soft-deletes the department by flipping its active flag to false.
+    Returns DepartmentOut showing the now-deactivated department.
+    On error returns 404 (department missing) or 429 (rate limit).
+    Existing employee/department assignments are preserved for history; only new ones are blocked.
+    """
     return WorkforceOrchestrator.deactivate_department(
         tenant_id, department_id, user_id=current_user.id
     )
@@ -108,6 +132,12 @@ def update_department(
     current_user: RateLimitedUser,
     request: Request,
 ) -> DepartmentOut:
+    """
+    Updates editable fields (name/code/colour/active) on an existing department.
+    Returns DepartmentOut with the post-update department.
+    On error returns 403 (caller cannot manage workforce), 404, 409 (collision), or 429.
+    Code uniqueness is re-checked on update; collisions raise 409.
+    """
     return WorkforceOrchestrator.update_department(
         tenant_id, department_id, payload, user_id=current_user.id
     )
@@ -127,6 +157,12 @@ def assign_department_manager(
     current_user: RateLimitedUser,
     request: Request,
 ) -> DepartmentManagerOut:
+    """
+    Assigns an employee as a manager of the department starting from the payload's effective date.
+    Returns DepartmentManagerOut with HTTP 201 describing the new assignment.
+    On error returns 403, 404 (department/employee missing), 409 (already manager), or 429.
+    Multiple managers per department are allowed; the assignment is kept as a historical row.
+    """
     return WorkforceOrchestrator.assign_department_manager(
         tenant_id, department_id, payload, user_id=current_user.id
     )
@@ -141,6 +177,12 @@ def assign_department_manager(
 def list_department_managers(
     tenant_id: int, department_id: int, _: RateLimitedUser, request: Request
 ) -> list[DepartmentManagerOut]:
+    """
+    Lists active manager assignments for the department.
+    Returns list[DepartmentManagerOut] with employee details and assignment dates.
+    On error returns 404 (department missing) or 429 (rate limit).
+    Inactive/ended assignments are excluded; use the assignment row id to remove if needed.
+    """
     return WorkforceService.list_department_managers(tenant_id, department_id)
 
 
@@ -158,6 +200,12 @@ def remove_department_manager(
     current_user: RateLimitedUser,
     request: Request,
 ) -> DepartmentManagerOut:
+    """
+    Ends a department-manager assignment on the date provided in the payload.
+    Returns DepartmentManagerOut showing the assignment with its end_date set.
+    On error returns 403, 404 (assignment missing), or 429 (rate limit).
+    Closes the assignment without deletion so reporting lines stay reconstructable.
+    """
     return WorkforceOrchestrator.remove_department_manager(
         tenant_id, department_id, assignment_id, payload, user_id=current_user.id
     )
@@ -179,6 +227,12 @@ def create_role(
     current_user: RateLimitedUser,
     request: Request,
 ) -> RoleOut:
+    """
+    Creates a new role definition (title + level + cost band) for the tenant.
+    Returns RoleOut with HTTP 201 carrying the persisted role.
+    On error returns 409 (title collision), 422 (invalid fields), or 429 (rate limit).
+    Role titles are unique per tenant; collisions raise 409.
+    """
     return WorkforceOrchestrator.create_role(
         tenant_id, payload, user_id=current_user.id
     )
@@ -191,6 +245,12 @@ def create_role(
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_roles(tenant_id: int, _: RateLimitedUser, request: Request) -> list[RoleOut]:
+    """
+    Lists every role defined in the tenant (active and deactivated alike).
+    Returns list[RoleOut] ordered by title ascending.
+    On error returns 429 (rate limit); membership is enforced via the URL path.
+    Deactivated roles are included so historical employee-role rows remain interpretable.
+    """
     return WorkforceService.list_roles(tenant_id)
 
 
@@ -203,6 +263,12 @@ def list_roles(tenant_id: int, _: RateLimitedUser, request: Request) -> list[Rol
 def get_role(
     tenant_id: int, role_id: int, _: RateLimitedUser, request: Request
 ) -> RoleOut:
+    """
+    Fetches a single role definition by id, scoped to the tenant.
+    Returns RoleOut with title, level, cost band, and active flag.
+    On error returns 404 (role missing in tenant) or 429 (rate limit).
+    Cross-tenant access is denied even with a valid id.
+    """
     return WorkforceService.get_role(tenant_id, role_id)
 
 
@@ -218,6 +284,12 @@ def deactivate_role(
     current_user: RateLimitedUser,
     request: Request,
 ) -> RoleOut:
+    """
+    Soft-deletes the role by flipping its active flag to false.
+    Returns RoleOut reflecting the deactivated state.
+    On error returns 404 (role missing) or 429 (rate limit).
+    Existing employee-role assignments remain valid for historical lookup; new assignments are blocked.
+    """
     return WorkforceOrchestrator.deactivate_role(
         tenant_id, role_id, user_id=current_user.id
     )
@@ -236,6 +308,12 @@ def update_role(
     current_user: RateLimitedUser,
     request: Request,
 ) -> RoleOut:
+    """
+    Updates editable fields (title/level/cost band/active) on an existing role.
+    Returns RoleOut with the post-update role.
+    On error returns 403, 404, 409 (title collision), or 429 (rate limit).
+    Past employee-role rows are not retroactively updated — only the role definition changes.
+    """
     return WorkforceOrchestrator.update_role(
         tenant_id, role_id, payload, user_id=current_user.id
     )
@@ -254,6 +332,12 @@ def create_employee(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeOut:
+    """
+    Creates a new employee record with optional initial department/role/manager assignments.
+    Returns EmployeeOut with HTTP 201 carrying the persisted employee.
+    On error returns 404 (referenced dep/role/manager missing), 409 (duplicate code), 422, or 429.
+    The orchestrator wires up the initial assignment rows in the same transaction as the employee row.
+    """
     return WorkforceOrchestrator.create_employee(
         tenant_id, payload, user_id=current_user.id
     )
@@ -268,6 +352,12 @@ def create_employee(
 def list_employees(
     tenant_id: int, _: RateLimitedUser, request: Request
 ) -> list[EmployeeOut]:
+    """
+    Lists every employee in the tenant (active and deactivated alike).
+    Returns list[EmployeeOut] ordered by full_name ascending.
+    On error returns 429 (rate limit); tenant scope is enforced via the URL path.
+    Deactivated employees are kept in the list so historical references resolve.
+    """
     return WorkforceService.list_employees(tenant_id)
 
 
@@ -280,6 +370,12 @@ def list_employees(
 def get_employee(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> EmployeeOut:
+    """
+    Fetches a single employee by id, scoped to the tenant.
+    Returns EmployeeOut with personal details and current department/role/manager pointers.
+    On error returns 404 (employee missing in tenant) or 429 (rate limit).
+    Cross-tenant access is denied; non-membership surfaces as 404 to avoid leakage.
+    """
     return WorkforceService.get_employee(tenant_id, employee_id)
 
 
@@ -295,6 +391,12 @@ def deactivate_employee(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeOut:
+    """
+    Soft-deletes the employee by setting active=false and closing open assignments.
+    Returns EmployeeOut showing the now-deactivated employee.
+    On error returns 404 (employee missing) or 429 (rate limit).
+    Linked user account remains intact; only the employee row is deactivated.
+    """
     return WorkforceOrchestrator.deactivate_employee(
         tenant_id, employee_id, user_id=current_user.id
     )
@@ -315,6 +417,12 @@ def update_employee(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeOut:
+    """
+    Updates editable employee fields (name, code, contact, status) without touching assignments.
+    Returns EmployeeOut with the post-update employee.
+    On error returns 403, 404, 409 (code collision), 422 (invalid fields), or 429.
+    Department/role/manager changes go through their dedicated endpoints, not this one.
+    """
     return WorkforceOrchestrator.update_employee(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
@@ -333,6 +441,12 @@ def link_employee_user(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeOut:
+    """
+    Links (or unlinks) an AuthUser account to the employee so that user can act as them in-app.
+    Returns EmployeeOut reflecting the updated user_id pointer (null when unlinking).
+    On error returns 403, 404 (employee/user missing), 409 (user already linked elsewhere), or 429.
+    The linked user must already be a member of the tenant.
+    """
     return WorkforceOrchestrator.link_user(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
@@ -351,6 +465,12 @@ def set_employee_manager(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeOut:
+    """
+    Sets (or clears) the manager_id of the employee — used to redraw the reporting line.
+    Returns EmployeeOut with the updated manager pointer.
+    On error returns 403, 404 (employee or manager missing/in another tenant), or 429.
+    Self-referencing managers and cross-tenant managers are rejected by the orchestrator.
+    """
     return WorkforceOrchestrator.set_employee_manager(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
@@ -365,6 +485,12 @@ def set_employee_manager(
 def get_direct_reports(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> list[EmployeeOut]:
+    """
+    Lists employees whose manager_id matches the given employee (their direct reports).
+    Returns list[EmployeeOut]; the array is empty if the employee manages no one.
+    On error returns 404 (employee missing) or 429 (rate limit).
+    Only direct reports are returned — descend recursively in the caller for full org-tree views.
+    """
     return WorkforceService.get_direct_reports(tenant_id, employee_id)
 
 
@@ -385,6 +511,12 @@ def assign_department(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeDepartmentOut:
+    """
+    Assigns the employee to a department from the payload's effective_from date.
+    Returns EmployeeDepartmentOut with HTTP 201 describing the new assignment row.
+    On error returns 404 (employee/department missing) or 429 (rate limit).
+    Closes the previously active assignment automatically — there is always at most one active.
+    """
     return WorkforceOrchestrator.assign_department(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
@@ -399,6 +531,12 @@ def assign_department(
 def get_active_department(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> EmployeeDepartmentOut:
+    """
+    Returns the employee's currently active department assignment (the one without an end_date).
+    Returns EmployeeDepartmentOut with the active assignment row.
+    On error returns 404 (employee missing OR no active department) or 429 (rate limit).
+    There is at most one active assignment; older ones are accessible via the history endpoint.
+    """
     return WorkforceService.get_active_department(tenant_id, employee_id)
 
 
@@ -411,6 +549,12 @@ def get_active_department(
 def list_department_history(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> list[EmployeeDepartmentOut]:
+    """
+    Lists the employee's full history of department assignments (past + current).
+    Returns list[EmployeeDepartmentOut] ordered by effective_from descending.
+    On error returns 404 (employee missing) or 429 (rate limit).
+    Includes closed assignments with their end_date set; the head row is the active one.
+    """
     return WorkforceService.list_department_history(tenant_id, employee_id)
 
 
@@ -428,6 +572,12 @@ def assign_role(
     current_user: RateLimitedUser,
     request: Request,
 ) -> EmployeeRoleOut:
+    """
+    Assigns a role to the employee starting from the payload's effective_from date.
+    Returns EmployeeRoleOut with HTTP 201 carrying the new assignment.
+    On error returns 404 (employee/role missing), 422 (invalid date), or 429.
+    Closes the previously active role assignment automatically; only one active role per employee.
+    """
     return WorkforceOrchestrator.assign_role(
         tenant_id, employee_id, payload, user_id=current_user.id
     )
@@ -442,6 +592,12 @@ def assign_role(
 def get_active_role(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> EmployeeRoleOut:
+    """
+    Returns the employee's currently active role assignment (the one without an end_date).
+    Returns EmployeeRoleOut with the active assignment row.
+    On error returns 404 (employee missing OR no active role) or 429 (rate limit).
+    At most one role is active at a time; the history endpoint exposes the rest.
+    """
     return WorkforceService.get_active_role(tenant_id, employee_id)
 
 
@@ -454,4 +610,10 @@ def get_active_role(
 def list_role_history(
     tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
 ) -> list[EmployeeRoleOut]:
+    """
+    Lists the employee's full history of role assignments (past + current).
+    Returns list[EmployeeRoleOut] ordered by effective_from descending.
+    On error returns 404 (employee missing) or 429 (rate limit).
+    Closed assignments retain their end_date; the head row is the currently active role.
+    """
     return WorkforceService.list_role_history(tenant_id, employee_id)
