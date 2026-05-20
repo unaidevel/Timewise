@@ -88,13 +88,14 @@ export function useLinkEmployeeUser(tenantId: number | null) {
     mutationFn: async ({
       employeeId,
       body,
-    }: { employeeId: number; body: LinkEmployeeUserRequest }) => {
-      const { data, error } = await linkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPut(
-        {
-          path: { tenant_id: tenantId!, employee_id: employeeId },
-          body,
-        },
-      );
+    }: {
+      employeeId: number;
+      body: LinkEmployeeUserRequest;
+    }) => {
+      const { data, error } = await linkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPut({
+        path: { tenant_id: tenantId!, employee_id: employeeId },
+        body,
+      });
       if (error || !data) throw error;
       return data;
     },

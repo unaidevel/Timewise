@@ -98,13 +98,7 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
   );
 }
 
-function InviteMemberDialog({
-  tenantId,
-  onDone,
-}: {
-  tenantId: number;
-  onDone: () => void;
-}) {
+function InviteMemberDialog({ tenantId, onDone }: { tenantId: number; onDone: () => void }) {
   const { t } = useTranslation();
   const employees = useEmployees(tenantId);
   const register = useRegister();
@@ -124,11 +118,7 @@ function InviteMemberDialog({
 
   const submitting = register.isPending || addMember.isPending || linkEmployee.isPending;
   const canSubmit =
-    !!fullName.trim() &&
-    !!email.trim() &&
-    !!password &&
-    !!employeeId &&
-    !submitting;
+    !!fullName.trim() && !!email.trim() && !!password && !!employeeId && !submitting;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -155,9 +145,7 @@ function InviteMemberDialog({
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>{t("settings.members.inviteDialog.title")}</DialogTitle>
-        <DialogDescription>
-          {t("settings.members.inviteDialog.description")}
-        </DialogDescription>
+        <DialogDescription>{t("settings.members.inviteDialog.description")}</DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
@@ -214,14 +202,10 @@ function InviteMemberDialog({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">
-            {t("settings.members.inviteDialog.employee")}
-          </Label>
+          <Label className="text-xs">{t("settings.members.inviteDialog.employee")}</Label>
           <Select value={employeeId} onValueChange={setEmployeeId}>
             <SelectTrigger>
-              <SelectValue
-                placeholder={t("settings.members.inviteDialog.employeePlaceholder")}
-              />
+              <SelectValue placeholder={t("settings.members.inviteDialog.employeePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {unlinkedEmployees.length === 0 ? (

@@ -12,11 +12,7 @@ import {
 import { Input } from "@/components/shadcn/input";
 import { Label } from "@/components/shadcn/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
-import {
-  useUpdateMyEmail,
-  useUpdateMyName,
-  useUpdateMyPassword,
-} from "@/features/auth/hooks";
+import { useUpdateMyEmail, useUpdateMyName, useUpdateMyPassword } from "@/features/auth/hooks";
 import { useAuthStore } from "@/features/auth/store";
 
 interface ProfileDialogProps {
@@ -65,9 +61,7 @@ function NameForm() {
   }, [user?.full_name]);
 
   const canSubmit =
-    !!fullName.trim() &&
-    fullName.trim() !== user?.full_name &&
-    !updateName.isPending;
+    !!fullName.trim() && fullName.trim() !== user?.full_name && !updateName.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,9 +108,7 @@ function EmailForm() {
   }, [user?.email]);
 
   const canSubmit =
-    !!email.trim() &&
-    email.trim().toLowerCase() !== user?.email &&
-    !updateEmail.isPending;
+    !!email.trim() && email.trim().toLowerCase() !== user?.email && !updateEmail.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -167,10 +159,7 @@ function PasswordForm() {
 
   const passwordsMatch = newPassword === confirmPassword;
   const canSubmit =
-    !!currentPassword &&
-    newPassword.length >= 8 &&
-    passwordsMatch &&
-    !updatePassword.isPending;
+    !!currentPassword && newPassword.length >= 8 && passwordsMatch && !updatePassword.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -237,16 +226,12 @@ function PasswordForm() {
           required
         />
         {confirmPassword && !passwordsMatch && (
-          <p className="text-xs text-destructive">
-            {t("profile.password.mismatch")}
-          </p>
+          <p className="text-xs text-destructive">{t("profile.password.mismatch")}</p>
         )}
       </div>
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={!canSubmit}>
-          {updatePassword.isPending
-            ? t("profile.submitting")
-            : t("profile.password.save")}
+          {updatePassword.isPending ? t("profile.submitting") : t("profile.password.save")}
         </Button>
       </div>
     </form>
