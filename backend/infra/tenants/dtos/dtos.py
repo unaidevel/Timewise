@@ -65,3 +65,8 @@ class OrganizationProfileOut(OrganizationProfileIn):
     tenant_id: int
     created_at: datetime
     updated_at: datetime
+
+
+class TimezoneOption(BaseModel):
+    value: str
+    label: str
