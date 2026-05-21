@@ -253,7 +253,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
             <QuickAction to="/employees" title={t("dashboard.quickActions.manageEmployees")} />
             <QuickAction to="/periods" title={t("dashboard.quickActions.periods")} />
             <QuickAction to="/approvals" title={t("dashboard.quickActions.approvals")} />
-            <QuickAction to="/costing-rules" title={t("dashboard.quickActions.costRules")} />
+            <QuickAction to="/settings" title={t("dashboard.quickActions.costRules")} />
           </CardContent>
         </Card>
       </section>

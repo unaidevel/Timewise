@@ -42,7 +42,6 @@
       "time": "Fichar horas",
       "reports": "Mis reportes",
       "approvals": "Aprobaciones",
-      "costingRules": "Reglas de coste",
       "costing": "Costing",
       "audit": "Auditoría",
       "settings": "Ajustes"
@@ -409,7 +408,7 @@
     "tabs": {
       "org": "Organización",
       "depts": "Departamentos",
-      "ot": "Horas extra",
+      "costRules": "Reglas de coste",
       "members": "Miembros"
     },
     "org": {
@@ -430,22 +429,6 @@
       "loadError": "No se pudo cargar el perfil de la organización",
       "saveError": "No se pudo guardar el perfil de la organización",
       "readOnly": "Solo los propietarios y administradores pueden editar el perfil."
-    },
-    "ot": {
-      "title": "Reglas de horas extra",
-      "subtitle": "Las horas por encima de los umbrales se pagan al multiplicador configurado al calcular costes.",
-      "fields": {
-        "weeklyThreshold": "Umbral semanal (horas)",
-        "weeklyMultiplier": "Multiplicador semanal",
-        "dailyThreshold": "Umbral diario (horas)",
-        "dailyMultiplier": "Multiplicador diario"
-      },
-      "previewTitle": "Vista previa de coste",
-      "previewText": "Un empleado a 50 €/h trabajando 50 horas en una semana (con una jornada de 10 horas) costaría <0>{{value}} €</0> con estas reglas.",
-      "save": "Guardar reglas",
-      "saving": "Guardando…",
-      "reset": "Restablecer",
-      "updated": "Reglas de horas extra actualizadas"
     },
     "members": {
       "title": "Miembros y roles",

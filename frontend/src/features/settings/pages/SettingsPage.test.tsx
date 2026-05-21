@@ -89,7 +89,7 @@ describe("SettingsPage", () => {
 
     const orgTab = await screen.findByRole("tab", { name: /Organization/ });
     expect(screen.getByRole("tab", { name: /Departments/ })).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Overtime/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Cost rules/ })).toBeTruthy();
     expect(screen.getByRole("tab", { name: /Members/ })).toBeTruthy();
 
     expect(orgTab.getAttribute("aria-selected")).toBe("true");
@@ -137,28 +137,18 @@ describe("SettingsPage", () => {
     });
   });
 
-  it("updates the overtime preview when the daily multiplier changes", async () => {
+  it("shows the cost-rules empty state when there are none", async () => {
     useTenantStore.setState({ currentTenantId: TENANT_ID });
     mockBaseEndpoints();
+    server.use(
+      http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/costing/rules`, () => HttpResponse.json([])),
+    );
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    await userEvent.click(await screen.findByRole("tab", { name: /Overtime/ }));
+    await userEvent.click(await screen.findByRole("tab", { name: /Cost rules/ }));
 
-    // With defaults (weekly=40, daily=8, weekly_mult=1.5, daily_mult=1.25):
-    // dailyOt=2, weeklyOt=8, reg=40 → 40*50 + 2*50*1.25 + 8*50*1.5 = 2725
-    expect(await screen.findByText(/2725/)).toBeTruthy();
-
-    const dailyMultiplierLabel = screen.getByText("Daily multiplier");
-    const dailyMultiplier = dailyMultiplierLabel.parentElement?.querySelector(
-      "input",
-    ) as HTMLInputElement;
-    expect(dailyMultiplier).toBeTruthy();
-    await userEvent.clear(dailyMultiplier);
-    await userEvent.type(dailyMultiplier, "2");
-
-    // Now daily_mult=2: 40*50 + 2*50*2 + 8*50*1.5 = 2800
-    expect(await screen.findByText(/2800/)).toBeTruthy();
+    expect(await screen.findByText(/No cost rules/)).toBeTruthy();
   });
 
   it("renders members from the API on the members tab", async () => {
