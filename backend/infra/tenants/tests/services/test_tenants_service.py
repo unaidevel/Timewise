@@ -264,13 +264,10 @@ def _default_payload(**overrides) -> OrganizationProfileIn:
     base = dict(
         public_name="Acme",
         legal_name="Acme S.L.",
-        workspace_name="acme",
         country="ES",
         timezone="Europe/Madrid",
         currency="EUR",
-        fiscal_year_start="01-01",
         vat_number="ESB12345678",
-        default_locale="es-ES",
     )
     base.update(overrides)
     return OrganizationProfileIn(**base)
@@ -295,7 +292,7 @@ class OrganizationProfileServiceTests(TestCase):
 
         assert profile.tenant_id == other_tenant.id
         assert profile.currency == "EUR"
-        assert profile.fiscal_year_start == "01-01"
+        assert profile.timezone == "UTC"
 
     def test_get_returns_profile_for_any_member(self):
         employee = make_user("employee@example.com")
@@ -393,14 +390,6 @@ class OrganizationProfileServiceTests(TestCase):
             OrganizationProfileService.update(
                 self.tenant.id,
                 _default_payload(currency="EU"),
-                self.owner.id,
-            )
-
-    def test_update_raises_unprocessable_for_invalid_fiscal(self):
-        with pytest.raises(UnprocessableEntity, match="fiscal_year_start"):
-            OrganizationProfileService.update(
-                self.tenant.id,
-                _default_payload(fiscal_year_start="13-01"),
                 self.owner.id,
             )
 

@@ -400,13 +400,10 @@ def _profile_payload(**overrides) -> OrganizationProfileIn:
     base = dict(
         public_name="Acme",
         legal_name="Acme S.L.",
-        workspace_name="acme",
         country="ES",
         timezone="Europe/Madrid",
         currency="EUR",
-        fiscal_year_start="01-01",
         vat_number="ESB12345678",
-        default_locale="es-ES",
     )
     base.update(overrides)
     return OrganizationProfileIn(**base)
@@ -435,7 +432,7 @@ class OrganizationProfileApiTests(TenantsApiTests):
 
         assert profile.tenant_id == tenant.id
         assert profile.currency == "EUR"
-        assert profile.fiscal_year_start == "01-01"
+        assert profile.timezone == "UTC"
 
     def test_get_organization_profile_returns_403_for_non_member(self):
         _, tenant = self._setup_tenant_with_owner()

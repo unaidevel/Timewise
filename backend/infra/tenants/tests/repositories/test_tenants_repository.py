@@ -302,13 +302,10 @@ def _make_entity(**overrides) -> OrganizationProfileUpdateEntity:
     defaults = {
         "public_name": "Acme",
         "legal_name": "Acme S.L.",
-        "workspace_name": "acme",
         "country": "ES",
         "timezone": "Europe/Madrid",
         "currency": "EUR",
-        "fiscal_year_start": "01-01",
         "vat_number": "ESB12345678",
-        "default_locale": "es-ES",
     }
     defaults.update(overrides)
     return OrganizationProfileUpdateEntity(**defaults)
@@ -328,7 +325,6 @@ class OrganizationProfileRepositoryTests(TestCase):
 
         assert created.tenant_id == tenant.id
         assert created.currency == "EUR"
-        assert created.fiscal_year_start == "01-01"
         assert created.timezone == "UTC"
         assert created.public_name == ""
         assert OrganizationProfileModel.objects.filter(tenant_id=tenant.id).exists()
@@ -353,13 +349,10 @@ class OrganizationProfileRepositoryTests(TestCase):
         assert updated is not None
         assert updated.public_name == "Acme"
         assert updated.legal_name == "Acme S.L."
-        assert updated.workspace_name == "acme"
         assert updated.country == "ES"
         assert updated.timezone == "Europe/Madrid"
         assert updated.currency == "EUR"
-        assert updated.fiscal_year_start == "01-01"
         assert updated.vat_number == "ESB12345678"
-        assert updated.default_locale == "es-ES"
 
     def test_update_returns_none_when_profile_is_missing(self):
         assert OrganizationProfileRepository.update(999, _make_entity()) is None
