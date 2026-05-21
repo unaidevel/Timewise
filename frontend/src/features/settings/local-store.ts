@@ -1,28 +1,10 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-export type OrgProfile = {
-  name: string;
-  legal_name: string;
-  country: string;
-  timezone: string;
-  currency: string;
-  fiscal_year_start: string;
-};
-
 export type OvertimeConfig = {
   weekly_threshold: number;
   multiplier: number;
   daily_threshold: number;
   daily_multiplier: number;
-};
-
-export const DEFAULT_ORG: OrgProfile = {
-  name: "",
-  legal_name: "",
-  country: "ES",
-  timezone: "Europe/Madrid",
-  currency: "EUR",
-  fiscal_year_start: "01-01",
 };
 
 export const DEFAULT_OT: OvertimeConfig = {
@@ -33,7 +15,6 @@ export const DEFAULT_OT: OvertimeConfig = {
 };
 
 const PREFIX = "timewise:settings";
-const KEY_ORG = (tenantId: number) => `${PREFIX}:org:${tenantId}`;
 const KEY_OT = (tenantId: number) => `${PREFIX}:ot:${tenantId}`;
 const KEY_DEPT_COLOR = (tenantId: number) => `${PREFIX}:dept-colors:${tenantId}`;
 
@@ -83,13 +64,6 @@ function writeJson<T>(key: string, value: T) {
   emit();
 }
 
-export function getOrgProfile(tenantId: number): OrgProfile {
-  return readJson<OrgProfile>(KEY_ORG(tenantId), DEFAULT_ORG);
-}
-export function setOrgProfile(tenantId: number, profile: OrgProfile) {
-  writeJson(KEY_ORG(tenantId), profile);
-}
-
 export function getOvertimeConfig(tenantId: number): OvertimeConfig {
   return readJson<OvertimeConfig>(KEY_OT(tenantId), DEFAULT_OT);
 }
@@ -106,17 +80,8 @@ export function setDepartmentColor(tenantId: number, departmentId: number, color
 }
 
 const EMPTY_COLORS: Record<number, string> = {};
-const getServerOrg = () => DEFAULT_ORG;
 const getServerOt = () => DEFAULT_OT;
 const getServerColors = () => EMPTY_COLORS;
-
-export function useOrgProfile(tenantId: number | null): OrgProfile {
-  const getSnapshot = useCallback(
-    () => (tenantId == null ? DEFAULT_ORG : getOrgProfile(tenantId)),
-    [tenantId],
-  );
-  return useSyncExternalStore(subscribe, getSnapshot, getServerOrg);
-}
 
 export function useOvertimeConfig(tenantId: number | null): OvertimeConfig {
   const getSnapshot = useCallback(
