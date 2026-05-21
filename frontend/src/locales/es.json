@@ -414,17 +414,14 @@
     },
     "org": {
       "title": "Perfil de organización",
-      "subtitle": "Nombre público, calendario fiscal y moneda para los reportes de coste.",
+      "subtitle": "Nombre público, país y moneda para los reportes de coste.",
       "fields": {
-        "name": "Nombre del workspace",
         "publicName": "Nombre público",
         "legalName": "Razón social",
         "country": "País",
         "timezone": "Zona horaria",
         "currency": "Moneda",
-        "fiscalYear": "Inicio de año fiscal (MM-DD)",
-        "vatNumber": "CIF / NIF",
-        "defaultLocale": "Idioma por defecto"
+        "vatNumber": "CIF / NIF"
       },
       "save": "Guardar cambios",
       "saving": "Guardando…",

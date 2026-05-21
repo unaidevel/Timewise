@@ -414,17 +414,14 @@
     },
     "org": {
       "title": "Organization profile",
-      "subtitle": "Public name, fiscal calendar and currency for cost reports.",
+      "subtitle": "Public name, country and currency for cost reports.",
       "fields": {
-        "name": "Workspace name",
         "publicName": "Public name",
         "legalName": "Legal name",
         "country": "Country",
         "timezone": "Timezone",
         "currency": "Currency",
-        "fiscalYear": "Fiscal year start (MM-DD)",
-        "vatNumber": "VAT number",
-        "defaultLocale": "Default locale"
+        "vatNumber": "VAT number"
       },
       "save": "Save changes",
       "saving": "Saving…",
