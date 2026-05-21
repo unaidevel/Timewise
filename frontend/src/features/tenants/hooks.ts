@@ -1,13 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AddMemberRequest, LinkEmployeeUserRequest, TenantIn } from "@/client";
+import type {
+  AddMemberRequest,
+  LinkEmployeeUserRequest,
+  OrganizationProfileIn,
+  TenantIn,
+} from "@/client";
 import {
   addMemberApiV1TenantsTenantIdMembersPost,
   createApiV1TenantsPost,
   getByIdApiV1TenantsTenantIdGet,
+  getOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGet,
   linkEmployeeUserApiV1TenantsTenantIdEmployeesEmployeeIdUserPut,
   listForUserApiV1TenantsGet,
   listMembersApiV1TenantsTenantIdMembersGet,
+  listTimezonesApiV1TenantsTimezonesGet,
   seedDemoDataApiV1TenantsTenantIdDemoDataPost,
+  updateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePut,
 } from "@/client";
 import { useAuthStore } from "@/features/auth/store";
 import { useDepartments } from "@/features/departments/hooks";
@@ -140,6 +148,51 @@ export function useCurrentMembershipRole(tenantId: number | null): string | null
 export function useIsTenantAdmin(tenantId: number | null): boolean {
   const role = useCurrentMembershipRole(tenantId);
   return role != null && ELEVATED_ROLES.has(role);
+}
+
+export function useOrganizationProfile(tenantId: number | null) {
+  return useQuery({
+    queryKey: ["tenants", tenantId, "organization-profile"],
+    enabled: tenantId != null,
+    queryFn: async () => {
+      const { data, error } =
+        await getOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGet({
+          path: { tenant_id: tenantId! },
+        });
+      if (error || !data) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateOrganizationProfile(tenantId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: OrganizationProfileIn) => {
+      const { data, error } =
+        await updateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePut({
+          path: { tenant_id: tenantId! },
+          body,
+        });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      qc.setQueryData(["tenants", tenantId, "organization-profile"], data);
+    },
+  });
+}
+
+export function useTimezones() {
+  return useQuery({
+    queryKey: ["timezones"],
+    staleTime: 24 * 60 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await listTimezonesApiV1TenantsTimezonesGet({});
+      if (error || !data) throw error;
+      return data;
+    },
+  });
 }
 
 export function useTenantIsEmpty(tenantId: number | null): boolean {
