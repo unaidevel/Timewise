@@ -98,9 +98,9 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
         <CardTitle className="text-base">{t("settings.org.title")}</CardTitle>
         <CardDescription>{t("settings.org.subtitle")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5 max-w-2xl">
+      <CardContent className="space-y-5">
         {!canEdit && <p className="text-xs text-muted-foreground">{t("settings.org.readOnly")}</p>}
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Field label={t("settings.org.fields.publicName")}>
             <Input
               value={form.public_name}
@@ -115,8 +115,6 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => upd("legal_name", e.target.value)}
             />
           </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
           <Field label={t("settings.org.fields.name")}>
             <Input
               value={form.workspace_name}
@@ -133,8 +131,6 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => upd("country", e.target.value.toUpperCase())}
             />
           </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
           <Field label={t("settings.org.fields.timezone")}>
             <TimezoneSelect
               value={form.timezone}
@@ -162,8 +158,6 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               </SelectContent>
             </Select>
           </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
           <Field label={t("settings.org.fields.fiscalYear")}>
             <Input
               value={form.fiscal_year_start}
@@ -180,8 +174,6 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => upd("vat_number", e.target.value)}
             />
           </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
           <Field label={t("settings.org.fields.defaultLocale")}>
             <Input
               value={form.default_locale}
