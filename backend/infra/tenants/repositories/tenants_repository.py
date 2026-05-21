@@ -144,13 +144,10 @@ class OrganizationProfileRepository:
         rows = OrganizationProfileModel.objects.filter(tenant_id=tenant_id).update(
             public_name=entity.public_name,
             legal_name=entity.legal_name,
-            workspace_name=entity.workspace_name,
             country=entity.country,
             timezone=entity.timezone,
             currency=entity.currency,
-            fiscal_year_start=entity.fiscal_year_start,
             vat_number=entity.vat_number,
-            default_locale=entity.default_locale,
         )
         if rows == 0:
             return None

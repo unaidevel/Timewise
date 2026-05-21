@@ -19,6 +19,6 @@ class TenantMembershipAdmin(admin.ModelAdmin):
 
 @admin.register(OrganizationProfileModel)
 class OrganizationProfileAdmin(admin.ModelAdmin):
-    list_display = ("tenant", "public_name", "country", "currency", "fiscal_year_start")
+    list_display = ("tenant", "public_name", "country", "currency")
     search_fields = ("tenant__slug", "public_name", "legal_name", "vat_number")
     list_filter = ("country", "currency")
