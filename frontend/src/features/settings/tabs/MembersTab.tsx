@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import type { EmployeeOut } from "@/client";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
@@ -39,9 +40,17 @@ type MemberRole = (typeof MEMBER_ROLES)[number];
 
 export function MembersTab({ tenantId }: { tenantId: number }) {
   const members = useMembers(tenantId);
+  const employees = useEmployees(tenantId);
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rows = members.data ?? [];
+  const employeeByUserId = useMemo(() => {
+    const map = new Map<number, EmployeeOut>();
+    for (const e of employees.data ?? []) {
+      if (e.user_id != null) map.set(e.user_id, e);
+    }
+    return map;
+  }, [employees.data]);
 
   return (
     <Card>
@@ -62,31 +71,36 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y">
-          {rows.map((m) => (
-            <div key={m.id} className="flex items-center gap-3 px-6 py-3">
-              <Avatar className="size-9">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                  #{m.user_id}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">
-                  {t("settings.members.userLabel", { id: m.user_id })}
+          {rows.map((m) => {
+            const employee = employeeByUserId.get(m.user_id);
+            const displayName =
+              employee?.full_name ?? t("settings.members.userLabel", { id: m.user_id });
+            return (
+              <div key={m.id} className="flex items-center gap-3 px-6 py-3">
+                <Avatar className="size-9">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                    #{m.user_id}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{displayName}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {employee?.email
+                      ? `${employee.email} · ${t("settings.members.joined", { date: formatDate(m.joined_at) })}`
+                      : t("settings.members.joined", { date: formatDate(m.joined_at) })}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {t("settings.members.joined", { date: formatDate(m.joined_at) })}
-                </div>
-              </div>
-              <Badge variant="outline" className="capitalize">
-                {m.role}
-              </Badge>
-              {m.left_at && (
-                <Badge variant="outline" className="text-muted-foreground">
-                  {t("settings.members.inactive")}
+                <Badge variant="outline" className="capitalize">
+                  {m.role}
                 </Badge>
-              )}
-            </div>
-          ))}
+                {m.left_at && (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    {t("settings.members.inactive")}
+                  </Badge>
+                )}
+              </div>
+            );
+          })}
           {rows.length === 0 && (
             <div className="p-12 text-center text-sm text-muted-foreground">
               {members.isLoading ? t("settings.members.loading") : t("settings.members.empty")}

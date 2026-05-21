@@ -155,7 +155,27 @@ describe("SettingsPage", () => {
     useTenantStore.setState({ currentTenantId: TENANT_ID });
     server.use(
       http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/departments`, () => HttpResponse.json([])),
-      http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () => HttpResponse.json([])),
+      http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/employees`, () =>
+        HttpResponse.json([
+          {
+            id: 7,
+            tenant_id: TENANT_ID,
+            user_id: 42,
+            manager_id: null,
+            full_name: "Alice Liddell",
+            email: "alice@example.com",
+            is_active: true,
+            hired_at: "2026-01-01",
+            current_department_id: null,
+            current_department_name: null,
+            current_role_name: null,
+            created_by_id: null,
+            updated_by_id: null,
+            created_at: "2026-01-01T00:00:00",
+            updated_at: "2026-01-01T00:00:00",
+          },
+        ]),
+      ),
       http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/members`, () =>
         HttpResponse.json([
           {
@@ -168,6 +188,16 @@ describe("SettingsPage", () => {
             left_at: null,
             left_reason: null,
           },
+          {
+            id: 2,
+            tenant_id: TENANT_ID,
+            user_id: 99,
+            role: "employee",
+            joined_at: "2026-01-15T00:00:00",
+            invited_by_id: null,
+            left_at: null,
+            left_reason: null,
+          },
         ]),
       ),
     );
@@ -176,7 +206,9 @@ describe("SettingsPage", () => {
 
     await userEvent.click(await screen.findByRole("tab", { name: /Members/ }));
 
-    expect(await screen.findByText("User #42")).toBeTruthy();
+    expect(await screen.findByText("Alice Liddell")).toBeTruthy();
+    expect(screen.getByText(/alice@example\.com/)).toBeTruthy();
+    expect(screen.getByText("User #99")).toBeTruthy();
     expect(screen.getByText("owner")).toBeTruthy();
   });
 
