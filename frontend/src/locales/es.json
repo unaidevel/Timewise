@@ -417,16 +417,22 @@
       "subtitle": "Nombre público, calendario fiscal y moneda para los reportes de coste.",
       "fields": {
         "name": "Nombre del workspace",
+        "publicName": "Nombre público",
         "legalName": "Razón social",
         "country": "País",
         "timezone": "Zona horaria",
         "currency": "Moneda",
-        "fiscalYear": "Inicio de año fiscal (MM-DD)"
+        "fiscalYear": "Inicio de año fiscal (MM-DD)",
+        "vatNumber": "CIF / NIF",
+        "defaultLocale": "Idioma por defecto"
       },
       "save": "Guardar cambios",
       "saving": "Guardando…",
       "reset": "Restablecer",
-      "updated": "Organización actualizada"
+      "updated": "Organización actualizada",
+      "loadError": "No se pudo cargar el perfil de la organización",
+      "saveError": "No se pudo guardar el perfil de la organización",
+      "readOnly": "Solo los propietarios y administradores pueden editar el perfil."
     },
     "ot": {
       "title": "Reglas de horas extra",
