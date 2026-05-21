@@ -35,13 +35,10 @@ function toFormState(profile: OrganizationProfileOut): FormState {
   return {
     public_name: profile.public_name ?? "",
     legal_name: profile.legal_name ?? "",
-    workspace_name: profile.workspace_name ?? "",
     country: profile.country ?? "",
     timezone: profile.timezone ?? "UTC",
     currency: profile.currency ?? "EUR",
-    fiscal_year_start: profile.fiscal_year_start ?? "01-01",
     vat_number: profile.vat_number ?? "",
-    default_locale: profile.default_locale ?? "",
   };
 }
 
@@ -115,13 +112,6 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               onChange={(e) => upd("legal_name", e.target.value)}
             />
           </Field>
-          <Field label={t("settings.org.fields.name")}>
-            <Input
-              value={form.workspace_name}
-              disabled={disabled}
-              onChange={(e) => upd("workspace_name", e.target.value)}
-            />
-          </Field>
           <Field label={t("settings.org.fields.country")}>
             <Input
               value={form.country}
@@ -158,28 +148,11 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               </SelectContent>
             </Select>
           </Field>
-          <Field label={t("settings.org.fields.fiscalYear")}>
-            <Input
-              value={form.fiscal_year_start}
-              disabled={disabled}
-              placeholder="01-01"
-              maxLength={5}
-              onChange={(e) => upd("fiscal_year_start", e.target.value)}
-            />
-          </Field>
           <Field label={t("settings.org.fields.vatNumber")}>
             <Input
               value={form.vat_number}
               disabled={disabled}
               onChange={(e) => upd("vat_number", e.target.value)}
-            />
-          </Field>
-          <Field label={t("settings.org.fields.defaultLocale")}>
-            <Input
-              value={form.default_locale}
-              disabled={disabled}
-              placeholder="es-ES"
-              onChange={(e) => upd("default_locale", e.target.value)}
             />
           </Field>
         </div>

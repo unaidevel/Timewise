@@ -652,10 +652,6 @@ export type OrganizationProfileIn = {
      */
     legal_name?: string;
     /**
-     * Workspace Name
-     */
-    workspace_name?: string;
-    /**
      * Country
      */
     country?: string;
@@ -668,17 +664,9 @@ export type OrganizationProfileIn = {
      */
     currency?: string;
     /**
-     * Fiscal Year Start
-     */
-    fiscal_year_start?: string;
-    /**
      * Vat Number
      */
     vat_number?: string;
-    /**
-     * Default Locale
-     */
-    default_locale?: string;
 };
 
 /**
@@ -694,10 +682,6 @@ export type OrganizationProfileOut = {
      */
     legal_name?: string;
     /**
-     * Workspace Name
-     */
-    workspace_name?: string;
-    /**
      * Country
      */
     country?: string;
@@ -710,17 +694,9 @@ export type OrganizationProfileOut = {
      */
     currency?: string;
     /**
-     * Fiscal Year Start
-     */
-    fiscal_year_start?: string;
-    /**
      * Vat Number
      */
     vat_number?: string;
-    /**
-     * Default Locale
-     */
-    default_locale?: string;
     /**
      * Id
      */

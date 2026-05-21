@@ -41,13 +41,10 @@ function makeOrgProfile(overrides: Record<string, unknown> = {}) {
     tenant_id: TENANT_ID,
     public_name: "",
     legal_name: "",
-    workspace_name: "",
     country: "",
     timezone: "UTC",
     currency: "EUR",
-    fiscal_year_start: "01-01",
     vat_number: "",
-    default_locale: "",
     created_at: "2026-01-01T00:00:00",
     updated_at: "2026-01-01T00:00:00",
     ...overrides,
@@ -117,24 +114,26 @@ describe("SettingsPage", () => {
       ),
       http.put(`${BASE}/api/v1/tenants/${TENANT_ID}/organization-profile`, async ({ request }) => {
         putBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json(makeOrgProfile({ workspace_name: "Acme Corp" }));
+        return HttpResponse.json(makeOrgProfile({ public_name: "Acme Corp" }));
       }),
     );
 
     render(<SettingsPage />, { wrapper: createRouterWrapper() });
 
-    const workspaceLabel = await screen.findByText("Workspace name");
-    const workspaceInput = workspaceLabel.parentElement?.querySelector("input") as HTMLInputElement;
-    expect(workspaceInput).toBeTruthy();
+    const publicNameLabel = await screen.findByText("Public name");
+    const publicNameInput = publicNameLabel.parentElement?.querySelector(
+      "input",
+    ) as HTMLInputElement;
+    expect(publicNameInput).toBeTruthy();
 
-    await userEvent.clear(workspaceInput);
-    await userEvent.type(workspaceInput, "Acme Corp");
+    await userEvent.clear(publicNameInput);
+    await userEvent.type(publicNameInput, "Acme Corp");
 
     await userEvent.click(screen.getByRole("button", { name: /Save changes/ }));
 
     await waitFor(() => {
       expect(putBody).not.toBeNull();
-      expect(putBody?.workspace_name).toBe("Acme Corp");
+      expect(putBody?.public_name).toBe("Acme Corp");
     });
   });
 
