@@ -44,10 +44,9 @@ import { usePeriodReports, usePeriods } from "@/features/periods/hooks";
 import {
   colorForDepartment,
   useDepartmentColors,
-  useOrgProfile,
   useOvertimeConfig,
 } from "@/features/settings/local-store";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 import { downloadCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +82,8 @@ function NoTenantState() {
 
 function Costing({ tenantId }: { tenantId: number }) {
   const otCfg = useOvertimeConfig(tenantId);
-  const org = useOrgProfile(tenantId);
+  const { data: org } = useOrganizationProfile(tenantId);
+  const currency = org?.currency ?? "EUR";
   const colors = useDepartmentColors(tenantId);
   const { t } = useTranslation();
 
@@ -334,14 +334,14 @@ function Costing({ tenantId }: { tenantId: number }) {
         <Kpi
           icon={DollarSign}
           label={t("costing.kpi.total")}
-          value={fmtCurrency(totals.total, org.currency)}
+          value={fmtCurrency(totals.total, currency)}
           hint={t("costing.kpi.totalHint", { hours: totals.hours.toFixed(0) })}
           loading={isLoading}
         />
         <Kpi
           icon={TrendingUp}
           label={t("costing.kpi.regular")}
-          value={fmtCurrency(totals.regCost, org.currency)}
+          value={fmtCurrency(totals.regCost, currency)}
           hint={t("costing.kpi.regularHint", {
             hours: (totals.hours - totals.otHours).toFixed(0),
           })}
@@ -350,7 +350,7 @@ function Costing({ tenantId }: { tenantId: number }) {
         <Kpi
           icon={AlertTriangle}
           label={t("costing.kpi.overtime")}
-          value={fmtCurrency(totals.otCost, org.currency)}
+          value={fmtCurrency(totals.otCost, currency)}
           hint={t("costing.kpi.overtimeHint", { hours: totals.otHours.toFixed(0) })}
           accent
           loading={isLoading}
@@ -358,9 +358,7 @@ function Costing({ tenantId }: { tenantId: number }) {
         <Kpi
           icon={Clock}
           label={t("costing.kpi.avgRate")}
-          value={
-            totals.hours > 0 ? `${fmtCurrency(totals.total / totals.hours, org.currency)}/h` : "—"
-          }
+          value={totals.hours > 0 ? `${fmtCurrency(totals.total / totals.hours, currency)}/h` : "—"}
           hint={t("costing.kpi.avgRateHint")}
           loading={isLoading}
         />
@@ -389,7 +387,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                     tickLine={false}
                     axisLine={false}
                     fontSize={12}
-                    tickFormatter={(v) => fmtCurrency(v as number, org.currency)}
+                    tickFormatter={(v) => fmtCurrency(v as number, currency)}
                   />
                   <Tooltip
                     cursor={{ fill: "var(--color-muted)" }}
@@ -399,7 +397,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(v: number) => fmtCurrency(v, org.currency)}
+                    formatter={(v: number) => fmtCurrency(v, currency)}
                   />
                   <Bar dataKey="cost" radius={[6, 6, 0, 0]}>
                     {byDept.map((d) => (
@@ -427,7 +425,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                       <span className="font-medium">{d.name}</span>
                     </div>
                     <span className="font-mono text-xs text-muted-foreground">
-                      {fmtCurrency(d.cost, org.currency)}
+                      {fmtCurrency(d.cost, currency)}
                     </span>
                   </div>
                   <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -500,7 +498,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
-                      {fmtCurrency(r.rate, org.currency)}/h
+                      {fmtCurrency(r.rate, currency)}/h
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
                       {r.totalHours.toFixed(1)}
@@ -514,7 +512,7 @@ function Costing({ tenantId }: { tenantId: number }) {
                       {r.otHours > 0 ? `+${r.otHours.toFixed(1)}` : "—"}
                     </TableCell>
                     <TableCell className="text-right font-mono font-semibold">
-                      {fmtCurrency(r.totalCost, org.currency)}
+                      {fmtCurrency(r.totalCost, currency)}
                     </TableCell>
                   </TableRow>
                 );
