@@ -78,3 +78,32 @@ class TenantMembershipModel(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user_id} @ {self.tenant_id} ({self.role})"
+
+
+class OrganizationProfileModel(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    tenant = models.OneToOneField(
+        TenantModel,
+        on_delete=models.CASCADE,
+        related_name="organization_profile",
+    )
+    public_name = models.CharField(max_length=200, blank=True, default="")
+    legal_name = models.CharField(max_length=200, blank=True, default="")
+    workspace_name = models.CharField(max_length=100, blank=True, default="")
+    country = models.CharField(max_length=2, blank=True, default="")
+    timezone = models.CharField(max_length=64, blank=True, default="UTC")
+    currency = models.CharField(max_length=3, default="EUR")
+    fiscal_year_start = models.CharField(max_length=5, default="01-01")
+    vat_number = models.CharField(max_length=32, blank=True, default="")
+    default_locale = models.CharField(max_length=10, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tenants_OrganizationProfile"
+        indexes = [
+            models.Index(fields=["tenant"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"OrgProfile<{self.tenant_id}>"
