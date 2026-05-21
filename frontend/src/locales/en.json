@@ -417,16 +417,22 @@
       "subtitle": "Public name, fiscal calendar and currency for cost reports.",
       "fields": {
         "name": "Workspace name",
+        "publicName": "Public name",
         "legalName": "Legal name",
         "country": "Country",
         "timezone": "Timezone",
         "currency": "Currency",
-        "fiscalYear": "Fiscal year start (MM-DD)"
+        "fiscalYear": "Fiscal year start (MM-DD)",
+        "vatNumber": "VAT number",
+        "defaultLocale": "Default locale"
       },
       "save": "Save changes",
       "saving": "Saving…",
       "reset": "Reset",
-      "updated": "Organization updated"
+      "updated": "Organization updated",
+      "loadError": "Could not load organization profile",
+      "saveError": "Could not save organization profile",
+      "readOnly": "Only owners and admins can edit the organization profile."
     },
     "ot": {
       "title": "Overtime rules",
