@@ -49,13 +49,10 @@ class TenantMemberResponse(BaseModel):
 class OrganizationProfileIn(BaseModel):
     public_name: str = Field(default="", max_length=200)
     legal_name: str = Field(default="", max_length=200)
-    workspace_name: str = Field(default="", max_length=100)
     country: str = Field(default="", max_length=2)
     timezone: str = Field(default="UTC", max_length=64)
     currency: str = Field(default="EUR", max_length=3)
-    fiscal_year_start: str = Field(default="01-01", max_length=5)
     vat_number: str = Field(default="", max_length=32)
-    default_locale: str = Field(default="", max_length=10)
 
 
 class OrganizationProfileOut(OrganizationProfileIn):

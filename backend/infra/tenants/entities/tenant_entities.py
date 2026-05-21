@@ -8,8 +8,6 @@ _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
 _VALID_ROLES = {role.value for role in MembershipRoles}
 _COUNTRY_RE = re.compile(r"^[A-Z]{2}$")
 _CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
-_FISCAL_RE = re.compile(r"^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$")
-_LOCALE_RE = re.compile(r"^[a-z]{2}(-[A-Z]{2})?$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,13 +95,10 @@ class TenantMembershipEntity:
 class OrganizationProfileUpdateEntity:
     public_name: str
     legal_name: str
-    workspace_name: str
     country: str
     timezone: str
     currency: str
-    fiscal_year_start: str
     vat_number: str
-    default_locale: str
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -115,22 +110,11 @@ class OrganizationProfileUpdateEntity:
             self, "legal_name", self._validate_text(self.legal_name, "legal_name", 200)
         )
         object.__setattr__(
-            self,
-            "workspace_name",
-            self._validate_text(self.workspace_name, "workspace_name", 100),
-        )
-        object.__setattr__(
             self, "vat_number", self._validate_text(self.vat_number, "vat_number", 32)
         )
         object.__setattr__(self, "country", self._validate_country(self.country))
         object.__setattr__(self, "timezone", self._validate_timezone(self.timezone))
         object.__setattr__(self, "currency", self._validate_currency(self.currency))
-        object.__setattr__(
-            self, "fiscal_year_start", self._validate_fiscal(self.fiscal_year_start)
-        )
-        object.__setattr__(
-            self, "default_locale", self._validate_locale(self.default_locale)
-        )
 
     @staticmethod
     def _validate_text(value: str, field: str, max_len: int) -> str:
@@ -168,22 +152,4 @@ class OrganizationProfileUpdateEntity:
             raise UnprocessableEntity(
                 "currency must be a 3-letter ISO-4217 code (e.g. 'EUR')."
             )
-        return clean
-
-    @staticmethod
-    def _validate_fiscal(value: str) -> str:
-        clean = (value or "").strip()
-        if not clean:
-            return "01-01"
-        if not _FISCAL_RE.match(clean):
-            raise UnprocessableEntity(
-                "fiscal_year_start must be in MM-DD format (e.g. '01-01')."
-            )
-        return clean
-
-    @staticmethod
-    def _validate_locale(value: str) -> str:
-        clean = (value or "").strip()
-        if clean and not _LOCALE_RE.match(clean):
-            raise UnprocessableEntity("default_locale must look like 'es' or 'es-ES'.")
         return clean
