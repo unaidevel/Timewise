@@ -9,11 +9,9 @@ import { Input, Select } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
-import { useCreateOvertimeRule, useOvertimeRules } from "../hooks";
+import { useCreateOvertimeRule, useOvertimeRules } from "@/features/costing-rules/hooks";
 
-export default function CostingRulesPage() {
-  const tenantId = useCurrentTenantId();
+export function CostRulesTab({ tenantId }: { tenantId: number }) {
   const { data: rules = [], isLoading } = useOvertimeRules(tenantId);
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -80,13 +78,20 @@ export default function CostingRulesPage() {
         )}
       </CardBody>
 
-      <CreateRuleModal open={open} onClose={() => setOpen(false)} />
+      <CreateRuleModal tenantId={tenantId} open={open} onClose={() => setOpen(false)} />
     </Card>
   );
 }
 
-function CreateRuleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const tenantId = useCurrentTenantId();
+function CreateRuleModal({
+  tenantId,
+  open,
+  onClose,
+}: {
+  tenantId: number;
+  open: boolean;
+  onClose: () => void;
+}) {
   const create = useCreateOvertimeRule(tenantId);
   const { t } = useTranslation();
   const [form, setForm] = useState({

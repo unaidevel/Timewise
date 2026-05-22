@@ -4,11 +4,24 @@ from django.test import TestCase
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
-from infra.common.exceptions import Conflict, NotFound, UnprocessableEntity
-from infra.tenants.dtos.dtos import AddMemberRequest, TenantMemberResponse, TenantOut
+from infra.common.exceptions import (
+    Conflict,
+    Forbidden,
+    NotFound,
+    UnprocessableEntity,
+)
+from infra.tenants.dtos.dtos import (
+    AddMemberRequest,
+    OrganizationProfileIn,
+    TenantMemberResponse,
+    TenantOut,
+)
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.models import TenantMembershipModel
-from infra.tenants.services.tenants_service import TenantService
+from infra.tenants.services.tenants_service import (
+    OrganizationProfileService,
+    TenantService,
+)
 
 
 def make_user(email: str = "owner@example.com"):
@@ -244,4 +257,152 @@ class TenantServiceMemberTests(TestCase):
         with pytest.raises(NotFound, match="Membership not found or already inactive"):
             TenantService.remove_member(
                 tenant_id=self.tenant.id, membership_id=999, reason=""
+            )
+
+
+def _default_payload(**overrides) -> OrganizationProfileIn:
+    base = dict(
+        public_name="Acme",
+        legal_name="Acme S.L.",
+        country="ES",
+        timezone="Europe/Madrid",
+        currency="EUR",
+        vat_number="ESB12345678",
+    )
+    base.update(overrides)
+    return OrganizationProfileIn(**base)
+
+
+class OrganizationProfileServiceTests(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.tenant = make_tenant(self.owner.id)
+        TenantService.add_membership(
+            tenant_id=self.tenant.id,
+            user_id=self.owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+        OrganizationProfileService.create_default(self.tenant.id)
+
+    def test_create_default_returns_profile_with_backend_defaults(self):
+        other_tenant = make_tenant(self.owner.id, slug="beta")
+
+        profile = OrganizationProfileService.create_default(other_tenant.id)
+
+        assert profile.tenant_id == other_tenant.id
+        assert profile.currency == "EUR"
+        assert profile.timezone == "UTC"
+
+    def test_get_returns_profile_for_any_member(self):
+        employee = make_user("employee@example.com")
+        TenantService.add_member(
+            tenant_id=self.tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            invited_by_id=self.owner.id,
+        )
+
+        profile = OrganizationProfileService.get(self.tenant.id, employee.id)
+
+        assert profile.tenant_id == self.tenant.id
+
+    def test_get_raises_forbidden_for_non_member(self):
+        outsider = make_user("outsider@example.com")
+
+        with pytest.raises(Forbidden):
+            OrganizationProfileService.get(self.tenant.id, outsider.id)
+
+    def test_get_raises_not_found_when_profile_missing(self):
+        other_tenant = make_tenant(self.owner.id, slug="beta")
+        TenantService.add_membership(
+            tenant_id=other_tenant.id,
+            user_id=self.owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+
+        with pytest.raises(NotFound, match="Organization profile"):
+            OrganizationProfileService.get(other_tenant.id, self.owner.id)
+
+    def test_update_persists_and_returns_changes_for_owner(self):
+        updated = OrganizationProfileService.update(
+            self.tenant.id, _default_payload(public_name="New"), self.owner.id
+        )
+
+        assert updated.public_name == "New"
+        # Subsequent get returns the same data
+        assert (
+            OrganizationProfileService.get(self.tenant.id, self.owner.id).public_name
+            == "New"
+        )
+
+    def test_update_allows_admins(self):
+        admin = make_user("admin@example.com")
+        TenantService.add_member(
+            tenant_id=self.tenant.id,
+            payload=AddMemberRequest(
+                user_id=admin.id, role=MembershipRoles.ADMIN.value
+            ),
+            invited_by_id=self.owner.id,
+        )
+
+        updated = OrganizationProfileService.update(
+            self.tenant.id, _default_payload(public_name="By Admin"), admin.id
+        )
+
+        assert updated.public_name == "By Admin"
+
+    def test_update_rejects_non_admin_member(self):
+        employee = make_user("employee@example.com")
+        TenantService.add_member(
+            tenant_id=self.tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            invited_by_id=self.owner.id,
+        )
+
+        with pytest.raises(Forbidden):
+            OrganizationProfileService.update(
+                self.tenant.id, _default_payload(), employee.id
+            )
+
+    def test_update_rejects_non_member(self):
+        outsider = make_user("outsider@example.com")
+
+        with pytest.raises(Forbidden):
+            OrganizationProfileService.update(
+                self.tenant.id, _default_payload(), outsider.id
+            )
+
+    def test_update_raises_unprocessable_for_invalid_timezone(self):
+        with pytest.raises(UnprocessableEntity, match="timezone"):
+            OrganizationProfileService.update(
+                self.tenant.id,
+                _default_payload(timezone="Mars/Olympus"),
+                self.owner.id,
+            )
+
+    def test_update_raises_unprocessable_for_invalid_currency(self):
+        with pytest.raises(UnprocessableEntity, match="currency"):
+            OrganizationProfileService.update(
+                self.tenant.id,
+                _default_payload(currency="EU"),
+                self.owner.id,
+            )
+
+    def test_update_raises_not_found_when_profile_is_missing(self):
+        other_tenant = make_tenant(self.owner.id, slug="beta")
+        TenantService.add_membership(
+            tenant_id=other_tenant.id,
+            user_id=self.owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
+
+        with pytest.raises(NotFound, match="Organization profile"):
+            OrganizationProfileService.update(
+                other_tenant.id, _default_payload(), self.owner.id
             )

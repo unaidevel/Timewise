@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Request, status
 
 from infra.authz.api.dependencies import RateLimitedUser
+from infra.common.classes import timezone_choices
 from infra.common.exceptions import (
     Conflict,
+    Forbidden,
     NotFound,
     TooManyRequests,
     UnprocessableEntity,
@@ -11,13 +13,19 @@ from infra.common.exceptions import (
 from infra.common.rate_limiting import USER_RATE_LIMIT, limiter, user_or_ip_key
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
+    OrganizationProfileIn,
+    OrganizationProfileOut,
     TenantIn,
     TenantMemberResponse,
     TenantOut,
     TenantUpdate,
+    TimezoneOption,
 )
 from infra.tenants.orchestrators.tenant_orchestrator import TenantOrchestrator
-from infra.tenants.services.tenants_service import TenantService
+from infra.tenants.services.tenants_service import (
+    OrganizationProfileService,
+    TenantService,
+)
 
 router = APIRouter(prefix="/api/v1/tenants", tags=["tenants"])
 
@@ -73,6 +81,22 @@ def update(
     Requires the caller to be an owner of the target tenant.
     """
     return TenantService.update_tenant(payload, current_user.id)
+
+
+@router.get(
+    "/timezones",
+    response_model=list[TimezoneOption],
+    responses=responses_for(TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def list_timezones(_: RateLimitedUser, request: Request) -> list[TimezoneOption]:
+    """
+    Lists the curated timezones supported by the organization profile dropdown.
+    Returns list[TimezoneOption] with `value` (IANA name) and `label` (offset + city).
+    On error returns 429 (rate limit); authentication enforced by the dependency.
+    Offsets are computed from the server's current time and reflect DST when applicable.
+    """
+    return [TimezoneOption(**opt) for opt in timezone_choices()]
 
 
 @router.get(
@@ -161,3 +185,42 @@ def remove_member(
         membership_id,
         reason,
     )
+
+
+@router.get(
+    "/{tenant_id}/organization-profile",
+    response_model=OrganizationProfileOut,
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def get_organization_profile(
+    tenant_id: int, current_user: RateLimitedUser, request: Request
+) -> OrganizationProfileOut:
+    """
+    Fetches the organization profile (public/legal name, currency, fiscal calendar, etc.).
+    Returns OrganizationProfileOut with the persisted profile fields.
+    On error returns 403 (caller is not a member), 404 (profile missing), or 429.
+    Profile is auto-created when the tenant is created; older tenants get one via migration backfill.
+    """
+    return OrganizationProfileService.get(tenant_id, current_user.id)
+
+
+@router.put(
+    "/{tenant_id}/organization-profile",
+    response_model=OrganizationProfileOut,
+    responses=responses_for(Forbidden, NotFound, UnprocessableEntity, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def update_organization_profile(
+    tenant_id: int,
+    payload: OrganizationProfileIn,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> OrganizationProfileOut:
+    """
+    Updates the organization profile (workspace identity, fiscal calendar, currency, locale).
+    Returns OrganizationProfileOut with the post-update profile snapshot.
+    On error returns 403 (caller not owner/admin), 404 (profile missing), 422, or 429.
+    Restricted to owners and admins; country/currency/locale formats are validated server-side.
+    """
+    return OrganizationProfileService.update(tenant_id, payload, current_user.id)

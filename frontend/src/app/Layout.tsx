@@ -64,7 +64,6 @@ export function Layout() {
     { to: "/time", label: t("layout.nav.time"), icon: Clock },
     { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
     { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
-    { to: "/costing-rules", label: t("layout.nav.costingRules"), icon: Calculator },
     { to: "/costing", label: t("layout.nav.costing"), icon: Calculator },
     { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText },
     { to: "/settings", label: t("layout.nav.settings"), icon: Settings },

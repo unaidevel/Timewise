@@ -1,12 +1,21 @@
 from datetime import datetime
 
-from infra.tenants.dtos.dtos import TenantMemberResponse, TenantOut
+from infra.tenants.dtos.dtos import (
+    OrganizationProfileOut,
+    TenantMemberResponse,
+    TenantOut,
+)
 from infra.tenants.entities.tenant_entities import (
+    OrganizationProfileUpdateEntity,
     TenantEntity,
     TenantMembershipEntity,
     TenantUpdateEntity,
 )
-from infra.tenants.models import TenantMembershipModel, TenantModel
+from infra.tenants.models import (
+    OrganizationProfileModel,
+    TenantMembershipModel,
+    TenantModel,
+)
 
 
 class TenantRepository:
@@ -111,3 +120,36 @@ class TenantRepository:
     @staticmethod
     def tenant_exists_by_slug(slug: str) -> bool:
         return TenantModel.objects.filter(slug=slug).exists()
+
+
+class OrganizationProfileRepository:
+    @staticmethod
+    def create_default(tenant_id: int) -> OrganizationProfileOut:
+        model = OrganizationProfileModel.objects.create(tenant_id=tenant_id)
+        return OrganizationProfileOut.model_validate(model)
+
+    @staticmethod
+    def get_by_tenant(tenant_id: int) -> OrganizationProfileOut | None:
+        model = OrganizationProfileModel.objects.filter(tenant_id=tenant_id).first()
+        return OrganizationProfileOut.model_validate(model) if model else None
+
+    @staticmethod
+    def update(
+        tenant_id: int, entity: OrganizationProfileUpdateEntity
+    ) -> OrganizationProfileOut | None:
+        if not isinstance(entity, OrganizationProfileUpdateEntity):
+            raise TypeError(
+                f"Expected OrganizationProfileUpdateEntity, got {type(entity).__name__}"
+            )
+        rows = OrganizationProfileModel.objects.filter(tenant_id=tenant_id).update(
+            public_name=entity.public_name,
+            legal_name=entity.legal_name,
+            country=entity.country,
+            timezone=entity.timezone,
+            currency=entity.currency,
+            vat_number=entity.vat_number,
+        )
+        if rows == 0:
+            return None
+        model = OrganizationProfileModel.objects.get(tenant_id=tenant_id)
+        return OrganizationProfileOut.model_validate(model)

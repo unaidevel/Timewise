@@ -42,7 +42,6 @@
       "time": "Log hours",
       "reports": "My reports",
       "approvals": "Approvals",
-      "costingRules": "Cost rules",
       "costing": "Costing",
       "audit": "Audit",
       "settings": "Settings"
@@ -409,40 +408,27 @@
     "tabs": {
       "org": "Organization",
       "depts": "Departments",
-      "ot": "Overtime",
+      "costRules": "Cost rules",
       "members": "Members"
     },
     "org": {
       "title": "Organization profile",
-      "subtitle": "Public name, fiscal calendar and currency for cost reports.",
+      "subtitle": "Public name, country and currency for cost reports.",
       "fields": {
-        "name": "Workspace name",
+        "publicName": "Public name",
         "legalName": "Legal name",
         "country": "Country",
         "timezone": "Timezone",
         "currency": "Currency",
-        "fiscalYear": "Fiscal year start (MM-DD)"
+        "vatNumber": "VAT number"
       },
       "save": "Save changes",
       "saving": "Saving…",
       "reset": "Reset",
-      "updated": "Organization updated"
-    },
-    "ot": {
-      "title": "Overtime rules",
-      "subtitle": "Hours above the thresholds are paid at the configured multiplier when calculating costs.",
-      "fields": {
-        "weeklyThreshold": "Weekly threshold (hours)",
-        "weeklyMultiplier": "Weekly multiplier",
-        "dailyThreshold": "Daily threshold (hours)",
-        "dailyMultiplier": "Daily multiplier"
-      },
-      "previewTitle": "Cost preview",
-      "previewText": "An employee at €50/h working 50 hours in a week (with a 10-hour day) would cost <0>{{value}} €</0> with these rules.",
-      "save": "Save rules",
-      "saving": "Saving…",
-      "reset": "Reset",
-      "updated": "Overtime rules updated"
+      "updated": "Organization updated",
+      "loadError": "Could not load organization profile",
+      "saveError": "Could not save organization profile",
+      "readOnly": "Only owners and admins can edit the organization profile."
     },
     "members": {
       "title": "Members and roles",

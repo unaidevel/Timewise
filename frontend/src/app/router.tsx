@@ -6,7 +6,6 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import CostingPage from "@/features/costing/pages/CostingPage";
 import CostingRuleDetailPage from "@/features/costing-rules/pages/CostingRuleDetailPage";
-import CostingRulesPage from "@/features/costing-rules/pages/CostingRulesPage";
 import HomePage from "@/features/dashboard/pages/HomePage";
 import DepartmentsPage from "@/features/departments/pages/DepartmentsPage";
 import EmployeeDetailPage from "@/features/employees/pages/EmployeeDetailPage";
@@ -41,7 +40,6 @@ export const router = createBrowserRouter([
           { path: "/reports", element: <TimeReportsPage /> },
           { path: "/reports/:id", element: <TimeReportDetailPage /> },
           { path: "/approvals", element: <ApprovalsPage /> },
-          { path: "/costing-rules", element: <CostingRulesPage /> },
           { path: "/costing-rules/:id", element: <CostingRuleDetailPage /> },
           { path: "/costing", element: <CostingPage /> },
           { path: "/settings", element: <SettingsPage /> },

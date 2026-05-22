@@ -640,6 +640,82 @@ export type LoginResponse = {
 };
 
 /**
+ * OrganizationProfileIn
+ */
+export type OrganizationProfileIn = {
+    /**
+     * Public Name
+     */
+    public_name?: string;
+    /**
+     * Legal Name
+     */
+    legal_name?: string;
+    /**
+     * Country
+     */
+    country?: string;
+    /**
+     * Timezone
+     */
+    timezone?: string;
+    /**
+     * Currency
+     */
+    currency?: string;
+    /**
+     * Vat Number
+     */
+    vat_number?: string;
+};
+
+/**
+ * OrganizationProfileOut
+ */
+export type OrganizationProfileOut = {
+    /**
+     * Public Name
+     */
+    public_name?: string;
+    /**
+     * Legal Name
+     */
+    legal_name?: string;
+    /**
+     * Country
+     */
+    country?: string;
+    /**
+     * Timezone
+     */
+    timezone?: string;
+    /**
+     * Currency
+     */
+    currency?: string;
+    /**
+     * Vat Number
+     */
+    vat_number?: string;
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Tenant Id
+     */
+    tenant_id: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
  * OvertimeRuleIn
  */
 export type OvertimeRuleIn = {
@@ -1315,6 +1391,20 @@ export type TimeReportStatusHistoryOut = {
      * Changed At
      */
     changed_at: string;
+};
+
+/**
+ * TimezoneOption
+ */
+export type TimezoneOption = {
+    /**
+     * Value
+     */
+    value: string;
+    /**
+     * Label
+     */
+    label: string;
 };
 
 /**
@@ -4435,6 +4525,113 @@ export type RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses =
 };
 
 export type RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponse = RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses[keyof RemoveMemberApiV1TenantsTenantIdMembersMembershipIdDeleteResponses];
+
+export type GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetData = {
+    body?: never;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/organization-profile';
+};
+
+export type GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetError = GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetErrors[keyof GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetErrors];
+
+export type GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationProfileOut;
+};
+
+export type GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetResponse = GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetResponses[keyof GetOrganizationProfileApiV1TenantsTenantIdOrganizationProfileGetResponses];
+
+export type UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutData = {
+    body: OrganizationProfileIn;
+    path: {
+        /**
+         * Tenant Id
+         */
+        tenant_id: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenant_id}/organization-profile';
+};
+
+export type UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Unprocessable Entity
+     */
+    422: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationProfileOut;
+};
+
+export type UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutResponse = UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutResponses[keyof UpdateOrganizationProfileApiV1TenantsTenantIdOrganizationProfilePutResponses];
+
+export type ListTimezonesApiV1TenantsTimezonesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tenants/timezones';
+};
+
+export type ListTimezonesApiV1TenantsTimezonesGetErrors = {
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type ListTimezonesApiV1TenantsTimezonesGetResponses = {
+    /**
+     * Response List Timezones Api V1 Tenants Timezones Get
+     *
+     * Successful Response
+     */
+    200: Array<TimezoneOption>;
+};
+
+export type ListTimezonesApiV1TenantsTimezonesGetResponse = ListTimezonesApiV1TenantsTimezonesGetResponses[keyof ListTimezonesApiV1TenantsTimezonesGetResponses];
 
 export type ListEventsApiV1TenantsTenantIdAuditEventsGetData = {
     body?: never;

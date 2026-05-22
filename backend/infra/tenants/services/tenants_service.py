@@ -1,20 +1,26 @@
 from django.utils import timezone
 
 from infra.common.exceptions import Conflict, NotFound
-from infra.tenants.decorators import only_admin
+from infra.tenants.decorators import any_employee, only_admin
 from infra.tenants.dtos.dtos import (
     AddMemberRequest,
+    OrganizationProfileIn,
+    OrganizationProfileOut,
     TenantMemberResponse,
     TenantOut,
     TenantUpdate,
 )
 from infra.tenants.entities.tenant_entities import (
+    OrganizationProfileUpdateEntity,
     TenantEntity,
     TenantMemberEntity,
     TenantMembershipEntity,
     TenantUpdateEntity,
 )
-from infra.tenants.repositories.tenants_repository import TenantRepository
+from infra.tenants.repositories.tenants_repository import (
+    OrganizationProfileRepository,
+    TenantRepository,
+)
 
 
 class TenantService:
@@ -102,3 +108,28 @@ class TenantService:
     @staticmethod
     def tenant_exists_by_slug(slug: str) -> bool:
         return TenantRepository.tenant_exists_by_slug(slug)
+
+
+class OrganizationProfileService:
+    @staticmethod
+    def create_default(tenant_id: int) -> OrganizationProfileOut:
+        return OrganizationProfileRepository.create_default(tenant_id)
+
+    @staticmethod
+    @any_employee
+    def get(tenant_id: int, user_id: int) -> OrganizationProfileOut:
+        profile = OrganizationProfileRepository.get_by_tenant(tenant_id)
+        if not profile:
+            raise NotFound(f"Organization profile for tenant {tenant_id} not found.")
+        return profile
+
+    @staticmethod
+    @only_admin
+    def update(
+        tenant_id: int, payload: OrganizationProfileIn, user_id: int
+    ) -> OrganizationProfileOut:
+        entity = OrganizationProfileUpdateEntity(**payload.model_dump())
+        updated = OrganizationProfileRepository.update(tenant_id, entity)
+        if not updated:
+            raise NotFound(f"Organization profile for tenant {tenant_id} not found.")
+        return updated

@@ -44,7 +44,7 @@ export function CommandPalette({
     { to: "/periods", label: t("commandPalette.pages.periods"), icon: Clock },
     { to: "/reports", label: t("commandPalette.pages.reports"), icon: Clock },
     { to: "/approvals", label: t("commandPalette.pages.approvals"), icon: CheckSquare },
-    { to: "/costing-rules", label: t("commandPalette.pages.costingRules"), icon: Calculator },
+    { to: "/settings", label: t("commandPalette.pages.costingRules"), icon: Calculator },
   ];
 
   const go = (to: string) => {

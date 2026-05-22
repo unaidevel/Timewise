@@ -1,12 +1,12 @@
-import { Building2, Clock, Layers, Users } from "lucide-react";
+import { Building2, Calculator, Layers, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
+import { CostRulesTab } from "@/features/settings/tabs/CostRulesTab";
 import { DepartmentsTab } from "@/features/settings/tabs/DepartmentsTab";
 import { MembersTab } from "@/features/settings/tabs/MembersTab";
 import { OrganizationTab } from "@/features/settings/tabs/OrganizationTab";
-import { OvertimeTab } from "@/features/settings/tabs/OvertimeTab";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 
 export default function SettingsPage() {
@@ -31,9 +31,9 @@ export default function SettingsPage() {
             <Layers className="size-4 mr-1.5" />
             {t("settings.tabs.depts")}
           </TabsTrigger>
-          <TabsTrigger value="ot">
-            <Clock className="size-4 mr-1.5" />
-            {t("settings.tabs.ot")}
+          <TabsTrigger value="costRules">
+            <Calculator className="size-4 mr-1.5" />
+            {t("settings.tabs.costRules")}
           </TabsTrigger>
           <TabsTrigger value="members">
             <Users className="size-4 mr-1.5" />
@@ -47,8 +47,8 @@ export default function SettingsPage() {
         <TabsContent value="depts" className="mt-6">
           <DepartmentsTab tenantId={tenantId} />
         </TabsContent>
-        <TabsContent value="ot" className="mt-6">
-          <OvertimeTab tenantId={tenantId} />
+        <TabsContent value="costRules" className="mt-6">
+          <CostRulesTab tenantId={tenantId} />
         </TabsContent>
         <TabsContent value="members" className="mt-6">
           <MembersTab tenantId={tenantId} />

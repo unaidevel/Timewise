@@ -8,9 +8,16 @@ from django.utils import timezone
 from infra.authz.repositories.auth_repository import AuthRepository
 from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
-from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
-from infra.tenants.models import TenantMembershipModel
-from infra.tenants.repositories.tenants_repository import TenantRepository
+from infra.tenants.entities.tenant_entities import (
+    OrganizationProfileUpdateEntity,
+    TenantEntity,
+    TenantMembershipEntity,
+)
+from infra.tenants.models import OrganizationProfileModel, TenantMembershipModel
+from infra.tenants.repositories.tenants_repository import (
+    OrganizationProfileRepository,
+    TenantRepository,
+)
 
 
 def make_user(email: str = "owner@example.com"):
@@ -289,3 +296,70 @@ class TenantRepositoryTests(TestCase):
             )
             is None
         )
+
+
+def _make_entity(**overrides) -> OrganizationProfileUpdateEntity:
+    defaults = {
+        "public_name": "Acme",
+        "legal_name": "Acme S.L.",
+        "country": "ES",
+        "timezone": "Europe/Madrid",
+        "currency": "EUR",
+        "vat_number": "ESB12345678",
+    }
+    defaults.update(overrides)
+    return OrganizationProfileUpdateEntity(**defaults)
+
+
+class OrganizationProfileRepositoryTests(TestCase):
+    def _make_tenant(self):
+        user = make_user()
+        return TenantRepository.create(
+            TenantEntity(name="Acme Corp", slug="acme"), user_id=user.id
+        )
+
+    def test_create_default_persists_row_with_backend_defaults(self):
+        tenant = self._make_tenant()
+
+        created = OrganizationProfileRepository.create_default(tenant.id)
+
+        assert created.tenant_id == tenant.id
+        assert created.currency == "EUR"
+        assert created.timezone == "UTC"
+        assert created.public_name == ""
+        assert OrganizationProfileModel.objects.filter(tenant_id=tenant.id).exists()
+
+    def test_get_by_tenant_returns_persisted_profile(self):
+        tenant = self._make_tenant()
+        created = OrganizationProfileRepository.create_default(tenant.id)
+
+        found = OrganizationProfileRepository.get_by_tenant(tenant.id)
+
+        assert found == created
+
+    def test_get_by_tenant_returns_none_when_missing(self):
+        assert OrganizationProfileRepository.get_by_tenant(999) is None
+
+    def test_update_persists_every_editable_field(self):
+        tenant = self._make_tenant()
+        OrganizationProfileRepository.create_default(tenant.id)
+
+        updated = OrganizationProfileRepository.update(tenant.id, _make_entity())
+
+        assert updated is not None
+        assert updated.public_name == "Acme"
+        assert updated.legal_name == "Acme S.L."
+        assert updated.country == "ES"
+        assert updated.timezone == "Europe/Madrid"
+        assert updated.currency == "EUR"
+        assert updated.vat_number == "ESB12345678"
+
+    def test_update_returns_none_when_profile_is_missing(self):
+        assert OrganizationProfileRepository.update(999, _make_entity()) is None
+
+    def test_update_raises_type_error_for_non_entity_payload(self):
+        tenant = self._make_tenant()
+        OrganizationProfileRepository.create_default(tenant.id)
+
+        with pytest.raises(TypeError, match="Expected OrganizationProfileUpdateEntity"):
+            OrganizationProfileRepository.update(tenant.id, {"public_name": "x"})

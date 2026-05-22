@@ -4,7 +4,10 @@ from infra.common.classes import MembershipRoles
 from infra.tenants.decorators import only_owner
 from infra.tenants.dtos.dtos import TenantIn, TenantOut
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
-from infra.tenants.services.tenants_service import TenantService
+from infra.tenants.services.tenants_service import (
+    OrganizationProfileService,
+    TenantService,
+)
 from product.workforce.services.workforce_service import WorkforceService
 
 
@@ -22,6 +25,7 @@ class TenantOrchestrator:
                 entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
                 invited_by_id=None,
             )
+            OrganizationProfileService.create_default(created_tenant.id)
             WorkforceService.create_default_roles(created_tenant.id)
 
         return created_tenant

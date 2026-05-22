@@ -9,7 +9,11 @@ from infra.authz.api.dependencies import get_current_user
 from infra.authz.dtos.dtos import LoginRequest, RegisterRequest
 from infra.common.classes import MembershipRoles
 from infra.tenants.api import router as tenants_router
-from infra.tenants.dtos.dtos import AddMemberRequest, TenantIn
+from infra.tenants.dtos.dtos import (
+    AddMemberRequest,
+    OrganizationProfileIn,
+    TenantIn,
+)
 
 
 def build_request(
@@ -390,3 +394,136 @@ class TenantsApiTests(TestCase):
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Membership not found or already inactive."
+
+
+def _profile_payload(**overrides) -> OrganizationProfileIn:
+    base = dict(
+        public_name="Acme",
+        legal_name="Acme S.L.",
+        country="ES",
+        timezone="Europe/Madrid",
+        currency="EUR",
+        vat_number="ESB12345678",
+    )
+    base.update(overrides)
+    return OrganizationProfileIn(**base)
+
+
+class OrganizationProfileApiTests(TenantsApiTests):
+    """Reuses the auth helper from TenantsApiTests."""
+
+    def _setup_tenant_with_owner(self):
+        owner = self._authenticate_user(
+            email="owner@example.com", full_name="Owner User"
+        )
+        tenant = tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner,
+            request=build_request(),
+        )
+        return owner, tenant
+
+    def test_get_organization_profile_returns_auto_created_defaults(self):
+        owner, tenant = self._setup_tenant_with_owner()
+
+        profile = tenants_router.get_organization_profile(
+            tenant.id, owner, request=build_request()
+        )
+
+        assert profile.tenant_id == tenant.id
+        assert profile.currency == "EUR"
+        assert profile.timezone == "UTC"
+
+    def test_get_organization_profile_returns_403_for_non_member(self):
+        _, tenant = self._setup_tenant_with_owner()
+        outsider = self._authenticate_user(
+            email="outsider@example.com", full_name="Out Sider"
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.get_organization_profile(
+                tenant.id, outsider, request=build_request()
+            )
+
+        assert exc.value.status_code == 403
+
+    def test_update_organization_profile_persists_changes_for_owner(self):
+        owner, tenant = self._setup_tenant_with_owner()
+
+        updated = tenants_router.update_organization_profile(
+            tenant.id,
+            _profile_payload(public_name="Updated"),
+            owner,
+            request=build_request(),
+        )
+
+        assert updated.public_name == "Updated"
+        roundtrip = tenants_router.get_organization_profile(
+            tenant.id, owner, request=build_request()
+        )
+        assert roundtrip.public_name == "Updated"
+
+    def test_update_organization_profile_returns_403_for_employee(self):
+        owner, tenant = self._setup_tenant_with_owner()
+        employee = self._authenticate_user(email="emp@example.com", full_name="Emp")
+        tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            current_user=owner,
+            request=build_request(),
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.update_organization_profile(
+                tenant.id,
+                _profile_payload(public_name="No"),
+                employee,
+                request=build_request(),
+            )
+
+        assert exc.value.status_code == 403
+
+    def test_update_organization_profile_returns_422_for_invalid_timezone(self):
+        owner, tenant = self._setup_tenant_with_owner()
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.update_organization_profile(
+                tenant.id,
+                _profile_payload(timezone="Mars/Olympus"),
+                owner,
+                request=build_request(),
+            )
+
+        assert exc.value.status_code == 422
+        assert "timezone" in exc.value.detail
+
+    def test_update_organization_profile_returns_422_for_invalid_currency(self):
+        owner, tenant = self._setup_tenant_with_owner()
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.update_organization_profile(
+                tenant.id,
+                _profile_payload(currency="EU"),
+                owner,
+                request=build_request(),
+            )
+
+        assert exc.value.status_code == 422
+        assert "currency" in exc.value.detail
+
+
+class TimezonesApiTests(TenantsApiTests):
+    def test_list_timezones_returns_curated_options_for_authenticated_user(self):
+        user = self._authenticate_user(email="u@example.com", full_name="U")
+
+        options = tenants_router.list_timezones(user, request=build_request())
+
+        assert len(options) > 0
+        values = {opt.value for opt in options}
+        assert "UTC" in values
+        assert "Europe/Madrid" in values
+        # Labels carry the UTC offset.
+        for opt in options:
+            assert opt.label.startswith("(UTC")
