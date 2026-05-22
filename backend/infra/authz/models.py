@@ -14,6 +14,8 @@ class AuthUserModel(models.Model):
 
     class Meta:
         db_table = "authz_AuthUser"
+        verbose_name = "User"
+        verbose_name_plural = "Users"
         indexes = [
             models.Index(fields=["email"]),
             models.Index(fields=["is_active"]),
@@ -48,6 +50,8 @@ class AuthTokenModel(models.Model):
 
     class Meta:
         db_table = "authz_AuthToken"
+        verbose_name = "Refresh token"
+        verbose_name_plural = "Refresh tokens"
         indexes = [
             models.Index(fields=["expires_at"]),
             models.Index(fields=["refresh_expires_at"]),
@@ -68,6 +72,8 @@ class AuthLoginAttemptModel(models.Model):
 
     class Meta:
         db_table = "authz_AuthLoginAttempt"
+        verbose_name = "Login attempt"
+        verbose_name_plural = "Login attempts"
         indexes = [
             models.Index(fields=["email", "attempted_at"]),
             models.Index(fields=["ip_address", "attempted_at"]),
@@ -107,6 +113,8 @@ class AuthLoginEventModel(models.Model):
 
     class Meta:
         db_table = "authz_AuthLoginEvent"
+        verbose_name = "Login event"
+        verbose_name_plural = "Login events"
         indexes = [
             models.Index(fields=["user", "occurred_at"]),
             models.Index(fields=["email", "occurred_at"]),
