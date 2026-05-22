@@ -51,6 +51,8 @@ class PeriodModel(models.Model):
 
     class Meta:
         db_table = "timekeeping_Period"
+        verbose_name = "Period"
+        verbose_name_plural = "Periods"
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["tenant", "start_date", "end_date"]),
@@ -117,6 +119,8 @@ class TimeReportModel(models.Model):
 
     class Meta:
         db_table = "timekeeping_TimeReport"
+        verbose_name = "Time report"
+        verbose_name_plural = "Time reports"
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["employee", "period"]),
@@ -173,6 +177,8 @@ class TimeEntryModel(models.Model):
 
     class Meta:
         db_table = "timekeeping_TimeEntry"
+        verbose_name = "Time entry"
+        verbose_name_plural = "Time entries"
         indexes = [
             models.Index(fields=["report", "date"]),
         ]
@@ -213,6 +219,8 @@ class TimeReportStatusHistoryModel(models.Model):
 
     class Meta:
         db_table = "timekeeping_TimeReportStatusHistory"
+        verbose_name = "Time report status history"
+        verbose_name_plural = "Time report status history"
         indexes = [
             models.Index(fields=["report", "changed_at"]),
         ]
@@ -245,6 +253,8 @@ class TimeEntryChangeHistoryModel(models.Model):
 
     class Meta:
         db_table = "timekeeping_TimeEntryChangeHistory"
+        verbose_name = "Time entry change history"
+        verbose_name_plural = "Time entry change history"
         indexes = [
             models.Index(fields=["entry", "changed_at"]),
         ]
