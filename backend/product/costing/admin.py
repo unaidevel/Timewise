@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from product.costing.models import (
     CostCalculationModel,
@@ -8,8 +9,9 @@ from product.costing.models import (
 
 
 @admin.register(OvertimeRuleModel)
-class OvertimeRuleAdmin(admin.ModelAdmin):
+class OvertimeRuleAdmin(ModelAdmin):
     list_display = (
+        "id",
         "name",
         "tenant",
         "multiplier",
@@ -18,18 +20,24 @@ class OvertimeRuleAdmin(admin.ModelAdmin):
         "created_at",
     )
     search_fields = ("name", "tenant__slug")
-    list_filter = ("is_active",)
+    list_filter = ("is_active", "tenant")
+    list_select_related = ("tenant",)
 
 
 @admin.register(RuleConditionModel)
-class RuleConditionAdmin(admin.ModelAdmin):
-    list_display = ("rule", "condition_type", "value", "created_at")
-    search_fields = ("rule__name",)
-    list_filter = ("condition_type",)
+class RuleConditionAdmin(ModelAdmin):
+    list_display = ("id", "rule", "tenant", "condition_type", "value", "created_at")
+    search_fields = ("rule__name", "rule__tenant__slug")
+    list_filter = ("condition_type", "rule__tenant")
+    list_select_related = ("rule__tenant",)
+
+    @admin.display(description="Tenant", ordering="rule__tenant__slug")
+    def tenant(self, obj):
+        return obj.rule.tenant
 
 
 @admin.register(CostCalculationModel)
-class CostCalculationAdmin(admin.ModelAdmin):
+class CostCalculationAdmin(ModelAdmin):
     list_display = (
         "id",
         "tenant",
@@ -41,4 +49,5 @@ class CostCalculationAdmin(admin.ModelAdmin):
         "calculated_at",
     )
     search_fields = ("employee__full_name", "applied_rule_name", "tenant__slug")
-    list_filter = ("multiplier",)
+    list_filter = ("multiplier", "tenant")
+    list_select_related = ("tenant", "employee", "time_report")
