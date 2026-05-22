@@ -2,11 +2,11 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import type { OvertimeRuleUpdate, RuleConditionIn, RuleConditionOut } from "@/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input, Select } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
@@ -210,85 +210,90 @@ function EditRuleModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("costingRules.editTitle")}>
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-full">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t("costingRules.editTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-full">
+              <Input
+                label={t("costingRules.form.name")}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </div>
             <Input
-              label={t("costingRules.form.name")}
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              label={t("costingRules.form.multiplier")}
+              type="number"
+              step="0.01"
+              min="1"
+              value={form.multiplier}
+              onChange={(e) => setForm({ ...form, multiplier: e.target.value })}
+              required
+            />
+            <Input
+              label={t("costingRules.form.priority")}
+              type="number"
+              min="1"
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value })}
               required
             />
           </div>
-          <Input
-            label={t("costingRules.form.multiplier")}
-            type="number"
-            step="0.01"
-            min="1"
-            value={form.multiplier}
-            onChange={(e) => setForm({ ...form, multiplier: e.target.value })}
-            required
-          />
-          <Input
-            label={t("costingRules.form.priority")}
-            type="number"
-            min="1"
-            value={form.priority}
-            onChange={(e) => setForm({ ...form, priority: e.target.value })}
-            required
-          />
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground">
-              {t("costingRules.conditions.title")}
-            </p>
-            <Button type="button" variant="secondary" onClick={addCondition}>
-              {t("costingRules.conditions.add")}
-            </Button>
-          </div>
-          {form.conditions.map((c, i) => (
-            <div key={c._key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
-              <Select
-                label={i === 0 ? t("costingRules.conditions.type") : undefined}
-                value={c.condition_type}
-                onChange={(e) => setCondition(i, "condition_type", e.target.value)}
-              >
-                {conditionTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                label={i === 0 ? t("costingRules.conditions.value") : undefined}
-                value={c.value}
-                onChange={(e) => setCondition(i, "value", e.target.value)}
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => removeCondition(i)}
-                className="mb-0.5"
-              >
-                ×
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-foreground">
+                {t("costingRules.conditions.title")}
+              </p>
+              <Button type="button" variant="secondary" onClick={addCondition}>
+                {t("costingRules.conditions.add")}
               </Button>
             </div>
-          ))}
-        </div>
+            {form.conditions.map((c, i) => (
+              <div key={c._key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
+                <Select
+                  label={i === 0 ? t("costingRules.conditions.type") : undefined}
+                  value={c.condition_type}
+                  onChange={(e) => setCondition(i, "condition_type", e.target.value)}
+                >
+                  {conditionTypeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+                <Input
+                  label={i === 0 ? t("costingRules.conditions.value") : undefined}
+                  value={c.value}
+                  onChange={(e) => setCondition(i, "value", e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => removeCondition(i)}
+                  className="mb-0.5"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={update.isPending}>
-            {update.isPending ? t("common.saving") : t("common.save")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

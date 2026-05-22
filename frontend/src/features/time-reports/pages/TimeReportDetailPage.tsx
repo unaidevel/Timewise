@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
@@ -235,55 +235,60 @@ function CreateEntryModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("timekeeping.reports.entries.createTitle")}>
-      <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
-        <Input
-          label={t("timekeeping.reports.entries.date")}
-          type="date"
-          value={form.date}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
-          required
-        />
-        <Input
-          label={t("timekeeping.reports.entries.hours")}
-          type="number"
-          step="0.25"
-          value={form.hours}
-          onChange={(e) => setForm({ ...form, hours: e.target.value })}
-          required
-        />
-        <Input
-          label={t("timekeeping.reports.entries.start")}
-          type="time"
-          value={form.start_time}
-          onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-        />
-        <Input
-          label={t("timekeeping.reports.entries.end")}
-          type="time"
-          value={form.end_time}
-          onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-        />
-        <div className="col-span-full">
-          <Textarea
-            label={t("timekeeping.reports.entries.description")}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={2}
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("timekeeping.reports.entries.createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
+          <Input
+            label={t("timekeeping.reports.entries.date")}
+            type="date"
+            value={form.date}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+            required
           />
-        </div>
-        <div className="col-span-full flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending
-              ? t("timekeeping.reports.entries.adding")
-              : t("timekeeping.reports.entries.add2")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          <Input
+            label={t("timekeeping.reports.entries.hours")}
+            type="number"
+            step="0.25"
+            value={form.hours}
+            onChange={(e) => setForm({ ...form, hours: e.target.value })}
+            required
+          />
+          <Input
+            label={t("timekeeping.reports.entries.start")}
+            type="time"
+            value={form.start_time}
+            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+          />
+          <Input
+            label={t("timekeeping.reports.entries.end")}
+            type="time"
+            value={form.end_time}
+            onChange={(e) => setForm({ ...form, end_time: e.target.value })}
+          />
+          <div className="col-span-full">
+            <Textarea
+              label={t("timekeeping.reports.entries.description")}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="col-span-full flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending
+                ? t("timekeeping.reports.entries.adding")
+                : t("timekeeping.reports.entries.add2")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -425,26 +430,31 @@ function RejectModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("timekeeping.reports.rejectModal.title")}>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <Textarea
-          label={t("timekeeping.reports.rejectModal.reason")}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          required
-          rows={3}
-        />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" variant="danger" disabled={reject.isPending}>
-            {reject.isPending
-              ? t("timekeeping.reports.rejectModal.rejecting")
-              : t("timekeeping.reports.reject")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("timekeeping.reports.rejectModal.title")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-3">
+          <Textarea
+            label={t("timekeeping.reports.rejectModal.reason")}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            required
+            rows={3}
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" variant="danger" disabled={reject.isPending}>
+              {reject.isPending
+                ? t("timekeeping.reports.rejectModal.rejecting")
+                : t("timekeeping.reports.reject")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useEmployees } from "@/features/employees/hooks";
@@ -128,32 +128,37 @@ function CreateReportModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("timekeeping.periods.reports.createForEmployee")}>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <Select
-          label={t("timekeeping.periods.reports.employee")}
-          value={employeeId}
-          onChange={(e) => setEmployeeId(e.target.value)}
-          required
-        >
-          <option value="">{t("timekeeping.periods.reports.selectPlaceholder")}</option>
-          {employees
-            .filter((e) => e.is_active)
-            .map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.full_name}
-              </option>
-            ))}
-        </Select>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? t("common.creating") : t("common.create")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("timekeeping.periods.reports.createForEmployee")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-3">
+          <Select
+            label={t("timekeeping.periods.reports.employee")}
+            value={employeeId}
+            onChange={(e) => setEmployeeId(e.target.value)}
+            required
+          >
+            <option value="">{t("timekeeping.periods.reports.selectPlaceholder")}</option>
+            {employees
+              .filter((e) => e.is_active)
+              .map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.full_name}
+                </option>
+              ))}
+          </Select>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? t("common.creating") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

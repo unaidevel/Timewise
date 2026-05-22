@@ -9,6 +9,13 @@ import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent } from "@/components/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/shadcn/dialog";
 import { Input } from "@/components/shadcn/input";
 import {
   Select,
@@ -17,13 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/shadcn/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/shadcn/sheet";
 import { Skeleton } from "@/components/shadcn/skeleton";
 import {
   Table,
@@ -229,11 +229,11 @@ export default function EmployeesPage() {
         </>
       )}
 
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <SheetContent className="sm:max-w-md">
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="sm:max-w-md">
           {selected && (
             <>
-              <SheetHeader>
+              <DialogHeader>
                 <div className="flex items-center gap-4 mb-2">
                   <Avatar className="size-14">
                     <AvatarFallback className="bg-primary/10 text-primary text-base font-semibold">
@@ -241,12 +241,12 @@ export default function EmployeesPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <SheetTitle className="text-left">{selected.full_name}</SheetTitle>
-                    <SheetDescription className="text-left">{selected.email}</SheetDescription>
+                    <DialogTitle className="text-left">{selected.full_name}</DialogTitle>
+                    <DialogDescription className="text-left">{selected.email}</DialogDescription>
                   </div>
                 </div>
-              </SheetHeader>
-              <div className="px-1 space-y-4 mt-2">
+              </DialogHeader>
+              <div className="space-y-4">
                 <DetailRow
                   icon={Mail}
                   label={t("workforce.employees.detail.emailLabel")}
@@ -292,10 +292,10 @@ export default function EmployeesPage() {
               </div>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
-      <CreateEmployeeSheet open={createOpen} onClose={() => setCreateOpen(false)} />
+      <CreateEmployeeDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }
@@ -345,7 +345,7 @@ function DeactivateButton({ id, onDone }: { id: number; onDone: () => void }) {
   );
 }
 
-function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const departments = useDepartments(tenantId);
   const roles = useRoles(tenantId);
@@ -404,13 +404,13 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
   }
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="sm:max-w-lg">
-        <SheetHeader>
-          <SheetTitle>{t("workforce.employees.create.title")}</SheetTitle>
-          <SheetDescription>{t("workforce.employees.create.subtitle")}</SheetDescription>
-        </SheetHeader>
-        <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("workforce.employees.create.title")}</DialogTitle>
+          <DialogDescription>{t("workforce.employees.create.subtitle")}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
           <Field label={t("workforce.employees.create.fullName")} required>
             <Input
               value={form.full_name}
@@ -526,8 +526,8 @@ function CreateEmployeeSheet({ open, onClose }: { open: boolean; onClose: () => 
             </Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 

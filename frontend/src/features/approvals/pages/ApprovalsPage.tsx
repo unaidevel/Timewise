@@ -8,12 +8,12 @@ import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent } from "@/components/shadcn/card";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/shadcn/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/shadcn/dialog";
 import { Skeleton } from "@/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { useCurrentTenantId, useIsTenantAdmin } from "@/features/tenants/hooks";
@@ -143,7 +143,7 @@ export default function ApprovalsPage() {
         </>
       )}
 
-      <RejectSheet approval={rejecting} onClose={() => setRejecting(null)} />
+      <RejectDialog approval={rejecting} onClose={() => setRejecting(null)} />
     </div>
   );
 }
@@ -207,7 +207,13 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
   );
 }
 
-function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onClose: () => void }) {
+function RejectDialog({
+  approval,
+  onClose,
+}: {
+  approval: ApprovalOut | null;
+  onClose: () => void;
+}) {
   const tenantId = useCurrentTenantId();
   const reject = useRejectApproval(tenantId);
   const { t } = useTranslation();
@@ -230,20 +236,20 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
   }
 
   return (
-    <Sheet open={!!approval} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>{t("timekeeping.approvals.rejectModal.title")}</SheetTitle>
-          <SheetDescription>
+    <Dialog open={!!approval} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("timekeeping.approvals.rejectModal.title")}</DialogTitle>
+          <DialogDescription>
             {approval && (
               <>
                 {t("timekeeping.approvals.reportLabel", { id: approval.report_id })} ·{" "}
                 {t("timekeeping.approvals.approvalLabel", { id: approval.id })}
               </>
             )}
-          </SheetDescription>
-        </SheetHeader>
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="mt-2 space-y-4">
           <div className="space-y-1.5 text-sm">
             <label
               htmlFor="reject-reason"
@@ -271,7 +277,7 @@ function RejectSheet({ approval, onClose }: { approval: ApprovalOut | null; onCl
             </Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

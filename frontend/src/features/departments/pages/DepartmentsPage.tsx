@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
@@ -120,23 +120,28 @@ function CreateDepartmentModal({ open, onClose }: { open: boolean; onClose: () =
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("workforce.departments.createTitle")}>
-      <form onSubmit={onSubmit} className="space-y-4">
-        <Input
-          label={t("common.name")}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? t("common.creating") : t("common.create")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("workforce.departments.createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Input
+            label={t("common.name")}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? t("common.creating") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

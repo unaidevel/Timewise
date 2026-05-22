@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import type { OvertimeRuleIn } from "@/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input, Select } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCreateOvertimeRule, useOvertimeRules } from "@/features/costing-rules/hooks";
@@ -140,59 +140,64 @@ function CreateRuleModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("costingRules.createTitle")}>
-      <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
-        <div className="col-span-full">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("costingRules.createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="grid grid-cols-2 gap-3">
+          <div className="col-span-full">
+            <Input
+              label={t("costingRules.form.name")}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </div>
           <Input
-            label={t("costingRules.form.name")}
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            label={t("costingRules.form.multiplier")}
+            type="number"
+            step="0.01"
+            min="1"
+            value={form.multiplier}
+            onChange={(e) => setForm({ ...form, multiplier: e.target.value })}
             required
           />
-        </div>
-        <Input
-          label={t("costingRules.form.multiplier")}
-          type="number"
-          step="0.01"
-          min="1"
-          value={form.multiplier}
-          onChange={(e) => setForm({ ...form, multiplier: e.target.value })}
-          required
-        />
-        <Input
-          label={t("costingRules.form.priority")}
-          type="number"
-          min="1"
-          value={form.priority}
-          onChange={(e) => setForm({ ...form, priority: e.target.value })}
-          required
-        />
-        <Select
-          label={t("costingRules.form.conditionType")}
-          value={form.conditionType}
-          onChange={(e) => setForm({ ...form, conditionType: e.target.value })}
-        >
-          {conditionTypes.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </Select>
-        <Input
-          label={t("costingRules.form.conditionValue")}
-          value={form.conditionValue}
-          onChange={(e) => setForm({ ...form, conditionValue: e.target.value })}
-          required
-        />
-        <div className="col-span-full flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? t("common.creating") : t("common.create")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          <Input
+            label={t("costingRules.form.priority")}
+            type="number"
+            min="1"
+            value={form.priority}
+            onChange={(e) => setForm({ ...form, priority: e.target.value })}
+            required
+          />
+          <Select
+            label={t("costingRules.form.conditionType")}
+            value={form.conditionType}
+            onChange={(e) => setForm({ ...form, conditionType: e.target.value })}
+          >
+            {conditionTypes.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label={t("costingRules.form.conditionValue")}
+            value={form.conditionValue}
+            onChange={(e) => setForm({ ...form, conditionValue: e.target.value })}
+            required
+          />
+          <div className="col-span-full flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? t("common.creating") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
