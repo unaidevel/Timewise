@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, CheckSquare, Clock, DollarSign, MoreHorizontal, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import {
@@ -23,7 +24,7 @@ import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
 import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { usePeriods } from "@/features/periods/hooks";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
 // Placeholder data for charts and activity feed.
 // TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department, recent activity).
@@ -73,14 +74,25 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const departments = useDepartments(tenantId);
   const periods = usePeriods(tenantId);
   const approvals = useApprovals(tenantId);
+  const profile = useOrganizationProfile(tenantId);
   const pendingApprovals = approvals.data?.filter((a) => a.status === "pending").length;
 
-  const today = new Date();
-  const fmt = new Intl.DateTimeFormat(i18n.resolvedLanguage === "es" ? "es-ES" : "en-US", {
+  const now = useLiveNow();
+  const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
+  const timezone = profile.data?.timezone || undefined;
+  const dateLabel = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
-  });
+    timeZone: timezone,
+  }).format(now);
+  const timeLabel = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: timezone,
+  }).format(now);
 
   const kpis = [
     {
@@ -137,7 +149,12 @@ function Dashboard({ tenantId }: { tenantId: number }) {
       <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <p className="text-sm text-muted-foreground capitalize">{fmt.format(today)}</p>
+          <p className="text-sm text-muted-foreground">
+            <span className="capitalize">{dateLabel}</span>
+            <span className="mx-2 text-muted-foreground/40">·</span>
+            <span className="tabular-nums">{timeLabel}</span>
+            {timezone && <span className="ml-2 text-xs text-muted-foreground/70">{timezone}</span>}
+          </p>
           <h1 className="text-3xl font-semibold tracking-tight mt-1">
             {t("dashboard.greeting", {
               name: user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback"),
@@ -359,4 +376,13 @@ function QuickAction({ to, title }: { to: string; title: string }) {
       {title}
     </Link>
   );
+}
+
+function useLiveNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return now;
 }
