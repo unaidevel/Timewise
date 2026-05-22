@@ -22,6 +22,8 @@ class TenantModel(models.Model):
 
     class Meta:
         db_table = "tenants_Tenant"
+        verbose_name = "Tenant"
+        verbose_name_plural = "Tenants"
         indexes = [
             models.Index(fields=["slug"]),
             models.Index(fields=["is_active"]),
@@ -63,6 +65,8 @@ class TenantMembershipModel(models.Model):
 
     class Meta:
         db_table = "tenants_TenantMembership"
+        verbose_name = "Membership"
+        verbose_name_plural = "Memberships"
         indexes = [
             models.Index(fields=["tenant", "user"]),
             models.Index(fields=["tenant", "role"]),
@@ -98,6 +102,8 @@ class OrganizationProfileModel(models.Model):
 
     class Meta:
         db_table = "tenants_OrganizationProfile"
+        verbose_name = "Organisation profile"
+        verbose_name_plural = "Organisation profiles"
         indexes = [
             models.Index(fields=["tenant"]),
         ]

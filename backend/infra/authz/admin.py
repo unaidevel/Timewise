@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import (
     AuthLoginAttemptModel,
@@ -9,15 +10,16 @@ from .models import (
 
 
 @admin.register(AuthUserModel)
-class AuthUserAdmin(admin.ModelAdmin):
-    list_display = ("email", "full_name", "is_active", "created_at")
+class AuthUserAdmin(ModelAdmin):
+    list_display = ("id", "email", "full_name", "is_active", "created_at")
     search_fields = ("email", "full_name")
     list_filter = ("is_active",)
 
 
 @admin.register(AuthTokenModel)
-class AuthTokenAdmin(admin.ModelAdmin):
+class AuthTokenAdmin(ModelAdmin):
     list_display = (
+        "id",
         "user",
         "client_ip",
         "user_agent",
@@ -31,15 +33,16 @@ class AuthTokenAdmin(admin.ModelAdmin):
 
 
 @admin.register(AuthLoginAttemptModel)
-class AuthLoginAttemptAdmin(admin.ModelAdmin):
-    list_display = ("email", "ip_address", "attempted_at")
+class AuthLoginAttemptAdmin(ModelAdmin):
+    list_display = ("id", "email", "ip_address", "attempted_at")
     search_fields = ("email", "ip_address")
     list_filter = ("attempted_at",)
 
 
 @admin.register(AuthLoginEventModel)
-class AuthLoginEventAdmin(admin.ModelAdmin):
+class AuthLoginEventAdmin(ModelAdmin):
     list_display = (
+        "id",
         "occurred_at",
         "event_type",
         "email",

@@ -43,6 +43,8 @@ class TimeReportApprovalModel(models.Model):
 
     class Meta:
         db_table = "approvals_TimeReportApproval"
+        verbose_name = "Time report approval"
+        verbose_name_plural = "Time report approvals"
         indexes = [
             models.Index(fields=["tenant", "status"]),
             models.Index(fields=["tenant", "created_at"]),
@@ -70,6 +72,8 @@ class TimeReportApprovalEventModel(models.Model):
 
     class Meta:
         db_table = "approvals_TimeReportApprovalEvent"
+        verbose_name = "Approval event"
+        verbose_name_plural = "Approval events"
         indexes = [
             models.Index(fields=["approval", "actioned_at"]),
         ]

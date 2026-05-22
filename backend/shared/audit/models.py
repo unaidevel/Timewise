@@ -39,6 +39,8 @@ class AuditEventModel(models.Model):
 
     class Meta:
         db_table = "audit_AuditEvent"
+        verbose_name = "Audit event"
+        verbose_name_plural = "Audit events"
         indexes = [
             models.Index(fields=["tenant", "occurred_at"]),
             models.Index(fields=["tenant", "action"]),

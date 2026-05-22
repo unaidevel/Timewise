@@ -33,6 +33,8 @@ class DepartmentModel(models.Model):
 
     class Meta:
         db_table = "workforce_Department"
+        verbose_name = "Department"
+        verbose_name_plural = "Departments"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -81,6 +83,8 @@ class RoleModel(models.Model):
 
     class Meta:
         db_table = "workforce_Role"
+        verbose_name = "Role"
+        verbose_name_plural = "Roles"
         indexes = [
             models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
@@ -140,6 +144,8 @@ class EmployeeModel(models.Model):
 
     class Meta:
         db_table = "workforce_Employee"
+        verbose_name = "Employee"
+        verbose_name_plural = "Employees"
         indexes = [
             models.Index(fields=["tenant", "email"]),
             models.Index(fields=["is_active"]),
@@ -192,6 +198,8 @@ class EmployeeDepartmentModel(models.Model):
 
     class Meta:
         db_table = "workforce_EmployeeDepartment"
+        verbose_name = "Employee — department assignment"
+        verbose_name_plural = "Employee — department assignments"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["department"]),
@@ -248,6 +256,8 @@ class EmployeeRoleModel(models.Model):
 
     class Meta:
         db_table = "workforce_EmployeeRole"
+        verbose_name = "Employee — role assignment"
+        verbose_name_plural = "Employee — role assignments"
         indexes = [
             models.Index(fields=["employee", "left_at"]),
             models.Index(fields=["role"]),
@@ -301,6 +311,8 @@ class DepartmentManagerModel(models.Model):
 
     class Meta:
         db_table = "workforce_DepartmentManager"
+        verbose_name = "Department manager"
+        verbose_name_plural = "Department managers"
         indexes = [
             models.Index(fields=["department", "left_at"]),
             models.Index(fields=["employee"]),

@@ -37,6 +37,8 @@ class OvertimeRuleModel(models.Model):
 
     class Meta:
         db_table = "costing_OvertimeRule"
+        verbose_name = "Overtime rule"
+        verbose_name_plural = "Overtime rules"
         indexes = [
             models.Index(fields=["tenant", "is_active"]),
             models.Index(fields=["tenant", "priority"]),
@@ -68,6 +70,8 @@ class RuleConditionModel(models.Model):
 
     class Meta:
         db_table = "costing_RuleCondition"
+        verbose_name = "Rule condition"
+        verbose_name_plural = "Rule conditions"
         indexes = [
             models.Index(fields=["rule", "condition_type"]),
         ]
@@ -115,6 +119,8 @@ class CostCalculationModel(models.Model):
 
     class Meta:
         db_table = "costing_CostCalculation"
+        verbose_name = "Cost calculation"
+        verbose_name_plural = "Cost calculations"
         indexes = [
             models.Index(fields=["tenant", "time_report"]),
         ]

@@ -1,10 +1,11 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import AuditEventModel
 
 
 @admin.register(AuditEventModel)
-class AuditEventAdmin(admin.ModelAdmin):
+class AuditEventAdmin(ModelAdmin):
     list_display = (
         "id",
         "tenant",
@@ -14,6 +15,7 @@ class AuditEventAdmin(admin.ModelAdmin):
         "resource_id",
         "occurred_at",
     )
-    list_filter = ("action", "resource_type")
-    search_fields = ("action", "resource_type", "notes")
+    list_filter = ("action", "resource_type", "tenant")
+    search_fields = ("action", "resource_type", "notes", "tenant__slug")
     readonly_fields = ("occurred_at",)
+    list_select_related = ("tenant", "actor")

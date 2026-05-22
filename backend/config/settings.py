@@ -250,3 +250,182 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+def _admin_link(label: str, icon: str, viewname: str) -> dict:
+    from django.urls import reverse_lazy
+
+    return {"title": label, "icon": icon, "link": reverse_lazy(viewname)}
+
+
+UNFOLD = {
+    "SITE_TITLE": "Timewise Admin",
+    "SITE_HEADER": "Timewise",
+    "SITE_SUBHEADER": "Internal administration",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Tenants & organisation",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Tenants", "domain", "admin:tenants_tenantmodel_changelist"
+                    ),
+                    _admin_link(
+                        "Memberships",
+                        "groups",
+                        "admin:tenants_tenantmembershipmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Organisation profile",
+                        "business",
+                        "admin:tenants_organizationprofilemodel_changelist",
+                    ),
+                    _admin_link(
+                        "Licensing",
+                        "license",
+                        "admin:licensing_licensisngmodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Workforce",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Employees",
+                        "badge",
+                        "admin:workforce_employeemodel_changelist",
+                    ),
+                    _admin_link(
+                        "Departments",
+                        "apartment",
+                        "admin:workforce_departmentmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Roles", "work", "admin:workforce_rolemodel_changelist"
+                    ),
+                    _admin_link(
+                        "Employee — department",
+                        "person_pin",
+                        "admin:workforce_employeedepartmentmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Employee — role",
+                        "engineering",
+                        "admin:workforce_employeerolemodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Time tracking",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Periods",
+                        "calendar_month",
+                        "admin:timekeeping_periodmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Time reports",
+                        "description",
+                        "admin:timekeeping_timereportmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Time entries",
+                        "schedule",
+                        "admin:timekeeping_timeentrymodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Costing",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Overtime rules",
+                        "rule",
+                        "admin:costing_overtimerulemodel_changelist",
+                    ),
+                    _admin_link(
+                        "Rule conditions",
+                        "tune",
+                        "admin:costing_ruleconditionmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Cost calculations",
+                        "calculate",
+                        "admin:costing_costcalculationmodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Approvals",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Approvals",
+                        "fact_check",
+                        "admin:approvals_timereportapprovalmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Approval events",
+                        "event_note",
+                        "admin:approvals_timereportapprovaleventmodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Authentication",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Users", "person", "admin:authz_authusermodel_changelist"
+                    ),
+                    _admin_link(
+                        "Refresh tokens",
+                        "vpn_key",
+                        "admin:authz_authtokenmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Login events",
+                        "login",
+                        "admin:authz_authlogineventmodel_changelist",
+                    ),
+                    _admin_link(
+                        "Login attempts",
+                        "lock_clock",
+                        "admin:authz_authloginattemptmodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "Audit & logs",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Audit events",
+                        "fingerprint",
+                        "admin:audit_auditeventmodel_changelist",
+                    ),
+                ],
+            },
+            {
+                "title": "System",
+                "separator": True,
+                "items": [
+                    _admin_link(
+                        "Django users", "manage_accounts", "admin:auth_user_changelist"
+                    ),
+                    _admin_link(
+                        "Django groups", "group", "admin:auth_group_changelist"
+                    ),
+                ],
+            },
+        ],
+    },
+}
