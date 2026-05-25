@@ -14,10 +14,10 @@ import {
   YAxis,
 } from "recharts";
 import { LiveClock, useNow } from "@/components/LiveClock";
-import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
+import { RecentActivity } from "@/features/activity/RecentActivity";
 import { useApprovals } from "@/features/approvals/hooks";
 import { useAuthStore } from "@/features/auth/store";
 import { useDepartments } from "@/features/departments/hooks";
@@ -26,8 +26,8 @@ import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner"
 import { usePeriods } from "@/features/periods/hooks";
 import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
-// Placeholder data for charts and activity feed.
-// TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department, recent activity).
+// Placeholder data for charts.
+// TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department).
 const costTrend = [
   { day: "Sem 1", cost: 62000 },
   { day: "Sem 2", cost: 71500 },
@@ -111,29 +111,6 @@ function Dashboard({ tenantId }: { tenantId: number }) {
       value: departments.data?.length,
       icon: DollarSign,
       delta: "0",
-    },
-  ];
-
-  const activity = [
-    {
-      who: "Maya Patel",
-      action: t("dashboard.activity.sentTimesheet"),
-      when: t("dashboard.activity.ago12m"),
-    },
-    {
-      who: "James O'Connor",
-      action: t("dashboard.activity.approvedReports"),
-      when: t("dashboard.activity.ago1h"),
-    },
-    {
-      who: "Lina Hoffmann",
-      action: t("dashboard.activity.addedRule"),
-      when: t("dashboard.activity.ago3h"),
-    },
-    {
-      who: "Diego Alvarez",
-      action: t("dashboard.activity.joinedDept"),
-      when: t("dashboard.activity.yesterday"),
     },
   ];
 
@@ -327,32 +304,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
             <CardTitle className="text-base">{t("dashboard.activity.title")}</CardTitle>
             <p className="text-xs text-muted-foreground">{t("dashboard.activity.subtitle")}</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {activity.map((a, i) => (
-              <motion.div
-                key={a.who}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex gap-3"
-              >
-                <Avatar className="size-8 mt-0.5">
-                  <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
-                    {a.who
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm leading-tight">
-                    <span className="font-medium">{a.who}</span>{" "}
-                    <span className="text-muted-foreground">{a.action}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{a.when}</p>
-                </div>
-              </motion.div>
-            ))}
+          <CardContent>
+            <RecentActivity tenantId={tenantId} />
           </CardContent>
         </Card>
       </section>

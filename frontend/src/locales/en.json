@@ -145,15 +145,7 @@
     },
     "activity": {
       "title": "Recent activity",
-      "subtitle": "Placeholder",
-      "sentTimesheet": "submitted a timesheet",
-      "approvedReports": "approved 3 reports",
-      "addedRule": "added an overtime rule",
-      "joinedDept": "joined Engineering",
-      "ago12m": "12m ago",
-      "ago1h": "1h ago",
-      "ago3h": "3h ago",
-      "yesterday": "yesterday"
+      "subtitle": "Latest audit events across the workspace"
     }
   },
   "activity": {

@@ -145,15 +145,7 @@
     },
     "activity": {
       "title": "Actividad reciente",
-      "subtitle": "Placeholder",
-      "sentTimesheet": "envió un parte de horas",
-      "approvedReports": "aprobó 3 reportes",
-      "addedRule": "añadió una regla de horas extra",
-      "joinedDept": "se unió a Engineering",
-      "ago12m": "hace 12m",
-      "ago1h": "hace 1h",
-      "ago3h": "hace 3h",
-      "yesterday": "ayer"
+      "subtitle": "Últimos eventos de auditoría del workspace"
     }
   },
   "activity": {
