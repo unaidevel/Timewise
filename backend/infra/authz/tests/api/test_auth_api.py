@@ -12,6 +12,7 @@ from infra.authz.dtos.dtos import (
     UpdateEmailRequest,
     UpdateNameRequest,
     UpdatePasswordRequest,
+    UpdateTimezoneRequest,
 )
 from infra.authz.services.auth_service import AuthService, get_auth_security_settings
 
@@ -383,6 +384,40 @@ class ProfileUpdateApiTests(TestCase):
         with self.assertRaises(HTTPException) as exc:
             get_current_user(self.credentials)
         self.assertEqual(exc.exception.status_code, 401)
+
+    def test_update_my_timezone_sets_value(self):
+        response = auth_router.update_my_timezone(
+            UpdateTimezoneRequest(timezone="Europe/Madrid"),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/timezone"),
+        )
+
+        self.assertEqual(response.timezone, "Europe/Madrid")
+
+    def test_update_my_timezone_accepts_null_to_clear(self):
+        auth_router.update_my_timezone(
+            UpdateTimezoneRequest(timezone="Europe/Madrid"),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/timezone"),
+        )
+
+        cleared = auth_router.update_my_timezone(
+            UpdateTimezoneRequest(timezone=None),
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/timezone"),
+        )
+
+        self.assertIsNone(cleared.timezone)
+
+    def test_update_my_timezone_rejects_unknown_value(self):
+        with self.assertRaises(HTTPException) as exc:
+            auth_router.update_my_timezone(
+                UpdateTimezoneRequest(timezone="Mars/Olympus"),
+                current_user=self.current_user,
+                request=build_request("/api/v1/auth/me/timezone"),
+            )
+
+        self.assertEqual(exc.exception.status_code, 422)
 
     def test_update_my_password_rejects_wrong_current_password(self):
         with self.assertRaises(HTTPException) as exc:
