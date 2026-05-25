@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, CheckSquare, Clock, DollarSign, MoreHorizontal, Users } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import {
@@ -14,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { LiveClock, useNow } from "@/components/LiveClock";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
@@ -77,22 +77,15 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const profile = useOrganizationProfile(tenantId);
   const pendingApprovals = approvals.data?.filter((a) => a.status === "pending").length;
 
-  const now = useLiveNow();
+  const now = useNow();
   const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
   const timezone = profile.data?.timezone || undefined;
-  const dateLabel = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    timeZone: timezone,
-  }).format(now);
-  const timeLabel = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    timeZone: timezone,
-  }).format(now);
+  const greeting =
+    now.getHours() < 12
+      ? t("dashboard.greetingMorning")
+      : now.getHours() < 18
+        ? t("dashboard.greetingAfternoon")
+        : t("dashboard.greetingEvening");
 
   const kpis = [
     {
@@ -149,22 +142,22 @@ function Dashboard({ tenantId }: { tenantId: number }) {
       <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <p className="text-sm text-muted-foreground">
-            <span className="capitalize">{dateLabel}</span>
-            <span className="mx-2 text-muted-foreground/40">·</span>
-            <span className="tabular-nums">{timeLabel}</span>
-            {timezone && <span className="ml-2 text-xs text-muted-foreground/70">{timezone}</span>}
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight mt-1">
-            {t("dashboard.greeting", {
-              name: user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback"),
-            })}
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {greeting}, {user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("dashboard.summary")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">{t("dashboard.export")}</Button>
-          <Button>{t("dashboard.newReport")}</Button>
+        <div className="flex items-center gap-4">
+          <LiveClock
+            className="text-right [&>div:first-child]:text-3xl [&>div:last-child]:text-xs [&>div:last-child]:mt-1"
+            locale={locale}
+            timezone={timezone}
+            showSeconds
+          />
+          <div className="flex gap-2">
+            <Button variant="outline">{t("dashboard.export")}</Button>
+            <Button>{t("dashboard.newReport")}</Button>
+          </div>
         </div>
       </header>
 
@@ -376,13 +369,4 @@ function QuickAction({ to, title }: { to: string; title: string }) {
       {title}
     </Link>
   );
-}
-
-function useLiveNow(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  return now;
 }
