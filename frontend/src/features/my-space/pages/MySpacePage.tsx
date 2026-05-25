@@ -78,39 +78,39 @@ export default function MySpacePage() {
         </h1>
       </header>
 
-      <Card className="overflow-hidden border bg-gradient-to-br from-card via-card to-primary/5">
-        <CardContent className="p-8 lg:p-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <LiveClock
-                className="[&>div:first-child]:text-7xl lg:[&>div:first-child]:text-8xl"
-                locale={locale}
-                timezone={timezone}
-                showSeconds
-                showDate
-              />
-              <div className="mt-4 flex items-center gap-2">
-                <span
-                  className={
-                    clockedInAt
-                      ? "size-2 rounded-full bg-success animate-pulse"
-                      : "size-2 rounded-full bg-muted-foreground/40"
-                  }
-                />
-                <span className="text-sm text-muted-foreground">
-                  {clockedInAt
-                    ? onBreak
-                      ? t("mySpace.status.onBreak")
-                      : t("mySpace.status.working", { elapsed })
-                    : t("mySpace.status.notClocked")}
-                </span>
-              </div>
-            </motion.div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <LiveClock
+            className="[&>div:first-child]:text-7xl lg:[&>div:first-child]:text-8xl"
+            locale={locale}
+            timezone={timezone}
+            showSeconds
+            showDate={false}
+          />
+          <div className="mt-4 flex items-center gap-2">
+            <span
+              className={
+                clockedInAt
+                  ? "size-2 rounded-full bg-success animate-pulse"
+                  : "size-2 rounded-full bg-muted-foreground/40"
+              }
+            />
+            <span className="text-sm text-muted-foreground">
+              {clockedInAt
+                ? onBreak
+                  ? t("mySpace.status.onBreak")
+                  : t("mySpace.status.working", { elapsed })
+                : t("mySpace.status.notClocked")}
+            </span>
+          </div>
+        </motion.div>
 
+        <Card className="overflow-hidden border bg-gradient-to-br from-card via-card to-primary/5">
+          <CardContent className="p-6 lg:p-8">
             <div className="flex flex-col items-stretch gap-3">
               {!clockedInAt ? (
                 <Button
@@ -148,9 +148,9 @@ export default function MySpacePage() {
                 {t("mySpace.actions.hint")}
               </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
