@@ -14,6 +14,7 @@ import {
   ScrollText,
   Search,
   Settings,
+  SlidersHorizontal,
   Sun,
   Tag,
   User,
@@ -267,6 +268,12 @@ export function Layout() {
                 <DropdownMenuItem onClick={() => setProfileOpen(true)}>
                   <User className="size-4 mr-2" />
                   {t("layout.profile")}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/preferences">
+                    <SlidersHorizontal className="size-4 mr-2" />
+                    {t("layout.preferences")}
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout.mutate()}>
                   <LogOut className="size-4 mr-2" />

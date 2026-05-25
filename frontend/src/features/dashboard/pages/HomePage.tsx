@@ -79,7 +79,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
   const now = useNow();
   const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
-  const timezone = profile.data?.timezone || undefined;
+  const timezone = user?.timezone || profile.data?.timezone || undefined;
   const greeting =
     now.getHours() < 12
       ? t("dashboard.greetingMorning")

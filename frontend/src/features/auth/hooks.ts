@@ -5,6 +5,7 @@ import type {
   UpdateEmailRequest,
   UpdateNameRequest,
   UpdatePasswordRequest,
+  UpdateTimezoneRequest,
 } from "@/client";
 import {
   getMeApiV1AuthMeGet,
@@ -14,6 +15,7 @@ import {
   updateMyEmailApiV1AuthMeEmailPut,
   updateMyNameApiV1AuthMeNamePut,
   updateMyPasswordApiV1AuthMePasswordPut,
+  updateMyTimezoneApiV1AuthMeTimezonePut,
 } from "@/client";
 import { useTenantStore } from "@/features/tenants/store";
 import { useAuthStore } from "./store";
@@ -94,6 +96,22 @@ export function useUpdateMyEmail() {
   return useMutation({
     mutationFn: async (body: UpdateEmailRequest) => {
       const { data, error } = await updateMyEmailApiV1AuthMeEmailPut({ body });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      setUser(data);
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
+  });
+}
+
+export function useUpdateMyTimezone() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: UpdateTimezoneRequest) => {
+      const { data, error } = await updateMyTimezoneApiV1AuthMeTimezonePut({ body });
       if (error || !data) throw error;
       return data;
     },

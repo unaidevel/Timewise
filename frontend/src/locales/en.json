@@ -29,6 +29,7 @@
     "notifications": "Notifications",
     "logout": "Log out",
     "profile": "Profile",
+    "preferences": "Preferences",
     "workspaces": "Workspaces",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -237,6 +238,24 @@
       "sprintReviewWhen": "Fri · 16:00",
       "tagMeeting": "Meeting",
       "tagOneOnOne": "1:1"
+    }
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Settings that apply to your account on this device.",
+    "save": "Save",
+    "saving": "Saving…",
+    "savedToast": "Preferences updated",
+    "saveError": "Could not save preferences",
+    "loading": "Loading…",
+    "timezone": {
+      "title": "Timezone",
+      "description": "Choose how dates and times are displayed for you. Leave on the organization default to follow your workspace.",
+      "label": "Display timezone",
+      "inheritOption": "Use organization default ({{tz}})",
+      "useOrgDefault": "Use organization default",
+      "usingOrgDefault": "Currently inheriting the organization default: {{tz}}.",
+      "usingOverride": "Currently overriding the organization default with {{tz}}."
     }
   },
   "commandPalette": {

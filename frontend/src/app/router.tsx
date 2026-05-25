@@ -12,6 +12,7 @@ import EmployeeDetailPage from "@/features/employees/pages/EmployeeDetailPage";
 import EmployeesPage from "@/features/employees/pages/EmployeesPage";
 import PeriodDetailPage from "@/features/periods/pages/PeriodDetailPage";
 import PeriodsPage from "@/features/periods/pages/PeriodsPage";
+import PreferencesPage from "@/features/preferences/pages/PreferencesPage";
 import RolesPage from "@/features/roles/pages/RolesPage";
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 import OnboardingPage from "@/features/tenants/pages/OnboardingPage";
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
           { path: "/costing-rules/:id", element: <CostingRuleDetailPage /> },
           { path: "/costing", element: <CostingPage /> },
           { path: "/settings", element: <SettingsPage /> },
+          { path: "/preferences", element: <PreferencesPage /> },
           { path: "/time", element: <TimePage /> },
           { path: "/audit", element: <AuditPage /> },
         ],

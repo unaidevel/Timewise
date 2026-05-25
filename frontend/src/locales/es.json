@@ -29,6 +29,7 @@
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
+    "preferences": "Preferencias",
     "workspaces": "Workspaces",
     "expand": "Expandir",
     "collapse": "Contraer",
@@ -237,6 +238,24 @@
       "sprintReviewWhen": "Vie · 16:00",
       "tagMeeting": "Reunión",
       "tagOneOnOne": "1:1"
+    }
+  },
+  "preferences": {
+    "title": "Preferencias",
+    "subtitle": "Ajustes que se aplican a tu cuenta en este dispositivo.",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "savedToast": "Preferencias actualizadas",
+    "saveError": "No se pudieron guardar las preferencias",
+    "loading": "Cargando…",
+    "timezone": {
+      "title": "Zona horaria",
+      "description": "Elige cómo se muestran las fechas y horas para ti. Deja la opción de la organización para seguir el valor del workspace.",
+      "label": "Zona horaria de visualización",
+      "inheritOption": "Usar la de la organización ({{tz}})",
+      "useOrgDefault": "Usar la de la organización",
+      "usingOrgDefault": "Actualmente heredas la zona horaria de la organización: {{tz}}.",
+      "usingOverride": "Actualmente la sobrescribes con {{tz}}."
     }
   },
   "commandPalette": {

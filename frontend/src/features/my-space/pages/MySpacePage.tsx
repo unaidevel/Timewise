@@ -24,7 +24,7 @@ export default function MySpacePage() {
   const { t, i18n } = useTranslation();
   const profile = useOrganizationProfile(tenantId);
   const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
-  const timezone = profile.data?.timezone || undefined;
+  const timezone = user?.timezone || profile.data?.timezone || undefined;
 
   const now = useNow();
   const [clockedInAt, setClockedInAt] = useState<Date | null>(null);
