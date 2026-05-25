@@ -21,7 +21,12 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     is_active: bool
+    timezone: str | None = None
     created_at: datetime
+
+
+class UpdateTimezoneRequest(BaseModel):
+    timezone: str | None = Field(default=None, max_length=64)
 
 
 class RefreshRequest(BaseModel):

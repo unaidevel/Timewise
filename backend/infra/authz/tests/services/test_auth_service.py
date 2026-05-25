@@ -468,6 +468,55 @@ def test_update_user_password_raises_not_found(monkeypatch):
         AuthService.update_user_password(99, "anything", "AnotherPass456!")
 
 
+def test_update_user_timezone_succeeds(monkeypatch):
+    user = make_user()
+    received: dict = {}
+
+    def fake_update(entity):
+        received["entity"] = entity
+        return user.model_copy(update={"timezone": entity.timezone.value})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "update_user_timezone", fake_update)
+
+    updated = AuthService.update_user_timezone(user.id, "Europe/Madrid")
+
+    assert updated.timezone == "Europe/Madrid"
+    assert received["entity"].timezone.value == "Europe/Madrid"
+
+
+def test_update_user_timezone_accepts_none_to_clear(monkeypatch):
+    user = make_user()
+    received: dict = {}
+
+    def fake_update(entity):
+        received["entity"] = entity
+        return user.model_copy(update={"timezone": None})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "update_user_timezone", fake_update)
+
+    updated = AuthService.update_user_timezone(user.id, None)
+
+    assert updated.timezone is None
+    assert received["entity"].timezone.value is None
+
+
+def test_update_user_timezone_rejects_unknown_value(monkeypatch):
+    user = make_user()
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+
+    with pytest.raises(UnprocessableEntity):
+        AuthService.update_user_timezone(user.id, "Mars/Olympus")
+
+
+def test_update_user_timezone_raises_not_found(monkeypatch):
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: None)
+
+    with pytest.raises(NotFound):
+        AuthService.update_user_timezone(99, "Europe/Madrid")
+
+
 def test_update_user_password_succeeds_with_valid_inputs(monkeypatch):
     user = make_user(password="SecurePass123!")
     captured: dict = {}

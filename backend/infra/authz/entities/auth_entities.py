@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 
+from infra.common.classes import ALLOWED_TIMEZONES
 from infra.common.exceptions import UnprocessableEntity
 
 EMAIL_MAX_LENGTH = 254
@@ -68,3 +69,27 @@ class UpdateUserEmailEntity:
 class UpdateUserPasswordEntity:
     user_id: int
     new_password_hash: str
+
+
+@dataclass(frozen=True, slots=True)
+class Timezone:
+    value: str | None
+
+    def __post_init__(self) -> None:
+        if self.value is None:
+            return
+        clean = self.value.strip()
+        if not clean:
+            object.__setattr__(self, "value", None)
+            return
+        if clean not in ALLOWED_TIMEZONES:
+            raise UnprocessableEntity(
+                f"timezone '{clean}' is not in the supported list."
+            )
+        object.__setattr__(self, "value", clean)
+
+
+@dataclass(frozen=True, slots=True)
+class UpdateUserTimezoneEntity:
+    user_id: int
+    timezone: Timezone

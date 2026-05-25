@@ -13,20 +13,21 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
+import { LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
+import { RecentActivity } from "@/features/activity/RecentActivity";
 import { useApprovals } from "@/features/approvals/hooks";
 import { useAuthStore } from "@/features/auth/store";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
 import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { usePeriods } from "@/features/periods/hooks";
-import { useCurrentTenantId } from "@/features/tenants/hooks";
+import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
-// Placeholder data for charts and activity feed.
-// TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department, recent activity).
+// Placeholder data for charts.
+// TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department).
 const costTrend = [
   { day: "Sem 1", cost: 62000 },
   { day: "Sem 2", cost: 71500 },
@@ -73,14 +74,18 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const departments = useDepartments(tenantId);
   const periods = usePeriods(tenantId);
   const approvals = useApprovals(tenantId);
+  const profile = useOrganizationProfile(tenantId);
   const pendingApprovals = approvals.data?.filter((a) => a.status === "pending").length;
 
-  const today = new Date();
-  const fmt = new Intl.DateTimeFormat(i18n.resolvedLanguage === "es" ? "es-ES" : "en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const now = useNow();
+  const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
+  const timezone = user?.timezone || profile.data?.timezone || undefined;
+  const greeting =
+    now.getHours() < 12
+      ? t("dashboard.greetingMorning")
+      : now.getHours() < 18
+        ? t("dashboard.greetingAfternoon")
+        : t("dashboard.greetingEvening");
 
   const kpis = [
     {
@@ -109,45 +114,27 @@ function Dashboard({ tenantId }: { tenantId: number }) {
     },
   ];
 
-  const activity = [
-    {
-      who: "Maya Patel",
-      action: t("dashboard.activity.sentTimesheet"),
-      when: t("dashboard.activity.ago12m"),
-    },
-    {
-      who: "James O'Connor",
-      action: t("dashboard.activity.approvedReports"),
-      when: t("dashboard.activity.ago1h"),
-    },
-    {
-      who: "Lina Hoffmann",
-      action: t("dashboard.activity.addedRule"),
-      when: t("dashboard.activity.ago3h"),
-    },
-    {
-      who: "Diego Alvarez",
-      action: t("dashboard.activity.joinedDept"),
-      when: t("dashboard.activity.yesterday"),
-    },
-  ];
-
   return (
     <div className="space-y-8">
       <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <p className="text-sm text-muted-foreground capitalize">{fmt.format(today)}</p>
-          <h1 className="text-3xl font-semibold tracking-tight mt-1">
-            {t("dashboard.greeting", {
-              name: user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback"),
-            })}
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {greeting}, {user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("dashboard.summary")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">{t("dashboard.export")}</Button>
-          <Button>{t("dashboard.newReport")}</Button>
+        <div className="flex items-center gap-4">
+          <LiveClock
+            className="text-right [&>div:first-child]:text-3xl [&>div:last-child]:text-xs [&>div:last-child]:mt-1"
+            locale={locale}
+            timezone={timezone}
+            showSeconds
+          />
+          <div className="flex gap-2">
+            <Button variant="outline">{t("dashboard.export")}</Button>
+            <Button>{t("dashboard.newReport")}</Button>
+          </div>
         </div>
       </header>
 
@@ -317,32 +304,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
             <CardTitle className="text-base">{t("dashboard.activity.title")}</CardTitle>
             <p className="text-xs text-muted-foreground">{t("dashboard.activity.subtitle")}</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {activity.map((a, i) => (
-              <motion.div
-                key={a.who}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex gap-3"
-              >
-                <Avatar className="size-8 mt-0.5">
-                  <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
-                    {a.who
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm leading-tight">
-                    <span className="font-medium">{a.who}</span>{" "}
-                    <span className="text-muted-foreground">{a.action}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{a.when}</p>
-                </div>
-              </motion.div>
-            ))}
+          <CardContent>
+            <RecentActivity tenantId={tenantId} />
           </CardContent>
         </Card>
       </section>

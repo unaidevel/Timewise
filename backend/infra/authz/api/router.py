@@ -14,6 +14,7 @@ from infra.authz.dtos.dtos import (
     UpdateEmailRequest,
     UpdateNameRequest,
     UpdatePasswordRequest,
+    UpdateTimezoneRequest,
     UserResponse,
 )
 from infra.authz.dtos.mappers.auth_mapper import to_login_response, to_user_response
@@ -173,6 +174,29 @@ def update_my_email(
     Email uniqueness is enforced at the database layer; conflict surfaces as 409.
     """
     user = AuthService.update_user_email(current_user.id, payload.email)
+    return to_user_response(user)
+
+
+@router.put(
+    "/me/timezone",
+    response_model=UserResponse,
+    responses=responses_for(
+        Unauthorized, NotFound, UnprocessableEntity, TooManyRequests
+    ),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def update_my_timezone(
+    payload: UpdateTimezoneRequest,
+    current_user: RateLimitedUser,
+    request: Request,
+) -> UserResponse:
+    """
+    Sets the authenticated user's preferred timezone; `null` clears it so the org default applies.
+    Returns UserResponse reflecting the updated user.
+    On error returns 401, 404 (user not found), 422 (timezone not in supported list), or 429 (rate limit).
+    Rate-limited per-user; mutates only AuthUser.timezone and updated_at.
+    """
+    user = AuthService.update_user_timezone(current_user.id, payload.timezone)
     return to_user_response(user)
 
 

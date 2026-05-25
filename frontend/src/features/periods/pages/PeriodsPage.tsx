@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcn/dialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyRow, Table, Td, Th } from "@/components/ui/Table";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
@@ -99,39 +99,44 @@ function CreatePeriodModal({ open, onClose }: { open: boolean; onClose: () => vo
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t("timekeeping.periods.createTitle")}>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <Input
-          label={t("common.name")}
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <div className="grid grid-cols-2 gap-3">
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("timekeeping.periods.createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-3">
           <Input
-            label={t("timekeeping.periods.start")}
-            type="date"
-            value={form.start_date}
-            onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+            label={t("common.name")}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
           />
-          <Input
-            label={t("timekeeping.periods.end")}
-            type="date"
-            value={form.end_date}
-            onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-            required
-          />
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? t("common.creating") : t("common.create")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={t("timekeeping.periods.start")}
+              type="date"
+              value={form.start_date}
+              onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+              required
+            />
+            <Input
+              label={t("timekeeping.periods.end")}
+              type="date"
+              value={form.end_date}
+              onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? t("common.creating") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

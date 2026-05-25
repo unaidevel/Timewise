@@ -29,6 +29,7 @@
     "notifications": "Notifications",
     "logout": "Log out",
     "profile": "Profile",
+    "preferences": "Preferences",
     "workspaces": "Workspaces",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -113,6 +114,9 @@
     },
     "greeting": "Hi, {{name}}",
     "greetingFallback": "welcome",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
     "summary": "Workspace overview.",
     "export": "Export",
     "newReport": "New report",
@@ -142,15 +146,116 @@
     },
     "activity": {
       "title": "Recent activity",
-      "subtitle": "Placeholder",
-      "sentTimesheet": "submitted a timesheet",
-      "approvedReports": "approved 3 reports",
-      "addedRule": "added an overtime rule",
-      "joinedDept": "joined Engineering",
-      "ago12m": "12m ago",
-      "ago1h": "1h ago",
-      "ago3h": "3h ago",
-      "yesterday": "yesterday"
+      "subtitle": "Latest audit events across the workspace"
+    }
+  },
+  "activity": {
+    "empty": "No recent activity yet",
+    "unknownActor": "Unknown user",
+    "relative": {
+      "seconds": "{{n}}s ago",
+      "minutes": "{{n}}m ago",
+      "hours": "{{n}}h ago",
+      "days": "{{n}}d ago"
+    },
+    "actions": {
+      "fallback": "{{action}} on {{resource}}",
+      "time_report.created": "created a time report",
+      "time_report.submitted": "submitted a time report",
+      "time_report.approved": "approved a time report",
+      "time_report.rejected": "rejected a time report",
+      "time_report.reopened": "reopened a time report",
+      "time_entry.created": "logged a time entry",
+      "time_entry.updated": "edited a time entry",
+      "time_entry.deleted": "removed a time entry",
+      "period.created": "opened a new period",
+      "period.locked": "locked a period",
+      "report.submitted_for_approval": "submitted a report for approval",
+      "report.approved": "approved a report",
+      "report.rejected": "rejected a report",
+      "overtime_rule.created": "added an overtime rule",
+      "overtime_rule.updated": "updated an overtime rule",
+      "overtime_rule.deactivated": "deactivated an overtime rule",
+      "report_cost.calculated": "recalculated report costs",
+      "department.created": "created a department",
+      "department.updated": "updated a department",
+      "department.deactivated": "deactivated a department",
+      "department_manager.assigned": "assigned a department manager",
+      "department_manager.removed": "removed a department manager",
+      "role.created": "created a role",
+      "role.updated": "updated a role",
+      "role.deactivated": "deactivated a role",
+      "employee.created": "added a new employee",
+      "employee.updated": "updated an employee",
+      "employee.deactivated": "deactivated an employee",
+      "employee.user_linked": "linked a user account to an employee",
+      "employee.manager_set": "assigned a manager",
+      "employee.department_assigned": "assigned an employee to a department",
+      "employee.role_assigned": "assigned a role to an employee",
+      "demo_data.seeded": "seeded demo data",
+      "user.login": "signed in",
+      "user.logout": "signed out"
+    }
+  },
+  "mySpace": {
+    "actions": {
+      "clockIn": "Clock in",
+      "clockOut": "Clock out",
+      "startBreak": "Start break",
+      "endBreak": "End break",
+      "hint": "Your time is recorded to the second."
+    },
+    "status": {
+      "notClocked": "Not clocked in",
+      "onBreak": "On break",
+      "working": "Working · {{elapsed}}"
+    },
+    "week": {
+      "title": "This week",
+      "remaining": "{{hours}}h to weekly target"
+    },
+    "pto": {
+      "title": "Time off balance",
+      "daysLeft": "days left",
+      "usedThisYear": "{{used}} of {{total}} used this year"
+    },
+    "lastMonth": {
+      "title": "Last month",
+      "approved": "Approved"
+    },
+    "activity": {
+      "title": "Your recent activity",
+      "subtitle": "Audit trail of your actions in this workspace"
+    },
+    "upcoming": {
+      "title": "Upcoming",
+      "subtitle": "Your next few events",
+      "standup": "Team standup",
+      "standupWhen": "Today · 10:00",
+      "oneOnOne": "1:1 with Lina",
+      "oneOnOneWhen": "Tomorrow · 14:30",
+      "sprintReview": "Sprint review",
+      "sprintReviewWhen": "Fri · 16:00",
+      "tagMeeting": "Meeting",
+      "tagOneOnOne": "1:1"
+    }
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Settings that apply to your account on this device.",
+    "save": "Save",
+    "saving": "Saving…",
+    "savedToast": "Preferences updated",
+    "saveError": "Could not save preferences",
+    "loading": "Loading…",
+    "timezone": {
+      "title": "Timezone",
+      "description": "Choose how dates and times are displayed for you. Leave on the organization default to follow your workspace.",
+      "label": "Display timezone",
+      "inheritOption": "Use organization default ({{tz}})",
+      "useOrgDefault": "Use organization default",
+      "usingOrgDefault": "Currently inheriting the organization default: {{tz}}.",
+      "usingOverride": "Currently overriding the organization default with {{tz}}."
     }
   },
   "commandPalette": {
