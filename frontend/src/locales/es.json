@@ -156,6 +156,54 @@
       "yesterday": "ayer"
     }
   },
+  "activity": {
+    "empty": "Aún no hay actividad reciente",
+    "unknownActor": "Usuario desconocido",
+    "relative": {
+      "seconds": "hace {{n}}s",
+      "minutes": "hace {{n}}m",
+      "hours": "hace {{n}}h",
+      "days": "hace {{n}}d"
+    },
+    "actions": {
+      "fallback": "{{action}} en {{resource}}",
+      "time_report.created": "creó un parte de horas",
+      "time_report.submitted": "envió un parte de horas",
+      "time_report.approved": "aprobó un parte de horas",
+      "time_report.rejected": "rechazó un parte de horas",
+      "time_report.reopened": "reabrió un parte de horas",
+      "time_entry.created": "registró una entrada de tiempo",
+      "time_entry.updated": "editó una entrada de tiempo",
+      "time_entry.deleted": "eliminó una entrada de tiempo",
+      "period.created": "abrió un nuevo periodo",
+      "period.locked": "bloqueó un periodo",
+      "report.submitted_for_approval": "envió un reporte a aprobación",
+      "report.approved": "aprobó un reporte",
+      "report.rejected": "rechazó un reporte",
+      "overtime_rule.created": "añadió una regla de horas extra",
+      "overtime_rule.updated": "actualizó una regla de horas extra",
+      "overtime_rule.deactivated": "desactivó una regla de horas extra",
+      "report_cost.calculated": "recalculó costes del reporte",
+      "department.created": "creó un departamento",
+      "department.updated": "actualizó un departamento",
+      "department.deactivated": "desactivó un departamento",
+      "department_manager.assigned": "asignó un manager al departamento",
+      "department_manager.removed": "quitó el manager del departamento",
+      "role.created": "creó un rol",
+      "role.updated": "actualizó un rol",
+      "role.deactivated": "desactivó un rol",
+      "employee.created": "añadió un empleado",
+      "employee.updated": "actualizó un empleado",
+      "employee.deactivated": "desactivó un empleado",
+      "employee.user_linked": "vinculó una cuenta de usuario a un empleado",
+      "employee.manager_set": "asignó un manager",
+      "employee.department_assigned": "asignó un empleado a un departamento",
+      "employee.role_assigned": "asignó un rol a un empleado",
+      "demo_data.seeded": "sembró datos de demo",
+      "user.login": "inició sesión",
+      "user.logout": "cerró sesión"
+    }
+  },
   "mySpace": {
     "actions": {
       "clockIn": "Fichar entrada",

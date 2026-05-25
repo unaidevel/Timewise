@@ -156,6 +156,54 @@
       "yesterday": "yesterday"
     }
   },
+  "activity": {
+    "empty": "No recent activity yet",
+    "unknownActor": "Unknown user",
+    "relative": {
+      "seconds": "{{n}}s ago",
+      "minutes": "{{n}}m ago",
+      "hours": "{{n}}h ago",
+      "days": "{{n}}d ago"
+    },
+    "actions": {
+      "fallback": "{{action}} on {{resource}}",
+      "time_report.created": "created a time report",
+      "time_report.submitted": "submitted a time report",
+      "time_report.approved": "approved a time report",
+      "time_report.rejected": "rejected a time report",
+      "time_report.reopened": "reopened a time report",
+      "time_entry.created": "logged a time entry",
+      "time_entry.updated": "edited a time entry",
+      "time_entry.deleted": "removed a time entry",
+      "period.created": "opened a new period",
+      "period.locked": "locked a period",
+      "report.submitted_for_approval": "submitted a report for approval",
+      "report.approved": "approved a report",
+      "report.rejected": "rejected a report",
+      "overtime_rule.created": "added an overtime rule",
+      "overtime_rule.updated": "updated an overtime rule",
+      "overtime_rule.deactivated": "deactivated an overtime rule",
+      "report_cost.calculated": "recalculated report costs",
+      "department.created": "created a department",
+      "department.updated": "updated a department",
+      "department.deactivated": "deactivated a department",
+      "department_manager.assigned": "assigned a department manager",
+      "department_manager.removed": "removed a department manager",
+      "role.created": "created a role",
+      "role.updated": "updated a role",
+      "role.deactivated": "deactivated a role",
+      "employee.created": "added a new employee",
+      "employee.updated": "updated an employee",
+      "employee.deactivated": "deactivated an employee",
+      "employee.user_linked": "linked a user account to an employee",
+      "employee.manager_set": "assigned a manager",
+      "employee.department_assigned": "assigned an employee to a department",
+      "employee.role_assigned": "assigned a role to an employee",
+      "demo_data.seeded": "seeded demo data",
+      "user.login": "signed in",
+      "user.logout": "signed out"
+    }
+  },
   "mySpace": {
     "actions": {
       "clockIn": "Clock in",
