@@ -113,6 +113,9 @@
     },
     "greeting": "Hola, {{name}}",
     "greetingFallback": "bienvenido",
+    "greetingMorning": "Buenos días",
+    "greetingAfternoon": "Buenas tardes",
+    "greetingEvening": "Buenas noches",
     "summary": "Resumen del workspace.",
     "export": "Exportar",
     "newReport": "Nuevo reporte",
@@ -151,6 +154,45 @@
       "ago1h": "hace 1h",
       "ago3h": "hace 3h",
       "yesterday": "ayer"
+    }
+  },
+  "mySpace": {
+    "actions": {
+      "clockIn": "Fichar entrada",
+      "clockOut": "Fichar salida",
+      "startBreak": "Iniciar descanso",
+      "endBreak": "Terminar descanso",
+      "hint": "Tu tiempo se registra al segundo."
+    },
+    "status": {
+      "notClocked": "Sin fichar",
+      "onBreak": "En descanso",
+      "working": "Trabajando · {{elapsed}}"
+    },
+    "week": {
+      "title": "Esta semana",
+      "remaining": "{{hours}}h hasta el objetivo semanal"
+    },
+    "pto": {
+      "title": "Saldo de vacaciones",
+      "daysLeft": "días disponibles",
+      "usedThisYear": "{{used}} de {{total}} usados este año"
+    },
+    "lastMonth": {
+      "title": "Mes pasado",
+      "approved": "Aprobado"
+    },
+    "upcoming": {
+      "title": "Próximos eventos",
+      "subtitle": "Tus siguientes citas",
+      "standup": "Daily del equipo",
+      "standupWhen": "Hoy · 10:00",
+      "oneOnOne": "1:1 con Lina",
+      "oneOnOneWhen": "Mañana · 14:30",
+      "sprintReview": "Sprint review",
+      "sprintReviewWhen": "Vie · 16:00",
+      "tagMeeting": "Reunión",
+      "tagOneOnOne": "1:1"
     }
   },
   "commandPalette": {

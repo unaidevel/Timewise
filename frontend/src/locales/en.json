@@ -113,6 +113,9 @@
     },
     "greeting": "Hi, {{name}}",
     "greetingFallback": "welcome",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
     "summary": "Workspace overview.",
     "export": "Export",
     "newReport": "New report",
@@ -151,6 +154,45 @@
       "ago1h": "1h ago",
       "ago3h": "3h ago",
       "yesterday": "yesterday"
+    }
+  },
+  "mySpace": {
+    "actions": {
+      "clockIn": "Clock in",
+      "clockOut": "Clock out",
+      "startBreak": "Start break",
+      "endBreak": "End break",
+      "hint": "Your time is recorded to the second."
+    },
+    "status": {
+      "notClocked": "Not clocked in",
+      "onBreak": "On break",
+      "working": "Working · {{elapsed}}"
+    },
+    "week": {
+      "title": "This week",
+      "remaining": "{{hours}}h to weekly target"
+    },
+    "pto": {
+      "title": "Time off balance",
+      "daysLeft": "days left",
+      "usedThisYear": "{{used}} of {{total}} used this year"
+    },
+    "lastMonth": {
+      "title": "Last month",
+      "approved": "Approved"
+    },
+    "upcoming": {
+      "title": "Upcoming",
+      "subtitle": "Your next few events",
+      "standup": "Team standup",
+      "standupWhen": "Today · 10:00",
+      "oneOnOne": "1:1 with Lina",
+      "oneOnOneWhen": "Tomorrow · 14:30",
+      "sprintReview": "Sprint review",
+      "sprintReviewWhen": "Fri · 16:00",
+      "tagMeeting": "Meeting",
+      "tagOneOnOne": "1:1"
     }
   },
   "commandPalette": {
