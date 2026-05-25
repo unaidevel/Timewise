@@ -37,7 +37,7 @@ import { ProfileDialog } from "@/features/auth/components/ProfileDialog";
 import { useLogout } from "@/features/auth/hooks";
 
 import { useAuthStore } from "@/features/auth/store";
-import { useTenants } from "@/features/tenants/hooks";
+import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
 import { useTenantStore } from "@/features/tenants/store";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,7 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   end?: boolean;
+  adminOnly?: boolean;
 };
 
 export function Layout() {
@@ -55,22 +56,29 @@ export function Layout() {
   const { i18n, t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
-  const nav: NavItem[] = [
-    { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true },
-    { to: "/employees", label: t("layout.nav.employees"), icon: Users },
-    { to: "/departments", label: t("layout.nav.departments"), icon: FolderKanban },
-    { to: "/roles", label: t("layout.nav.roles"), icon: Tag },
-    { to: "/periods", label: t("layout.nav.periods"), icon: Clock },
-    { to: "/time", label: t("layout.nav.time"), icon: Clock },
-    { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
-    { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
-    { to: "/costing", label: t("layout.nav.costing"), icon: Calculator },
-    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText },
-    { to: "/settings", label: t("layout.nav.settings"), icon: Settings },
-  ];
   const { data: tenants = [] } = useTenants();
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
+  const isAdmin = useIsTenantAdmin(currentTenantId);
+  const nav: NavItem[] = [
+    { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true },
+    { to: "/employees", label: t("layout.nav.employees"), icon: Users, adminOnly: true },
+    {
+      to: "/departments",
+      label: t("layout.nav.departments"),
+      icon: FolderKanban,
+      adminOnly: true,
+    },
+    { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true },
+    { to: "/periods", label: t("layout.nav.periods"), icon: Clock, adminOnly: true },
+    { to: "/time", label: t("layout.nav.time"), icon: Clock },
+    { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
+    { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
+    { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
+    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true },
+    { to: "/settings", label: t("layout.nav.settings"), icon: Settings, adminOnly: true },
+  ];
+  const visibleNav = nav.filter((item) => !item.adminOnly || isAdmin);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const palette = useCommandPalette();
@@ -148,7 +156,7 @@ export function Layout() {
         )}
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {nav.map((item) => (
+          {visibleNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
