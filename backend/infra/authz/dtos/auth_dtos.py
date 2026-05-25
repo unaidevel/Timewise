@@ -11,6 +11,7 @@ class AuthUser(BaseModel):
     full_name: str
     password_hash: str
     is_active: bool
+    timezone: str | None = None
     created_at: datetime
 
 

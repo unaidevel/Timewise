@@ -21,6 +21,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     is_active: bool
+    timezone: str | None = None
     created_at: datetime
 
 
