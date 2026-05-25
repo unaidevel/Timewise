@@ -6,9 +6,11 @@ from django.utils import timezone
 from infra.authz.entities.auth_entities import (
     Email,
     FullName,
+    Timezone,
     UpdateUserEmailEntity,
     UpdateUserNameEntity,
     UpdateUserPasswordEntity,
+    UpdateUserTimezoneEntity,
 )
 from infra.authz.models import (
     AuthLoginAttemptModel,
@@ -352,4 +354,46 @@ class AuthRepositoryTests(TestCase):
         with self.assertRaises(TypeError):
             AuthRepository.update_user_password(
                 {"user_id": user.id, "new_password_hash": "x"}  # type: ignore[arg-type]
+            )
+
+    def test_update_user_timezone_sets_value(self):
+        user = self._create_user()
+
+        updated = AuthRepository.update_user_timezone(
+            UpdateUserTimezoneEntity(
+                user_id=user.id,
+                timezone=Timezone("Europe/Madrid"),
+            )
+        )
+
+        self.assertEqual(updated.timezone, "Europe/Madrid")
+        self.assertEqual(
+            AuthUserModel.objects.get(id=user.id).timezone, "Europe/Madrid"
+        )
+
+    def test_update_user_timezone_clears_to_none(self):
+        user = self._create_user()
+        AuthRepository.update_user_timezone(
+            UpdateUserTimezoneEntity(
+                user_id=user.id,
+                timezone=Timezone("Europe/Madrid"),
+            )
+        )
+
+        cleared = AuthRepository.update_user_timezone(
+            UpdateUserTimezoneEntity(
+                user_id=user.id,
+                timezone=Timezone(None),
+            )
+        )
+
+        self.assertIsNone(cleared.timezone)
+        self.assertIsNone(AuthUserModel.objects.get(id=user.id).timezone)
+
+    def test_update_user_timezone_rejects_wrong_entity_type(self):
+        user = self._create_user()
+
+        with self.assertRaises(TypeError):
+            AuthRepository.update_user_timezone(
+                {"user_id": user.id, "timezone": "UTC"}  # type: ignore[arg-type]
             )

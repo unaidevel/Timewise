@@ -4,9 +4,11 @@ from infra.authz.entities.auth_entities import (
     Email,
     FullName,
     Password,
+    Timezone,
     UpdateUserEmailEntity,
     UpdateUserNameEntity,
     UpdateUserPasswordEntity,
+    UpdateUserTimezoneEntity,
 )
 from infra.common.exceptions import UnprocessableEntity
 
@@ -126,3 +128,39 @@ def test_update_user_password_entity_is_frozen():
 
     with pytest.raises(AttributeError):
         entity.new_password_hash = "other"
+
+
+def test_timezone_accepts_none():
+    tz = Timezone(None)
+
+    assert tz.value is None
+
+
+def test_timezone_treats_blank_as_none():
+    tz = Timezone("   ")
+
+    assert tz.value is None
+
+
+def test_timezone_accepts_allowed_value():
+    tz = Timezone("Europe/Madrid")
+
+    assert tz.value == "Europe/Madrid"
+
+
+def test_timezone_rejects_unknown_value():
+    with pytest.raises(UnprocessableEntity, match="not in the supported list"):
+        Timezone("Mars/Olympus")
+
+
+def test_update_user_timezone_entity_holds_validated_timezone():
+    entity = UpdateUserTimezoneEntity(user_id=4, timezone=Timezone("Europe/Madrid"))
+
+    assert entity.user_id == 4
+    assert entity.timezone.value == "Europe/Madrid"
+
+
+def test_update_user_timezone_entity_supports_none():
+    entity = UpdateUserTimezoneEntity(user_id=4, timezone=Timezone(None))
+
+    assert entity.timezone.value is None

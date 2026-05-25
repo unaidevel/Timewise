@@ -20,9 +20,11 @@ from infra.authz.entities.auth_entities import (
     Email,
     FullName,
     Password,
+    Timezone,
     UpdateUserEmailEntity,
     UpdateUserNameEntity,
     UpdateUserPasswordEntity,
+    UpdateUserTimezoneEntity,
 )
 from infra.authz.models import AuthLoginEventModel
 from infra.authz.repositories.auth_repository import AuthRepository
@@ -127,6 +129,16 @@ class AuthService:
             new_password_hash=new_hash,
         )
         return AuthRepository.update_user_password(entity)
+
+    @staticmethod
+    def update_user_timezone(user_id: int, timezone_value: str | None) -> AuthUser:
+        if not AuthRepository.find_user_by_id(user_id):
+            raise NotFound(f"User {user_id} not found.")
+        entity = UpdateUserTimezoneEntity(
+            user_id=user_id,
+            timezone=Timezone(timezone_value),
+        )
+        return AuthRepository.update_user_timezone(entity)
 
     @staticmethod
     def rotate_session_after_password_change(

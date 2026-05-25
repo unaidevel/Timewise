@@ -7,6 +7,7 @@ from infra.authz.entities.auth_entities import (
     UpdateUserEmailEntity,
     UpdateUserNameEntity,
     UpdateUserPasswordEntity,
+    UpdateUserTimezoneEntity,
 )
 from infra.authz.models import (
     AuthLoginAttemptModel,
@@ -72,6 +73,16 @@ class AuthRepository:
             )
         model = AuthUserModel(id=entity.user_id, password_hash=entity.new_password_hash)
         model.save(update_fields=["password_hash", "updated_at"])
+        return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
+
+    @staticmethod
+    def update_user_timezone(entity: UpdateUserTimezoneEntity) -> AuthUser:
+        if not isinstance(entity, UpdateUserTimezoneEntity):
+            raise TypeError(
+                f"Expected UpdateUserTimezoneEntity, got {type(entity).__name__}"
+            )
+        model = AuthUserModel(id=entity.user_id, timezone=entity.timezone.value)
+        model.save(update_fields=["timezone", "updated_at"])
         return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
 
     @staticmethod
