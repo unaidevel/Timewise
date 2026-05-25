@@ -222,6 +222,10 @@
       "title": "Last month",
       "approved": "Approved"
     },
+    "activity": {
+      "title": "Your recent activity",
+      "subtitle": "Audit trail of your actions in this workspace"
+    },
     "upcoming": {
       "title": "Upcoming",
       "subtitle": "Your next few events",

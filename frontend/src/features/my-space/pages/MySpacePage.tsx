@@ -7,6 +7,7 @@ import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Progress } from "@/components/shadcn/progress";
+import { RecentActivity } from "@/features/activity/RecentActivity";
 import { useAuthStore } from "@/features/auth/store";
 import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
@@ -216,6 +217,18 @@ export default function MySpacePage() {
             >
               {t("mySpace.lastMonth.approved")}
             </Badge>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("mySpace.activity.title")}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t("mySpace.activity.subtitle")}</p>
+          </CardHeader>
+          <CardContent>
+            <RecentActivity tenantId={tenantId} actorId={user?.id ?? null} />
           </CardContent>
         </Card>
       </section>
