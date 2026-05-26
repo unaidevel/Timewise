@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { LiveClock, useNow } from "@/components/LiveClock";
+import { LiveClock, getHourInTimezone, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
@@ -77,10 +77,11 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const now = useNow();
   const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
   const timezone = user?.timezone || profile.data?.timezone || undefined;
+  const hour = getHourInTimezone(now, timezone);
   const greeting =
-    now.getHours() < 12
+    hour < 12
       ? t("dashboard.greetingMorning")
-      : now.getHours() < 18
+      : hour < 18
         ? t("dashboard.greetingAfternoon")
         : t("dashboard.greetingEvening");
 
