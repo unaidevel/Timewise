@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { EmployeeIn } from "@/client";
+import type { EmployeeIn, EmployeeUpdate } from "@/client";
 import {
   createEmployeeApiV1TenantsTenantIdEmployeesPost,
   deactivateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdDelete,
   getEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdGet,
   listEmployeesApiV1TenantsTenantIdEmployeesGet,
+  updateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPut,
 } from "@/client";
 
 export function useEmployees(tenantId: number | null) {
@@ -47,6 +48,24 @@ export function useCreateEmployee(tenantId: number | null) {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["employees", tenantId] }),
+  });
+}
+
+export function useUpdateEmployee(tenantId: number | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: number; body: EmployeeUpdate }) => {
+      const { data, error } = await updateEmployeeApiV1TenantsTenantIdEmployeesEmployeeIdPut({
+        path: { tenant_id: tenantId!, employee_id: id },
+        body,
+      });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["employees", tenantId] });
+      qc.invalidateQueries({ queryKey: ["employees", tenantId, vars.id] });
+    },
   });
 }
 
