@@ -36,6 +36,7 @@ import {
 } from "@/components/shadcn/dropdown-menu";
 import { ProfileDialog } from "@/features/auth/components/ProfileDialog";
 import { useLogout } from "@/features/auth/hooks";
+import { TourRunner } from "@/features/onboarding/components/TourRunner";
 
 import { useAuthStore } from "@/features/auth/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
@@ -49,6 +50,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   end?: boolean;
   adminOnly?: boolean;
+  tourId?: string;
 };
 
 export function Layout() {
@@ -62,8 +64,20 @@ export function Layout() {
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const isAdmin = useIsTenantAdmin(currentTenantId);
   const nav: NavItem[] = [
-    { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true },
-    { to: "/employees", label: t("layout.nav.employees"), icon: Users, adminOnly: true },
+    {
+      to: "/",
+      label: t("layout.nav.home"),
+      icon: LayoutDashboard,
+      end: true,
+      tourId: "nav-home",
+    },
+    {
+      to: "/employees",
+      label: t("layout.nav.employees"),
+      icon: Users,
+      adminOnly: true,
+      tourId: "nav-employees",
+    },
     {
       to: "/departments",
       label: t("layout.nav.departments"),
@@ -71,13 +85,30 @@ export function Layout() {
       adminOnly: true,
     },
     { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true },
-    { to: "/periods", label: t("layout.nav.periods"), icon: Clock, adminOnly: true },
+    {
+      to: "/periods",
+      label: t("layout.nav.periods"),
+      icon: Clock,
+      adminOnly: true,
+      tourId: "nav-periods",
+    },
     { to: "/time", label: t("layout.nav.time"), icon: Clock },
-    { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
-    { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
+    { to: "/reports", label: t("layout.nav.reports"), icon: Clock, tourId: "nav-reports" },
+    {
+      to: "/approvals",
+      label: t("layout.nav.approvals"),
+      icon: CheckSquare,
+      tourId: "nav-approvals",
+    },
     { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
     { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true },
-    { to: "/settings", label: t("layout.nav.settings"), icon: Settings, adminOnly: true },
+    {
+      to: "/settings",
+      label: t("layout.nav.settings"),
+      icon: Settings,
+      adminOnly: true,
+      tourId: "nav-settings",
+    },
   ];
   const visibleNav = nav.filter((item) => !item.adminOnly || isAdmin);
   const [collapsed, setCollapsed] = useState(false);
@@ -162,6 +193,7 @@ export function Layout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              data-tour={item.tourId}
               className={({ isActive }) =>
                 cn(
                   "group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition",
@@ -286,6 +318,7 @@ export function Layout() {
 
         <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
+        <TourRunner />
 
         <main className="flex-1 overflow-auto">
           <AnimatePresence mode="wait">
