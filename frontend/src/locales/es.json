@@ -102,9 +102,42 @@
       "description": "Creamos un equipo de ejemplo (departamentos, empleados, periodos, reportes). Puedes editarlos o borrarlos después.",
       "startEmpty": "Empezar de cero",
       "load": "Cargar demo",
+      "loadTooltip": "Cargamos datos de ejemplo y te mostramos las funciones principales.",
       "loading": "Cargando…",
       "successToast": "Datos de demo cargados",
       "errorToast": "No se pudieron cargar los datos"
+    },
+    "tour": {
+      "back": "Atrás",
+      "next": "Siguiente",
+      "skip": "Saltar tour",
+      "finish": "Finalizar",
+      "steps": {
+        "home": {
+          "title": "Bienvenido a TimeWise",
+          "body": "Este es tu panel. Te mostramos las áreas principales en menos de un minuto."
+        },
+        "employees": {
+          "title": "Empleados",
+          "body": "Gestiona a las personas de tu organización — tarifas, contratos, departamentos y roles."
+        },
+        "periods": {
+          "title": "Periodos",
+          "body": "Define los rangos de fechas que agrupan las horas. Crea periodos mensuales o personalizados."
+        },
+        "reports": {
+          "title": "Reportes de horas",
+          "body": "Cada empleado registra horas en un reporte vinculado a un periodo. Ábrelo para ver los detalles."
+        },
+        "approvals": {
+          "title": "Aprobaciones",
+          "body": "Los reportes enviados aparecen aquí para que los gerentes los aprueben o rechacen."
+        },
+        "settings": {
+          "title": "Ajustes",
+          "body": "Gestiona tu organización, miembros, departamentos y reglas de coste. Fin del tour — ¡a registrar horas!"
+        }
+      }
     }
   },
   "dashboard": {
@@ -529,6 +562,7 @@
         "legalName": "Razón social",
         "country": "País",
         "timezone": "Zona horaria",
+        "timezoneHint": "Cada usuario puede sobreescribir la zona horaria en sus preferencias.",
         "currency": "Moneda",
         "vatNumber": "CIF / NIF"
       },

@@ -102,9 +102,42 @@
       "description": "We'll create a sample team (departments, employees, periods, reports). You can edit or delete them afterwards.",
       "startEmpty": "Start from scratch",
       "load": "Load demo",
+      "loadTooltip": "We'll seed sample data and walk you through the main features.",
       "loading": "Loading…",
       "successToast": "Demo data loaded",
       "errorToast": "Could not load the data"
+    },
+    "tour": {
+      "back": "Back",
+      "next": "Next",
+      "skip": "Skip tour",
+      "finish": "Finish",
+      "steps": {
+        "home": {
+          "title": "Welcome to TimeWise",
+          "body": "This is your dashboard. We'll walk you through the main areas in under a minute."
+        },
+        "employees": {
+          "title": "Employees",
+          "body": "Manage the people in your organization — hourly rates, contracts, departments and roles."
+        },
+        "periods": {
+          "title": "Periods",
+          "body": "Define the date ranges that group time entries. Create monthly or custom periods here."
+        },
+        "reports": {
+          "title": "Time reports",
+          "body": "Each employee logs hours into a report tied to a period. Open one to see entries and totals."
+        },
+        "approvals": {
+          "title": "Approvals",
+          "body": "Submitted reports show up here for managers to approve or reject."
+        },
+        "settings": {
+          "title": "Settings",
+          "body": "Manage your organization, members, departments and cost rules. That's the tour — happy timekeeping."
+        }
+      }
     }
   },
   "dashboard": {
@@ -529,6 +562,7 @@
         "legalName": "Legal name",
         "country": "Country",
         "timezone": "Timezone",
+        "timezoneHint": "Each user can override timezone in their preferences.",
         "currency": "Currency",
         "vatNumber": "VAT number"
       },

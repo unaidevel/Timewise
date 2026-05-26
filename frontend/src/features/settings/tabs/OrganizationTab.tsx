@@ -134,6 +134,9 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
               options={timezones.data ?? []}
               onChange={(v) => upd("timezone", v)}
             />
+            <p className="text-xs text-muted-foreground">
+              {t("settings.org.fields.timezoneHint")}
+            </p>
           </Field>
           <Field label={t("settings.org.fields.currency")}>
             <Select
