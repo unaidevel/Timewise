@@ -32,7 +32,7 @@ const statusStyle: Record<string, string> = {
 export default function ApprovalsPage() {
   const tenantId = useCurrentTenantId();
   const isAdmin = useIsTenantAdmin(tenantId);
-  const [scope, setScope] = useState<Scope>("mine");
+  const [scope, setScope] = useState<Scope>("all");
   const effectiveScope: Scope = isAdmin ? scope : "mine";
   const approvals = useApprovals(tenantId, effectiveScope);
   const { t } = useTranslation();
