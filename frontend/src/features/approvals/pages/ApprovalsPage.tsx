@@ -1,9 +1,11 @@
-import { Check, CheckSquare, Inbox, X } from "lucide-react";
+import { ArrowUpRight, Check, CheckSquare, Inbox, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import type { ApprovalOut } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
+import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent } from "@/components/shadcn/card";
@@ -17,7 +19,7 @@ import {
 import { Skeleton } from "@/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { useCurrentTenantId, useIsTenantAdmin } from "@/features/tenants/hooks";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatHours } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { type Scope, useApprovals, useApproveApproval, useRejectApproval } from "../hooks";
 
@@ -153,19 +155,41 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
   const approve = useApproveApproval(tenantId);
   const { t } = useTranslation();
   const isPending = approval.status === "pending";
+  const initials = approval.employee_full_name
+    .split(" ")
+    .map((n) => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <Card className="hover:shadow-[var(--shadow-elegant)] transition">
       <CardContent className="p-4 flex items-center gap-4 flex-wrap">
-        <div className="size-10 rounded-full bg-primary/10 text-primary grid place-items-center font-semibold text-xs">
-          #{approval.report_id}
-        </div>
+        <Avatar className="size-10">
+          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            {initials || "?"}
+          </AvatarFallback>
+        </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">
-            {t("timekeeping.approvals.reportLabel", { id: approval.report_id })}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="font-medium truncate">{approval.employee_full_name}</span>
+            <span className="text-xs text-muted-foreground">· {approval.period_name}</span>
+            <span className="text-xs font-medium text-foreground">
+              ·{" "}
+              {t("timekeeping.approvals.totalHours", { hours: formatHours(approval.total_hours) })}
+            </span>
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {t("timekeeping.approvals.approvalLabel", { id: approval.id })}
+            {t("timekeeping.approvals.reportLabel", { id: approval.report_id })}
+            {approval.report_submitted_at && (
+              <>
+                {" · "}
+                {t("timekeeping.approvals.submittedOn", {
+                  date: formatDateTime(approval.report_submitted_at),
+                })}
+              </>
+            )}
             {approval.reviewer_id != null && (
               <> · {t("timekeeping.approvals.reviewer", { id: approval.reviewer_id })}</>
             )}
@@ -175,6 +199,12 @@ function ApprovalCard({ approval, onReject }: { approval: ApprovalOut; onReject:
         <Badge variant="outline" className={cn("capitalize", statusStyle[approval.status])}>
           {approval.status}
         </Badge>
+        <Button asChild size="sm" variant="outline" className="h-8">
+          <Link to={`/reports/${approval.report_id}`}>
+            {t("timekeeping.approvals.viewReport")}
+            <ArrowUpRight className="size-3.5 ml-1" />
+          </Link>
+        </Button>
         {isPending && (
           <div className="flex gap-1">
             <Button
@@ -243,8 +273,8 @@ function RejectDialog({
           <DialogDescription>
             {approval && (
               <>
-                {t("timekeeping.approvals.reportLabel", { id: approval.report_id })} ·{" "}
-                {t("timekeeping.approvals.approvalLabel", { id: approval.id })}
+                {approval.employee_full_name} · {approval.period_name} ·{" "}
+                {t("timekeeping.approvals.reportLabel", { id: approval.report_id })}
               </>
             )}
           </DialogDescription>

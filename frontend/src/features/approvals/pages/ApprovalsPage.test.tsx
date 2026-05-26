@@ -30,6 +30,11 @@ const approvals = [
     updated_by_id: null,
     created_at: "2026-01-30T10:00:00",
     updated_at: "2026-01-30T10:00:00",
+    report_status: "pending",
+    report_submitted_at: "2026-01-30T09:00:00",
+    period_name: "January 2026",
+    employee_full_name: "Alice Liddell",
+    total_hours: "40.00",
   },
   {
     id: 2,
@@ -43,6 +48,11 @@ const approvals = [
     updated_by_id: null,
     created_at: "2026-01-29T08:00:00",
     updated_at: "2026-01-31T09:00:00",
+    report_status: "approved",
+    report_submitted_at: "2026-01-29T08:00:00",
+    period_name: "January 2026",
+    employee_full_name: "Bob Builder",
+    total_hours: "38.50",
   },
   {
     id: 3,
@@ -56,6 +66,11 @@ const approvals = [
     updated_by_id: null,
     created_at: "2026-01-28T08:00:00",
     updated_at: "2026-01-31T11:00:00",
+    report_status: "rejected",
+    report_submitted_at: "2026-01-28T08:00:00",
+    period_name: "December 2025",
+    employee_full_name: "Carol Danvers",
+    total_hours: "42.00",
   },
 ];
 
@@ -84,9 +99,9 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    expect(await screen.findByText("Report #100")).toBeTruthy();
-    expect(screen.queryByText("Report #101")).toBeNull();
-    expect(screen.queryByText("Report #102")).toBeNull();
+    expect(await screen.findByText("Alice Liddell")).toBeTruthy();
+    expect(screen.queryByText("Bob Builder")).toBeNull();
+    expect(screen.queryByText("Carol Danvers")).toBeNull();
     expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reject" })).toBeTruthy();
   });
@@ -99,12 +114,12 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Report #100");
+    await screen.findByText("Alice Liddell");
 
     await userEvent.click(screen.getByRole("tab", { name: /Approved/ }));
 
-    await waitFor(() => expect(screen.queryByText("Report #100")).toBeNull());
-    expect(screen.getByText("Report #101")).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText("Alice Liddell")).toBeNull());
+    expect(screen.getByText("Bob Builder")).toBeTruthy();
   });
 
   it("renders tab counts from the data", async () => {
@@ -115,7 +130,7 @@ describe("ApprovalsPage", () => {
 
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Report #100");
+    await screen.findByText("Alice Liddell");
 
     const pendingTab = screen.getByRole("tab", { name: /Pending/ });
     expect(within(pendingTab).getByText("1")).toBeTruthy();
@@ -139,7 +154,7 @@ describe("ApprovalsPage", () => {
     const { toast } = await import("sonner");
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Report #100");
+    await screen.findByText("Alice Liddell");
     await userEvent.click(screen.getByRole("button", { name: "Approve" }));
 
     await waitFor(() => expect(approveCalls).toBe(1));
@@ -160,7 +175,7 @@ describe("ApprovalsPage", () => {
     const { toast } = await import("sonner");
     render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
 
-    await screen.findByText("Report #100");
+    await screen.findByText("Alice Liddell");
     await userEvent.click(screen.getByRole("button", { name: "Reject" }));
 
     const textarea = await screen.findByLabelText("Reason (optional)");
@@ -171,6 +186,22 @@ describe("ApprovalsPage", () => {
     await waitFor(() => expect(rejectBody).not.toBeNull());
     expect(rejectBody).toEqual({ reason: "Faltan horas" });
     expect(toast.success).toHaveBeenCalledWith("Report rejected");
+  });
+
+  it("shows the submitter, period, total hours, and a link to the report on each card", async () => {
+    useTenantStore.setState({ currentTenantId: TENANT_ID });
+    server.use(
+      http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/approvals`, () => HttpResponse.json(approvals)),
+    );
+
+    render(<ApprovalsPage />, { wrapper: createRouterWrapper() });
+
+    expect(await screen.findByText("Alice Liddell")).toBeTruthy();
+    expect(screen.getByText(/January 2026/)).toBeTruthy();
+    expect(screen.getByText(/40\.00 h total/)).toBeTruthy();
+
+    const viewLink = screen.getByRole("link", { name: /View report/ });
+    expect(viewLink.getAttribute("href")).toBe("/reports/100");
   });
 
   it("shows an inbox-zero card on a tab with no items", async () => {

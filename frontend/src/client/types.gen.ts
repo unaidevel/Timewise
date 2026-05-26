@@ -88,6 +88,26 @@ export type ApprovalOut = {
      * Updated At
      */
     updated_at: string;
+    /**
+     * Report Status
+     */
+    report_status: string;
+    /**
+     * Report Submitted At
+     */
+    report_submitted_at: string | null;
+    /**
+     * Period Name
+     */
+    period_name: string;
+    /**
+     * Employee Full Name
+     */
+    employee_full_name: string;
+    /**
+     * Total Hours
+     */
+    total_hours: string;
 };
 
 /**
