@@ -30,7 +30,6 @@
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
-    "preferences": "Preferencias",
     "workspaces": "Workspaces",
     "expand": "Expandir",
     "collapse": "Contraer",
@@ -275,24 +274,6 @@
       "tagOneOnOne": "1:1"
     }
   },
-  "preferences": {
-    "title": "Preferencias",
-    "subtitle": "Ajustes que se aplican a tu cuenta en este dispositivo.",
-    "save": "Guardar",
-    "saving": "Guardando…",
-    "savedToast": "Preferencias actualizadas",
-    "saveError": "No se pudieron guardar las preferencias",
-    "loading": "Cargando…",
-    "timezone": {
-      "title": "Zona horaria",
-      "description": "Elige cómo se muestran las fechas y horas para ti. Deja la opción de la organización para seguir el valor del workspace.",
-      "label": "Zona horaria de visualización",
-      "inheritOption": "Usar la de la organización ({{tz}})",
-      "useOrgDefault": "Usar la de la organización",
-      "usingOrgDefault": "Actualmente heredas la zona horaria de la organización: {{tz}}.",
-      "usingOverride": "Actualmente la sobrescribes con {{tz}}."
-    }
-  },
   "commandPalette": {
     "placeholder": "Busca personas, páginas, acciones…",
     "empty": "No hay resultados.",
@@ -508,14 +489,15 @@
     }
   },
   "profile": {
-    "title": "Tu perfil",
-    "description": "Actualiza tu nombre, email o contraseña.",
+    "title": "Perfil",
+    "subtitle": "Gestiona los datos de tu cuenta y la preferencia de zona horaria.",
     "save": "Guardar",
     "submitting": "Guardando…",
     "tabs": {
       "name": "Nombre",
       "email": "Email",
-      "password": "Contraseña"
+      "password": "Contraseña",
+      "timezone": "Zona horaria"
     },
     "name": {
       "label": "Nombre completo",
@@ -538,6 +520,17 @@
       "errorToast": "No se pudo cambiar la contraseña.",
       "wrongCurrentToast": "La contraseña actual es incorrecta.",
       "weakToast": "La nueva contraseña es demasiado débil."
+    },
+    "timezone": {
+      "description": "Elige cómo se muestran las fechas y horas para ti. Deja la opción de la organización para seguir el valor del workspace.",
+      "label": "Zona horaria de visualización",
+      "loading": "Cargando…",
+      "inheritOption": "Usar la de la organización ({{tz}})",
+      "useOrgDefault": "Usar la de la organización",
+      "usingOrgDefault": "Actualmente heredas la zona horaria de la organización: {{tz}}.",
+      "usingOverride": "Actualmente la sobrescribes con {{tz}}.",
+      "successToast": "Preferencia de zona horaria actualizada.",
+      "errorToast": "No se pudo actualizar la preferencia de zona horaria."
     }
   },
   "settings": {

@@ -14,7 +14,6 @@ import {
   ScrollText,
   Search,
   Settings,
-  SlidersHorizontal,
   Sun,
   Tag,
   User,
@@ -34,7 +33,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/shadcn/dropdown-menu";
-import { ProfileDialog } from "@/features/auth/components/ProfileDialog";
 import { useLogout } from "@/features/auth/hooks";
 import { TourRunner } from "@/features/onboarding/components/TourRunner";
 
@@ -112,7 +110,6 @@ export function Layout() {
   ];
   const visibleNav = nav.filter((item) => !item.adminOnly || isAdmin);
   const [collapsed, setCollapsed] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const palette = useCommandPalette();
 
   useEffect(() => {
@@ -289,22 +286,20 @@ export function Layout() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel
-                  className="cursor-pointer focus:bg-accent hover:bg-accent rounded-sm"
-                  onClick={() => setProfileOpen(true)}
-                >
-                  <div className="text-sm font-medium">{user?.full_name}</div>
-                  <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
+                <DropdownMenuLabel asChild>
+                  <Link
+                    to="/profile"
+                    className="block focus:bg-accent hover:bg-accent rounded-sm"
+                  >
+                    <div className="text-sm font-medium">{user?.full_name}</div>
+                    <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
+                  </Link>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                  <User className="size-4 mr-2" />
-                  {t("layout.profile")}
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/preferences">
-                    <SlidersHorizontal className="size-4 mr-2" />
-                    {t("layout.preferences")}
+                  <Link to="/profile">
+                    <User className="size-4 mr-2" />
+                    {t("layout.profile")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout.mutate()}>
@@ -316,7 +311,6 @@ export function Layout() {
           </div>
         </header>
 
-        <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
         <TourRunner />
 

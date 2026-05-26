@@ -1,52 +1,60 @@
-import { useEffect, useState } from "react";
+import { RotateCcw, Save } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import type { TimezoneOption } from "@/client";
 import { Button } from "@/components/shadcn/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/shadcn/dialog";
 import { Input } from "@/components/shadcn/input";
 import { Label } from "@/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shadcn/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
-import { useUpdateMyEmail, useUpdateMyName, useUpdateMyPassword } from "@/features/auth/hooks";
+import {
+  useUpdateMyEmail,
+  useUpdateMyName,
+  useUpdateMyPassword,
+  useUpdateMyTimezone,
+} from "@/features/auth/hooks";
 import { useAuthStore } from "@/features/auth/store";
+import { useCurrentTenantId, useOrganizationProfile, useTimezones } from "@/features/tenants/hooks";
 
-interface ProfileDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+const INHERIT_VALUE = "__inherit__";
 
-export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
+export default function ProfilePage() {
   const { t } = useTranslation();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("profile.title")}</DialogTitle>
-          <DialogDescription>{t("profile.description")}</DialogDescription>
-        </DialogHeader>
-        <Tabs defaultValue="name" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="name">{t("profile.tabs.name")}</TabsTrigger>
-            <TabsTrigger value="email">{t("profile.tabs.email")}</TabsTrigger>
-            <TabsTrigger value="password">{t("profile.tabs.password")}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="name">
-            <NameForm />
-          </TabsContent>
-          <TabsContent value="email">
-            <EmailForm />
-          </TabsContent>
-          <TabsContent value="password">
-            <PasswordForm />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+    <div className="space-y-6 max-w-2xl">
+      <header>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("profile.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("profile.subtitle")}</p>
+      </header>
+
+      <Tabs defaultValue="name" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="name">{t("profile.tabs.name")}</TabsTrigger>
+          <TabsTrigger value="email">{t("profile.tabs.email")}</TabsTrigger>
+          <TabsTrigger value="password">{t("profile.tabs.password")}</TabsTrigger>
+          <TabsTrigger value="timezone">{t("profile.tabs.timezone")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="name" className="pt-4">
+          <NameForm />
+        </TabsContent>
+        <TabsContent value="email" className="pt-4">
+          <EmailForm />
+        </TabsContent>
+        <TabsContent value="password" className="pt-4">
+          <PasswordForm />
+        </TabsContent>
+        <TabsContent value="timezone" className="pt-4">
+          <TimezoneForm />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
@@ -75,7 +83,7 @@ function NameForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label className="text-xs" htmlFor="profile-fullname">
           {t("profile.name.label")}
@@ -127,7 +135,7 @@ function EmailForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label className="text-xs" htmlFor="profile-email">
           {t("profile.email.label")}
@@ -186,7 +194,7 @@ function PasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label className="text-xs" htmlFor="profile-current-password">
           {t("profile.password.current")}
@@ -235,5 +243,112 @@ function PasswordForm() {
         </Button>
       </div>
     </form>
+  );
+}
+
+function TimezoneForm() {
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const tenantId = useCurrentTenantId();
+  const orgProfile = useOrganizationProfile(tenantId);
+  const timezones = useTimezones();
+  const update = useUpdateMyTimezone();
+
+  const initial = user?.timezone ?? null;
+  const [selected, setSelected] = useState<string>(initial ?? INHERIT_VALUE);
+
+  useEffect(() => {
+    setSelected(initial ?? INHERIT_VALUE);
+  }, [initial]);
+
+  const orgTimezone = orgProfile.data?.timezone ?? "UTC";
+  const dirty = (selected === INHERIT_VALUE ? null : selected) !== (initial ?? null);
+
+  async function save() {
+    try {
+      const next = selected === INHERIT_VALUE ? null : selected;
+      await update.mutateAsync({ timezone: next });
+      toast.success(t("profile.timezone.successToast"));
+    } catch {
+      toast.error(t("profile.timezone.errorToast"));
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">{t("profile.timezone.description")}</p>
+      <div className="space-y-1.5">
+        <Label className="text-xs">{t("profile.timezone.label")}</Label>
+        <TimezoneSelect
+          value={selected}
+          orgTimezone={orgTimezone}
+          loading={timezones.isPending}
+          options={timezones.data ?? []}
+          onChange={setSelected}
+          disabled={update.isPending}
+        />
+        <p className="text-xs text-muted-foreground">
+          {selected === INHERIT_VALUE
+            ? t("profile.timezone.usingOrgDefault", { tz: orgTimezone })
+            : t("profile.timezone.usingOverride", { tz: selected })}
+        </p>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <Button onClick={save} disabled={!dirty || update.isPending}>
+          <Save className="size-4 mr-2" />
+          {update.isPending ? t("profile.submitting") : t("profile.save")}
+        </Button>
+        <Button
+          variant="outline"
+          disabled={update.isPending || selected === INHERIT_VALUE}
+          onClick={() => setSelected(INHERIT_VALUE)}
+        >
+          <RotateCcw className="size-4 mr-2" />
+          {t("profile.timezone.useOrgDefault")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function TimezoneSelect({
+  value,
+  orgTimezone,
+  loading,
+  options,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  orgTimezone: string;
+  loading: boolean;
+  options: TimezoneOption[];
+  onChange: (value: string) => void;
+  disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const items = useMemo(() => {
+    if (value !== INHERIT_VALUE && !options.some((o) => o.value === value)) {
+      return [{ value, label: value }, ...options];
+    }
+    return options;
+  }, [options, value]);
+
+  return (
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger>
+        <SelectValue placeholder={loading ? t("profile.timezone.loading") : undefined} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={INHERIT_VALUE}>
+          {t("profile.timezone.inheritOption", { tz: orgTimezone })}
+        </SelectItem>
+        {items.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
