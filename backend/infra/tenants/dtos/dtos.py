@@ -35,6 +35,8 @@ class TenantMemberResponse(BaseModel):
     tenant_id: int
     user_id: int
     role: str
+    full_name: str
+    email: str
     joined_at: datetime
     invited_by_id: int | None
     left_at: datetime | None

@@ -82,26 +82,32 @@ class TenantRepository:
             role=entity.role,
             invited_by_id=invited_by_id,
         )
-        return TenantMemberResponse.model_validate(model)
+        return _to_member_response(
+            TenantMembershipModel.objects.select_related("user").get(id=model.id)
+        )
 
     @staticmethod
     def find_active_membership(
         tenant_id: int, user_id: int
     ) -> TenantMemberResponse | None:
-        model = TenantMembershipModel.objects.filter(
-            tenant_id=tenant_id,
-            user_id=user_id,
-            left_at__isnull=True,
-        ).first()
-        return TenantMemberResponse.model_validate(model) if model else None
+        model = (
+            TenantMembershipModel.objects.select_related("user")
+            .filter(
+                tenant_id=tenant_id,
+                user_id=user_id,
+                left_at__isnull=True,
+            )
+            .first()
+        )
+        return _to_member_response(model) if model else None
 
     @staticmethod
     def list_memberships(tenant_id: int) -> list[TenantMemberResponse]:
         return [
-            TenantMemberResponse.model_validate(m)
-            for m in TenantMembershipModel.objects.filter(tenant_id=tenant_id).order_by(
-                "joined_at"
-            )
+            _to_member_response(m)
+            for m in TenantMembershipModel.objects.select_related("user")
+            .filter(tenant_id=tenant_id)
+            .order_by("joined_at")
         ]
 
     @staticmethod
@@ -114,12 +120,29 @@ class TenantRepository:
         ).update(left_at=left_at, left_reason=reason)
         if rows == 0:
             return None
-        model = TenantMembershipModel.objects.get(id=membership_id)
-        return TenantMemberResponse.model_validate(model)
+        model = TenantMembershipModel.objects.select_related("user").get(
+            id=membership_id
+        )
+        return _to_member_response(model)
 
     @staticmethod
     def tenant_exists_by_slug(slug: str) -> bool:
         return TenantModel.objects.filter(slug=slug).exists()
+
+
+def _to_member_response(model: TenantMembershipModel) -> TenantMemberResponse:
+    return TenantMemberResponse(
+        id=model.id,
+        tenant_id=model.tenant_id,
+        user_id=model.user_id,
+        role=model.role,
+        full_name=model.user.full_name,
+        email=model.user.email,
+        joined_at=model.joined_at,
+        invited_by_id=model.invited_by_id,
+        left_at=model.left_at,
+        left_reason=model.left_reason,
+    )
 
 
 class OrganizationProfileRepository:
