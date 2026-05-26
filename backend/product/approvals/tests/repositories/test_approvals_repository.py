@@ -9,9 +9,13 @@ from infra.authz.services.auth_service import AuthService
 from infra.common.classes import MembershipRoles
 from infra.tenants.entities.tenant_entities import TenantEntity, TenantMembershipEntity
 from infra.tenants.services.tenants_service import TenantService
+from product.approvals.entities.approval_entities import UpdateApprovalStatusEntity
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
 from product.common.classes import ApprovalAction, ApprovalStatus
-from product.timekeeping.entities.timekeeping_entities import PeriodEntity
+from product.timekeeping.entities.timekeeping_entities import (
+    PeriodEntity,
+    TimeEntryEntity,
+)
 from product.timekeeping.repositories.timekeeping_repository import (
     TimekeepingRepository,
 )
@@ -167,9 +171,11 @@ class ApprovalsRepositoryTests(TestCase):
             user_id=self.user.id,
         )
         ApprovalsRepository.update_approval_status(
-            approval.id,
-            new_status=ApprovalStatus.APPROVED.value,
-            user_id=self.user.id,
+            UpdateApprovalStatusEntity(
+                approval_id=approval.id,
+                new_status=ApprovalStatus.APPROVED.value,
+                user_id=self.user.id,
+            )
         )
 
         pending = ApprovalsRepository.list_by_tenant(
@@ -191,10 +197,12 @@ class ApprovalsRepositoryTests(TestCase):
         reviewed_at = timezone.now()
 
         updated = ApprovalsRepository.update_approval_status(
-            approval.id,
-            new_status=ApprovalStatus.APPROVED.value,
-            user_id=self.user.id,
-            reviewed_at=reviewed_at,
+            UpdateApprovalStatusEntity(
+                approval_id=approval.id,
+                new_status=ApprovalStatus.APPROVED.value,
+                user_id=self.user.id,
+                reviewed_at=reviewed_at,
+            )
         )
 
         self.assertEqual(updated.status, ApprovalStatus.APPROVED.value)
@@ -203,7 +211,10 @@ class ApprovalsRepositoryTests(TestCase):
 
     def test_update_approval_status_returns_none_when_not_found(self):
         result = ApprovalsRepository.update_approval_status(
-            99999, new_status=ApprovalStatus.APPROVED.value
+            UpdateApprovalStatusEntity(
+                approval_id=99999,
+                new_status=ApprovalStatus.APPROVED.value,
+            )
         )
         self.assertIsNone(result)
 
@@ -286,12 +297,47 @@ class ApprovalsRepositoryTests(TestCase):
         )
 
         updated = ApprovalsRepository.update_approval_status(
-            approval.id, new_status=ApprovalStatus.APPROVED.value
+            UpdateApprovalStatusEntity(
+                approval_id=approval.id,
+                new_status=ApprovalStatus.APPROVED.value,
+            )
         )
 
         self.assertEqual(updated.status, ApprovalStatus.APPROVED.value)
         self.assertIsNone(updated.reviewer_id)
         self.assertIsNone(updated.reviewed_at)
+
+    def test_create_approval_returns_report_context_for_reviewers(self):
+        TimekeepingRepository.create_time_entry(
+            report_id=self.report.id,
+            entity=TimeEntryEntity(date=date(2025, 4, 1), hours=Decimal("8.00")),
+            user_id=self.user.id,
+        )
+        TimekeepingRepository.create_time_entry(
+            report_id=self.report.id,
+            entity=TimeEntryEntity(date=date(2025, 4, 2), hours=Decimal("4.50")),
+            user_id=self.user.id,
+        )
+
+        approval = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            user_id=self.user.id,
+        )
+
+        self.assertEqual(approval.employee_full_name, "Test Employee")
+        self.assertEqual(approval.period_name, "April 2025")
+        self.assertEqual(approval.total_hours, Decimal("12.50"))
+        self.assertEqual(approval.report_status, "draft")
+
+    def test_create_approval_returns_zero_hours_when_no_entries(self):
+        approval = ApprovalsRepository.create_approval(
+            tenant_id=self.tenant.id,
+            report_id=self.report.id,
+            user_id=self.user.id,
+        )
+
+        self.assertEqual(approval.total_hours, Decimal("0"))
 
     def test_list_by_tenant_orders_by_created_at_desc(self):
         first = ApprovalsRepository.create_approval(
