@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 from infra.authz.models import AuthUserModel
@@ -52,6 +54,26 @@ class TimeReportApprovalModel(models.Model):
 
     def __str__(self) -> str:
         return f"Approval {self.id} — report {self.report_id} ({self.status})"
+
+    @property
+    def report_status(self) -> str:
+        return self.report.status
+
+    @property
+    def report_submitted_at(self):
+        return self.report.submitted_at
+
+    @property
+    def period_name(self) -> str:
+        return self.report.period.name
+
+    @property
+    def employee_full_name(self) -> str:
+        return self.report.employee.full_name
+
+    @property
+    def total_hours(self) -> Decimal:
+        return getattr(self, "_total_hours", None) or Decimal("0")
 
 
 class TimeReportApprovalEventModel(models.Model):
