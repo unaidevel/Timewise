@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import type { AuditEventOut, EmployeeOut } from "@/client";
+import type { AuditEventOut, EmployeeOut, TenantMemberResponse } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
@@ -89,11 +89,17 @@ export default function AuditPage() {
   );
   const isAdmin = currentMember?.role === "owner" || currentMember?.role === "admin";
 
-  const employeesById = useMemo(() => {
+  const employeesByUserId = useMemo(() => {
     const m = new Map<number, EmployeeOut>();
-    for (const e of employees.data ?? []) m.set(e.id, e);
+    for (const e of employees.data ?? []) if (e.user_id != null) m.set(e.user_id, e);
     return m;
   }, [employees.data]);
+
+  const membersByUserId = useMemo(() => {
+    const m = new Map<number, TenantMemberResponse>();
+    for (const memb of members.data ?? []) m.set(memb.user_id, memb);
+    return m;
+  }, [members.data]);
 
   function patchParams(patch: Record<string, string | null>) {
     const next = new URLSearchParams(params);
@@ -214,7 +220,8 @@ export default function AuditPage() {
                 <Row
                   key={ev.id}
                   event={ev}
-                  actor={employeesById.get(ev.actor_id)}
+                  actor={employeesByUserId.get(ev.actor_id)}
+                  member={membersByUserId.get(ev.actor_id)}
                   isAdmin={isAdmin}
                   tenantId={tenantId}
                 />
@@ -235,19 +242,22 @@ export default function AuditPage() {
 function Row({
   event,
   actor,
+  member,
   isAdmin,
   tenantId,
 }: {
   event: AuditEventOut;
   actor: EmployeeOut | undefined;
+  member: TenantMemberResponse | undefined;
   isAdmin: boolean;
   tenantId: number;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const actorLabel = actor?.full_name ?? t("audit.table.userFallback", { id: event.actor_id });
-  const actorEmail = actor?.email;
+  const actorLabel =
+    actor?.full_name ?? member?.full_name ?? t("audit.table.userFallback", { id: event.actor_id });
+  const actorEmail = actor?.email ?? member?.email;
 
   return (
     <>

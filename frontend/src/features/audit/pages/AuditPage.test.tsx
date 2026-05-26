@@ -25,6 +25,8 @@ const adminMembership = {
   tenant_id: TENANT_ID,
   user_id: USER_ID,
   role: "owner",
+  full_name: "Owner User",
+  email: "owner@acme.test",
   joined_at: "2024-01-01T00:00:00Z",
   invited_by_id: null,
   left_at: null,
@@ -54,7 +56,7 @@ const employee = {
 const event = {
   id: 100,
   tenant_id: TENANT_ID,
-  actor_id: 7,
+  actor_id: USER_ID,
   action: "time_report.submitted",
   outcome: "success",
   resource_type: "TimeReport",
@@ -103,14 +105,25 @@ describe("AuditPage", () => {
     expect(screen.getByText("1 events")).toBeTruthy();
   });
 
-  it("shows a fallback label when the actor is not in the employees list", async () => {
+  it("falls back to the tenant member's name when the actor has no employee record", async () => {
     useTenantStore.setState({ currentTenantId: TENANT_ID });
     useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
     mockBase({ employees: [] });
 
     render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
 
-    expect(await screen.findByText("User #7")).toBeTruthy();
+    expect(await screen.findByText("Owner User")).toBeTruthy();
+  });
+
+  it("shows a fallback label when the actor cannot be resolved from employees or members", async () => {
+    useTenantStore.setState({ currentTenantId: TENANT_ID });
+    useAuthStore.setState({ user: adminUser, accessToken: "t", refreshToken: "r" });
+    const orphanEvent = { ...event, actor_id: 999 };
+    mockBase({ events: [orphanEvent], employees: [] });
+
+    render(<AuditPage />, { wrapper: createRouterWrapper("/audit") });
+
+    expect(await screen.findByText("User #999")).toBeTruthy();
   });
 
   it("shows an empty message when no events match the filters", async () => {
