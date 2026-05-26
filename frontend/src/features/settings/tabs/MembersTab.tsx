@@ -108,7 +108,10 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
           {rows.map((m) => {
             const employee = employeeByUserId.get(m.user_id);
             const displayName =
-              employee?.full_name ?? t("settings.members.userLabel", { id: m.user_id });
+              employee?.full_name ??
+              m.full_name ??
+              t("settings.members.userLabel", { id: m.user_id });
+            const displayEmail = employee?.email ?? m.email;
             return (
               <div key={m.id} className="flex items-center gap-3 px-6 py-3">
                 <Avatar className="size-9">
@@ -119,8 +122,8 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{displayName}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {employee?.email
-                      ? `${employee.email} · ${t("settings.members.joined", { date: formatDate(m.joined_at) })}`
+                    {displayEmail
+                      ? `${displayEmail} · ${t("settings.members.joined", { date: formatDate(m.joined_at) })}`
                       : t("settings.members.joined", { date: formatDate(m.joined_at) })}
                   </div>
                 </div>
