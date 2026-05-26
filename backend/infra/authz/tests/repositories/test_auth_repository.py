@@ -397,3 +397,15 @@ class AuthRepositoryTests(TestCase):
             AuthRepository.update_user_timezone(
                 {"user_id": user.id, "timezone": "UTC"}  # type: ignore[arg-type]
             )
+
+    def test_mark_tour_completed_sets_timestamp(self):
+        user = self._create_user()
+        completed_at = timezone.now()
+
+        updated = AuthRepository.mark_tour_completed(user.id, completed_at)
+
+        self.assertEqual(updated.tour_completed_at, completed_at)
+        self.assertEqual(
+            AuthUserModel.objects.get(id=user.id).tour_completed_at,
+            completed_at,
+        )

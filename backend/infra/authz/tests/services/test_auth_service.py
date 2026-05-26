@@ -517,6 +517,32 @@ def test_update_user_timezone_raises_not_found(monkeypatch):
         AuthService.update_user_timezone(99, "Europe/Madrid")
 
 
+def test_mark_tour_completed_succeeds(monkeypatch):
+    user = make_user()
+    received: dict = {}
+
+    def fake_mark(user_id, completed_at):
+        received["user_id"] = user_id
+        received["completed_at"] = completed_at
+        return user.model_copy(update={"tour_completed_at": completed_at})
+
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: user)
+    patch_repo(monkeypatch, "mark_tour_completed", fake_mark)
+
+    updated = AuthService.mark_tour_completed(user.id)
+
+    assert updated.tour_completed_at is not None
+    assert received["user_id"] == user.id
+    assert received["completed_at"] is not None
+
+
+def test_mark_tour_completed_raises_not_found(monkeypatch):
+    patch_repo(monkeypatch, "find_user_by_id", lambda user_id: None)
+
+    with pytest.raises(NotFound):
+        AuthService.mark_tour_completed(99)
+
+
 def test_update_user_password_succeeds_with_valid_inputs(monkeypatch):
     user = make_user(password="SecurePass123!")
     captured: dict = {}

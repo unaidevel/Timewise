@@ -419,6 +419,16 @@ class ProfileUpdateApiTests(TestCase):
 
         self.assertEqual(exc.exception.status_code, 422)
 
+    def test_mark_my_tour_completed_sets_timestamp(self):
+        self.assertIsNone(self.current_user.tour_completed_at)
+
+        response = auth_router.mark_my_tour_completed(
+            current_user=self.current_user,
+            request=build_request("/api/v1/auth/me/tour"),
+        )
+
+        self.assertIsNotNone(response.tour_completed_at)
+
     def test_update_my_password_rejects_wrong_current_password(self):
         with self.assertRaises(HTTPException) as exc:
             auth_router.update_my_password(
