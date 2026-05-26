@@ -12,6 +12,7 @@
     "email": "Email",
     "created": "Creado",
     "cancel": "Cancelar",
+    "close": "Cerrar",
     "create": "Crear",
     "creating": "Creando…",
     "save": "Guardar",
@@ -128,7 +129,8 @@
     },
     "costTrend": {
       "title": "Tendencia de coste laboral",
-      "subtitle": "Últimas 4 semanas (placeholder)"
+      "subtitle": "Coste total por periodo",
+      "empty": "Aún no hay datos de coste. Crea un periodo y envía partes de horas para ver la tendencia."
     },
     "quickActions": {
       "title": "Acciones rápidas",
@@ -455,6 +457,9 @@
       "reportLabel": "Reporte #{{id}}",
       "approvalLabel": "Aprobación #{{id}}",
       "reviewer": "Revisor #{{id}}",
+      "submittedOn": "Enviado {{date}}",
+      "totalHours": "{{hours}} en total",
+      "viewReport": "Ver reporte",
       "rejectAria": "Rechazar",
       "approveAria": "Aprobar",
       "approvedToast": "Reporte aprobado",
@@ -797,7 +802,18 @@
         "manager": "Manager",
         "managerPlaceholder": "Sin manager asignado",
         "noneOption": "Ninguno",
-        "selectPlaceholder": "— Selecciona —"
+        "selectPlaceholder": "— Selecciona —",
+        "inviteHint": "¿Quieres que este empleado pueda iniciar sesión?",
+        "inviteLink": "Invita un usuario y vincúlalo en Ajustes →",
+        "createdSubtitle": "Empleado creado. Invita un usuario y vincúlalo, o cierra este diálogo.",
+        "createdHint": "Empleado creado."
+      },
+      "edit": {
+        "title": "Editar empleado",
+        "subtitle": "Actualiza nombre, email o fecha de contratación. Departamento, rol y manager tienen sus propias acciones.",
+        "save": "Guardar cambios",
+        "saving": "Guardando…",
+        "aria": "Editar empleado"
       },
       "notFound": "Empleado no encontrado.",
       "backToList": "← Volver a empleados",

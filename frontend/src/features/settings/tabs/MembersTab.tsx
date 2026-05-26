@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { EmployeeOut } from "@/client";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
@@ -42,7 +43,9 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
   const members = useMembers(tenantId);
   const employees = useEmployees(tenantId);
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [prefilledEmployeeId, setPrefilledEmployeeId] = useState<string>("");
   const rows = members.data ?? [];
   const employeeByUserId = useMemo(() => {
     const map = new Map<number, EmployeeOut>();
@@ -52,6 +55,33 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
     return map;
   }, [employees.data]);
 
+  const inviteParam = searchParams.get("invite");
+  useEffect(() => {
+    if (!inviteParam || !employees.data) return;
+    const match = employees.data.find(
+      (e) => String(e.id) === inviteParam && e.user_id == null && e.is_active,
+    );
+    if (match) {
+      setPrefilledEmployeeId(String(match.id));
+      setOpen(true);
+    }
+  }, [inviteParam, employees.data]);
+
+  function clearInviteParam() {
+    if (!searchParams.has("invite")) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete("invite");
+    setSearchParams(next, { replace: true });
+  }
+
+  function handleOpenChange(o: boolean) {
+    setOpen(o);
+    if (!o) {
+      setPrefilledEmployeeId("");
+      clearInviteParam();
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -59,14 +89,18 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
           <CardTitle className="text-base">{t("settings.members.title")}</CardTitle>
           <CardDescription>{t("settings.members.subtitle")}</CardDescription>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button variant="outline">
               <Plus className="size-4 mr-1.5" />
               {t("settings.members.invite")}
             </Button>
           </DialogTrigger>
-          <InviteMemberDialog tenantId={tenantId} onDone={() => setOpen(false)} />
+          <InviteMemberDialog
+            tenantId={tenantId}
+            prefilledEmployeeId={prefilledEmployeeId}
+            onDone={() => handleOpenChange(false)}
+          />
         </Dialog>
       </CardHeader>
       <CardContent className="p-0">
@@ -74,7 +108,10 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
           {rows.map((m) => {
             const employee = employeeByUserId.get(m.user_id);
             const displayName =
-              employee?.full_name ?? t("settings.members.userLabel", { id: m.user_id });
+              employee?.full_name ??
+              m.full_name ??
+              t("settings.members.userLabel", { id: m.user_id });
+            const displayEmail = employee?.email ?? m.email;
             return (
               <div key={m.id} className="flex items-center gap-3 px-6 py-3">
                 <Avatar className="size-9">
@@ -85,8 +122,8 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{displayName}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {employee?.email
-                      ? `${employee.email} · ${t("settings.members.joined", { date: formatDate(m.joined_at) })}`
+                    {displayEmail
+                      ? `${displayEmail} · ${t("settings.members.joined", { date: formatDate(m.joined_at) })}`
                       : t("settings.members.joined", { date: formatDate(m.joined_at) })}
                   </div>
                 </div>
@@ -112,7 +149,15 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
   );
 }
 
-function InviteMemberDialog({ tenantId, onDone }: { tenantId: number; onDone: () => void }) {
+function InviteMemberDialog({
+  tenantId,
+  prefilledEmployeeId,
+  onDone,
+}: {
+  tenantId: number;
+  prefilledEmployeeId?: string;
+  onDone: () => void;
+}) {
   const { t } = useTranslation();
   const employees = useEmployees(tenantId);
   const register = useRegister();
@@ -129,6 +174,16 @@ function InviteMemberDialog({ tenantId, onDone }: { tenantId: number; onDone: ()
     () => (employees.data ?? []).filter((e) => e.user_id == null && e.is_active),
     [employees.data],
   );
+
+  useEffect(() => {
+    if (!prefilledEmployeeId) return;
+    const match = (employees.data ?? []).find((e) => String(e.id) === prefilledEmployeeId);
+    if (match) {
+      setEmployeeId(String(match.id));
+      setFullName(match.full_name);
+      setEmail(match.email);
+    }
+  }, [prefilledEmployeeId, employees.data]);
 
   const submitting = register.isPending || addMember.isPending || linkEmployee.isPending;
   const canSubmit =

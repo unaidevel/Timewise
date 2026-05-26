@@ -12,6 +12,7 @@
     "email": "Email",
     "created": "Created",
     "cancel": "Cancel",
+    "close": "Close",
     "create": "Create",
     "creating": "Creating…",
     "save": "Save",
@@ -128,7 +129,8 @@
     },
     "costTrend": {
       "title": "Labor cost trend",
-      "subtitle": "Last 4 weeks (placeholder)"
+      "subtitle": "Total cost per period",
+      "empty": "No cost data yet. Create a period and submit time reports to see the trend."
     },
     "quickActions": {
       "title": "Quick actions",
@@ -455,6 +457,9 @@
       "reportLabel": "Report #{{id}}",
       "approvalLabel": "Approval #{{id}}",
       "reviewer": "Reviewer #{{id}}",
+      "submittedOn": "Submitted {{date}}",
+      "totalHours": "{{hours}} total",
+      "viewReport": "View report",
       "rejectAria": "Reject",
       "approveAria": "Approve",
       "approvedToast": "Report approved",
@@ -797,7 +802,18 @@
         "manager": "Manager",
         "managerPlaceholder": "No manager assigned",
         "noneOption": "None",
-        "selectPlaceholder": "— Select —"
+        "selectPlaceholder": "— Select —",
+        "inviteHint": "Want this employee to log in?",
+        "inviteLink": "Invite a user and link them in Settings →",
+        "createdSubtitle": "Employee created. Invite a user and link them, or close this dialog.",
+        "createdHint": "Employee created."
+      },
+      "edit": {
+        "title": "Edit employee",
+        "subtitle": "Update name, email or hire date. Department, role and manager have their own actions.",
+        "save": "Save changes",
+        "saving": "Saving…",
+        "aria": "Edit employee"
       },
       "notFound": "Employee not found.",
       "backToList": "← Back to employees",

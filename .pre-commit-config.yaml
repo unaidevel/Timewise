@@ -9,7 +9,7 @@ repos:
       - id: ruff-format
         files: ^backend/
 
-  # Commitlint: valida el mensaje del commit (conventional commits)
+  # Commitlint: valida el mensaje del commit (estilo conventional commits)
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.19.0
     hooks:

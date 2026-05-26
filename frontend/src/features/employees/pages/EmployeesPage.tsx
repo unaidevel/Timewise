@@ -1,8 +1,19 @@
 import { motion } from "framer-motion";
-import { Briefcase, Building2, Calendar, Filter, Mail, Plus, Search, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  Filter,
+  Mail,
+  Pencil,
+  Plus,
+  Search,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { EmployeeOut } from "@/client";
 import { EmptyState } from "@/components/EmptyState";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
@@ -39,7 +50,12 @@ import { colorForDepartment, useDepartmentColors } from "@/features/settings/loc
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useCreateEmployee, useDeactivateEmployee, useEmployees } from "../hooks";
+import {
+  useCreateEmployee,
+  useDeactivateEmployee,
+  useEmployees,
+  useUpdateEmployee,
+} from "../hooks";
 
 const initials = (name: string) =>
   name
@@ -62,6 +78,7 @@ export default function EmployeesPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [selected, setSelected] = useState<EmployeeOut | null>(null);
+  const [editing, setEditing] = useState<EmployeeOut | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -240,10 +257,21 @@ export default function EmployeesPage() {
                       {initials(selected.full_name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <DialogTitle className="text-left">{selected.full_name}</DialogTitle>
                     <DialogDescription className="text-left">{selected.email}</DialogDescription>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEditing(selected);
+                      setSelected(null);
+                    }}
+                    aria-label={t("workforce.employees.edit.aria")}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
                 </div>
               </DialogHeader>
               <div className="space-y-4">
@@ -296,6 +324,7 @@ export default function EmployeesPage() {
       </Dialog>
 
       <CreateEmployeeDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <EditEmployeeDialog employee={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }
@@ -351,6 +380,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
   const roles = useRoles(tenantId);
   const employees = useEmployees(tenantId);
   const create = useCreateEmployee(tenantId);
+  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const [form, setForm] = useState({
@@ -363,9 +393,12 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
     hired_at: new Date().toISOString().slice(0, 10),
     manager_id: "",
   });
+  const [createdEmployeeId, setCreatedEmployeeId] = useState<number | null>(null);
 
   const selectedRole = (roles.data ?? []).find((r) => String(r.id) === form.role_id);
   const isManagerRole = selectedRole?.name === "Manager";
+  const isCreated = createdEmployeeId != null;
+  const fieldsDisabled = create.isPending || isCreated;
 
   function reset() {
     setForm({
@@ -378,10 +411,17 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
       hired_at: new Date().toISOString().slice(0, 10),
       manager_id: "",
     });
+    setCreatedEmployeeId(null);
+  }
+
+  function handleClose() {
+    reset();
+    onClose();
   }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isCreated) return;
     create.mutate(
       {
         full_name: form.full_name,
@@ -394,27 +434,35 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
         manager_id: isManagerRole ? null : form.manager_id ? Number(form.manager_id) : null,
         is_department_manager: isManagerRole,
       },
-      {
-        onSuccess: () => {
-          reset();
-          onClose();
-        },
-      },
+      { onSuccess: (created) => setCreatedEmployeeId(created.id) },
     );
   }
 
+  function onGoToInvite() {
+    if (createdEmployeeId == null) return;
+    const id = createdEmployeeId;
+    reset();
+    onClose();
+    navigate(`/settings?tab=members&invite=${id}`);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("workforce.employees.create.title")}</DialogTitle>
-          <DialogDescription>{t("workforce.employees.create.subtitle")}</DialogDescription>
+          <DialogDescription>
+            {isCreated
+              ? t("workforce.employees.create.createdSubtitle")
+              : t("workforce.employees.create.subtitle")}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
           <Field label={t("workforce.employees.create.fullName")} required>
             <Input
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              disabled={fieldsDisabled}
               required
             />
           </Field>
@@ -423,6 +471,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={fieldsDisabled}
               required
             />
           </Field>
@@ -430,6 +479,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
             <Select
               value={form.department_id}
               onValueChange={(v) => setForm({ ...form, department_id: v })}
+              disabled={fieldsDisabled}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
@@ -456,6 +506,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
                   manager_id: roleName === "Manager" ? "" : form.manager_id,
                 });
               }}
+              disabled={fieldsDisabled}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("workforce.employees.create.selectPlaceholder")} />
@@ -477,6 +528,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
               step="0.01"
               value={form.hourly_rate}
               onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })}
+              disabled={fieldsDisabled}
               required
             />
           </Field>
@@ -485,6 +537,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
               type="number"
               value={form.contract_hours_per_week}
               onChange={(e) => setForm({ ...form, contract_hours_per_week: e.target.value })}
+              disabled={fieldsDisabled}
               required
             />
           </Field>
@@ -493,6 +546,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
               type="date"
               value={form.hired_at}
               onChange={(e) => setForm({ ...form, hired_at: e.target.value })}
+              disabled={fieldsDisabled}
               required
             />
           </Field>
@@ -500,7 +554,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
             <Select
               value={form.manager_id}
               onValueChange={(v) => setForm({ ...form, manager_id: v === "_none" ? "" : v })}
-              disabled={isManagerRole}
+              disabled={fieldsDisabled || isManagerRole}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("workforce.employees.create.managerPlaceholder")} />
@@ -517,12 +571,111 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
               </SelectContent>
             </Select>
           </Field>
+          <div className="col-span-full rounded-md border bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground flex items-start gap-2">
+            <UserPlus className="size-4 mt-0.5 shrink-0 text-primary" />
+            <p className="flex-1">
+              {isCreated
+                ? t("workforce.employees.create.createdHint")
+                : t("workforce.employees.create.inviteHint")}{" "}
+              <button
+                type="button"
+                onClick={onGoToInvite}
+                disabled={!isCreated}
+                className="font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t("workforce.employees.create.inviteLink")}
+              </button>
+            </p>
+          </div>
           <div className="col-span-full flex justify-end gap-2 pt-2">
+            {isCreated ? (
+              <Button type="button" variant="outline" onClick={handleClose}>
+                {t("common.close")}
+              </Button>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={handleClose}>
+                  {t("common.cancel")}
+                </Button>
+                <Button type="submit" disabled={create.isPending}>
+                  {create.isPending ? t("common.creating") : t("common.create")}
+                </Button>
+              </>
+            )}
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditEmployeeDialog({
+  employee,
+  onClose,
+}: {
+  employee: EmployeeOut | null;
+  onClose: () => void;
+}) {
+  const tenantId = useCurrentTenantId();
+  const update = useUpdateEmployee(tenantId);
+  const { t } = useTranslation();
+  const [form, setForm] = useState({ full_name: "", email: "", hired_at: "" });
+
+  useEffect(() => {
+    if (employee) {
+      setForm({
+        full_name: employee.full_name,
+        email: employee.email,
+        hired_at: employee.hired_at,
+      });
+    }
+  }, [employee]);
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!employee) return;
+    update.mutate({ id: employee.id, body: form }, { onSuccess: onClose });
+  }
+
+  return (
+    <Dialog open={!!employee} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("workforce.employees.edit.title")}</DialogTitle>
+          <DialogDescription>{t("workforce.employees.edit.subtitle")}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4 mt-2">
+          <Field label={t("workforce.employees.create.fullName")} required>
+            <Input
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label={t("workforce.employees.create.email")} required>
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label={t("workforce.employees.create.hiredAt")} required>
+            <Input
+              type="date"
+              value={form.hired_at}
+              onChange={(e) => setForm({ ...form, hired_at: e.target.value })}
+              required
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? t("common.creating") : t("common.create")}
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending
+                ? t("workforce.employees.edit.saving")
+                : t("workforce.employees.edit.save")}
             </Button>
           </div>
         </form>

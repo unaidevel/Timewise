@@ -88,6 +88,11 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
   }
 
   const disabled = !canEdit || update.isPending;
+  const isDirty = profile.data
+    ? (Object.keys(form) as (keyof FormState)[]).some(
+        (k) => form[k] !== toFormState(profile.data!)[k],
+      )
+    : false;
 
   return (
     <Card>
@@ -157,13 +162,13 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
           </Field>
         </div>
         <div className="flex gap-2 pt-2">
-          <Button onClick={save} disabled={disabled}>
+          <Button onClick={save} disabled={disabled || !isDirty}>
             <Save className="size-4 mr-2" />
             {update.isPending ? t("settings.org.saving") : t("settings.org.save")}
           </Button>
           <Button
             variant="outline"
-            disabled={disabled}
+            disabled={disabled || !isDirty}
             onClick={() => profile.data && setForm(toFormState(profile.data))}
           >
             {t("settings.org.reset")}

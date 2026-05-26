@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,6 +20,11 @@ class ApprovalOut(BaseModel):
     created_by_id: int | None
     created_at: datetime
     updated_at: datetime
+    report_status: str
+    report_submitted_at: datetime | None
+    period_name: str
+    employee_full_name: str
+    total_hours: Decimal
 
 
 class ApprovalEventOut(BaseModel):

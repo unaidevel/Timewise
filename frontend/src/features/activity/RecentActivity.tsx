@@ -80,8 +80,7 @@ interface ActivityRowProps {
 
 function ActivityRow({ event, actor, member, index }: ActivityRowProps) {
   const { t } = useTranslation();
-  const actorName =
-    actor?.full_name ?? (member ? `User #${member.user_id}` : t("activity.unknownActor"));
+  const actorName = actor?.full_name ?? member?.full_name ?? t("activity.unknownActor");
   const sentence = humanizeAction(event, t);
   const initials = actorName
     .split(" ")

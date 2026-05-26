@@ -1,6 +1,6 @@
 import { Building2, Calculator, Layers, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { CostRulesTab } from "@/features/settings/tabs/CostRulesTab";
@@ -9,10 +9,27 @@ import { MembersTab } from "@/features/settings/tabs/MembersTab";
 import { OrganizationTab } from "@/features/settings/tabs/OrganizationTab";
 import { useCurrentTenantId } from "@/features/tenants/hooks";
 
+const TABS = ["org", "depts", "costRules", "members"] as const;
+type TabValue = (typeof TABS)[number];
+
 export default function SettingsPage() {
   const tenantId = useCurrentTenantId();
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   if (tenantId == null) return <NoTenantState />;
+
+  const tabParam = searchParams.get("tab");
+  const tab: TabValue = (TABS as readonly string[]).includes(tabParam ?? "")
+    ? (tabParam as TabValue)
+    : "org";
+
+  function onTabChange(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value === "org") next.delete("tab");
+    else next.set("tab", value);
+    if (value !== "members") next.delete("invite");
+    setSearchParams(next, { replace: true });
+  }
 
   return (
     <div className="space-y-6">
@@ -21,7 +38,7 @@ export default function SettingsPage() {
         <p className="text-sm text-muted-foreground mt-1">{t("settings.subtitle")}</p>
       </header>
 
-      <Tabs defaultValue="org">
+      <Tabs value={tab} onValueChange={onTabChange}>
         <TabsList>
           <TabsTrigger value="org">
             <Building2 className="size-4 mr-1.5" />

@@ -29,6 +29,8 @@ const OWNER_MEMBER = {
   tenant_id: TENANT_ID,
   user_id: USER_ID,
   role: "owner",
+  full_name: "Owner",
+  email: "owner@example.com",
   joined_at: "2026-01-10T00:00:00",
   invited_by_id: null,
   left_at: null,
@@ -183,6 +185,8 @@ describe("SettingsPage", () => {
             tenant_id: TENANT_ID,
             user_id: 42,
             role: "owner",
+            full_name: "Alice Liddell",
+            email: "alice@example.com",
             joined_at: "2026-01-10T00:00:00",
             invited_by_id: null,
             left_at: null,
@@ -193,6 +197,8 @@ describe("SettingsPage", () => {
             tenant_id: TENANT_ID,
             user_id: 99,
             role: "employee",
+            full_name: "Bob Builder",
+            email: "bob@example.com",
             joined_at: "2026-01-15T00:00:00",
             invited_by_id: null,
             left_at: null,
@@ -208,7 +214,8 @@ describe("SettingsPage", () => {
 
     expect(await screen.findByText("Alice Liddell")).toBeTruthy();
     expect(screen.getByText(/alice@example\.com/)).toBeTruthy();
-    expect(screen.getByText("User #99")).toBeTruthy();
+    expect(screen.getByText("Bob Builder")).toBeTruthy();
+    expect(screen.getByText(/bob@example\.com/)).toBeTruthy();
     expect(screen.getByText("owner")).toBeTruthy();
   });
 
