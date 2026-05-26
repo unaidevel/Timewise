@@ -17,9 +17,11 @@ import { LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
+import { Skeleton } from "@/components/shadcn/skeleton";
 import { RecentActivity } from "@/features/activity/RecentActivity";
 import { useApprovals } from "@/features/approvals/hooks";
 import { useAuthStore } from "@/features/auth/store";
+import { useCostTrend } from "@/features/costing/hooks";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
 import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
@@ -27,14 +29,7 @@ import { usePeriods } from "@/features/periods/hooks";
 import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
 // Placeholder data for charts.
-// TODO: replace once backend exposes aggregation endpoints (cost trend, hours by department).
-const costTrend = [
-  { day: "Sem 1", cost: 62000 },
-  { day: "Sem 2", cost: 71500 },
-  { day: "Sem 3", cost: 68900 },
-  { day: "Sem 4", cost: 81910 },
-];
-
+// TODO: replace once backend exposes aggregation endpoints (hours by department).
 const hoursByDept = [
   { dept: "Engineering", base: 1840, ot: 220 },
   { dept: "Product", base: 1120, ot: 90 },
@@ -75,6 +70,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
   const periods = usePeriods(tenantId);
   const approvals = useApprovals(tenantId);
   const profile = useOrganizationProfile(tenantId);
+  const costTrend = useCostTrend(tenantId);
+  const currency = profile.data?.currency ?? "EUR";
   const pendingApprovals = approvals.data?.filter((a) => a.status === "pending").length;
 
   const now = useNow();
@@ -182,51 +179,59 @@ function Dashboard({ tenantId }: { tenantId: number }) {
           </CardHeader>
           <CardContent>
             <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={costTrend} margin={{ left: -10, right: 8, top: 6 }}>
-                  <defs>
-                    <linearGradient id="costFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    stroke="var(--color-border)"
-                    strokeDasharray="3 3"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="day"
-                    stroke="var(--color-muted-foreground)"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke="var(--color-muted-foreground)"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `${v / 1000}k €`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--color-popover)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                    formatter={(v: number) => `${v.toLocaleString()} €`}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="cost"
-                    stroke="var(--color-primary)"
-                    strokeWidth={2}
-                    fill="url(#costFill)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {costTrend.isLoading && costTrend.points.length === 0 ? (
+                <Skeleton className="h-full w-full" />
+              ) : costTrend.points.length === 0 ? (
+                <div className="h-full grid place-items-center text-sm text-muted-foreground">
+                  {t("dashboard.costTrend.empty")}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={costTrend.points} margin={{ left: -10, right: 8, top: 6 }}>
+                    <defs>
+                      <linearGradient id="costFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      stroke="var(--color-border)"
+                      strokeDasharray="3 3"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      stroke="var(--color-muted-foreground)"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="var(--color-muted-foreground)"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => formatCompactCurrency(v as number, currency, locale)}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--color-popover)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                      formatter={(v: number) => formatCurrency(v, currency, locale)}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="cost"
+                      stroke="var(--color-primary)"
+                      strokeWidth={2}
+                      fill="url(#costFill)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -311,6 +316,23 @@ function Dashboard({ tenantId }: { tenantId: number }) {
       </section>
     </div>
   );
+}
+
+function formatCurrency(value: number, currency: string, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatCompactCurrency(value: number, currency: string, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 function QuickAction({ to, title }: { to: string; title: string }) {
