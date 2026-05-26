@@ -3,6 +3,7 @@ from django.utils import timezone
 from infra.common.exceptions import Conflict, InternalServerError, NotFound
 from infra.tenants.decorators import any_employee, only_manager
 from product.approvals.dtos.dtos import ApprovalEventOut, ApprovalOut
+from product.approvals.entities.approval_entities import UpdateApprovalStatusEntity
 from product.approvals.repositories.approvals_repository import ApprovalsRepository
 from product.common.classes import ApprovalAction, ApprovalStatus
 
@@ -64,13 +65,13 @@ class ApprovalsService:
         approval_id: int,
         user_id: int,
     ) -> ApprovalOut:
-        reviewed_at = timezone.now()
-        updated = ApprovalsRepository.update_approval_status(
-            approval_id,
-            ApprovalStatus.APPROVED,
-            user_id,
-            reviewed_at,
+        entity = UpdateApprovalStatusEntity(
+            approval_id=approval_id,
+            new_status=ApprovalStatus.APPROVED,
+            user_id=user_id,
+            reviewed_at=timezone.now(),
         )
+        updated = ApprovalsRepository.update_approval_status(entity)
         ApprovalsRepository.create_event(approval_id, ApprovalAction.APPROVED, user_id)
         if updated is None:
             raise InternalServerError()
@@ -84,13 +85,13 @@ class ApprovalsService:
         reason: str,
         user_id: int,
     ) -> ApprovalOut:
-        reviewed_at = timezone.now()
-        updated = ApprovalsRepository.update_approval_status(
-            approval_id,
-            ApprovalStatus.REJECTED,
-            user_id,
-            reviewed_at,
+        entity = UpdateApprovalStatusEntity(
+            approval_id=approval_id,
+            new_status=ApprovalStatus.REJECTED,
+            user_id=user_id,
+            reviewed_at=timezone.now(),
         )
+        updated = ApprovalsRepository.update_approval_status(entity)
         ApprovalsRepository.create_event(
             approval_id, ApprovalAction.REJECTED, user_id, reason
         )
