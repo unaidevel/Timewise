@@ -86,6 +86,12 @@ class AuthRepository:
         return AuthUser.model_validate(AuthUserModel.objects.get(id=entity.user_id))
 
     @staticmethod
+    def mark_tour_completed(user_id: int, completed_at: datetime) -> AuthUser:
+        model = AuthUserModel(id=user_id, tour_completed_at=completed_at)
+        model.save(update_fields=["tour_completed_at", "updated_at"])
+        return AuthUser.model_validate(AuthUserModel.objects.get(id=user_id))
+
+    @staticmethod
     def revoke_all_user_tokens(user_id: int, revoked_at: datetime) -> int:
         return AuthTokenModel.objects.filter(
             user_id=user_id, revoked_at__isnull=True

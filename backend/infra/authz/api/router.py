@@ -201,6 +201,26 @@ def update_my_timezone(
 
 
 @router.put(
+    "/me/tour",
+    response_model=UserResponse,
+    responses=responses_for(Unauthorized, NotFound, TooManyRequests),
+)
+@limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
+def mark_my_tour_completed(
+    current_user: RateLimitedUser,
+    request: Request,
+) -> UserResponse:
+    """
+    Marks the authenticated user's onboarding tour as completed (sets tour_completed_at=now).
+    Returns UserResponse with the updated timestamp.
+    On error returns 401 (unauthenticated), 404 (user not found), or 429 (rate limit).
+    Idempotent — calling again simply overwrites the timestamp.
+    """
+    user = AuthService.mark_tour_completed(current_user.id)
+    return to_user_response(user)
+
+
+@router.put(
     "/me/password",
     response_model=LoginResponse,
     responses=responses_for(
