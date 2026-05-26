@@ -7,6 +7,8 @@ from faker import Faker
 
 from infra.common.exceptions import Conflict
 from infra.tenants.decorators import only_owner
+from product.approvals.dtos.dtos import RejectApprovalIn
+from product.approvals.orchestrators.approvals_orchestrator import ApprovalsOrchestrator
 from product.costing.entities.costing_entities import OvertimeRuleEntity
 from product.costing.services.costing_service import CostingService
 from product.timekeeping.entities.timekeeping_entities import (
@@ -30,8 +32,15 @@ EMPLOYEE_COUNT = 20
 PAST_PERIODS = 3
 ACTIVE_PERIOD_DAYS = 30
 REPORTS_PER_PAST_PERIOD = 6
-ENTRIES_PER_REPORT_MIN = 5
-ENTRIES_PER_REPORT_MAX = 10
+ENTRIES_PER_REPORT_MIN = 12
+ENTRIES_PER_REPORT_MAX = 20
+ACTIVE_PERIOD_REPORTS = 10
+ACTIVE_PERIOD_SUBMITTED = 3
+REJECT_REASONS = [
+    "Missing description on multiple entries.",
+    "Hours exceed contracted weekly limit; please review.",
+    "Entries on holidays need manager pre-approval.",
+]
 
 
 class DemoDataOrchestrator:
@@ -70,7 +79,7 @@ def _seed_all(tenant_id: int, user_id: int, fake: Faker, rng: Random) -> dict[st
     roles = WorkforceService.list_roles(tenant_id)
     employees = _seed_employees(tenant_id, user_id, departments, roles, fake, rng)
     periods = _seed_periods(tenant_id, user_id)
-    report_count, entry_count = _seed_reports_and_entries(
+    report_count, entry_count, approval_count = _seed_reports_and_entries(
         tenant_id, user_id, periods, employees, rng
     )
     rule_count = _seed_overtime_rules(tenant_id, user_id)
@@ -80,6 +89,7 @@ def _seed_all(tenant_id: int, user_id: int, fake: Faker, rng: Random) -> dict[st
         "periods": len(periods),
         "reports": report_count,
         "time_entries": entry_count,
+        "approvals": approval_count,
         "overtime_rules": rule_count,
     }
 
@@ -159,55 +169,130 @@ def _seed_reports_and_entries(
     periods: list,
     employees: list[EmployeeOut],
     rng: Random,
-) -> tuple[int, int]:
-    """Create reports for past periods and submit/approve a subset.
+) -> tuple[int, int, int]:
+    """Create reports/entries/approvals across all periods.
 
-    Layout (assumes periods sorted oldest → newest, with the last one active):
-        - Oldest past period: reports submitted + approved
-        - Middle past period: reports submitted (awaiting approval)
-        - Newest past period: reports left in draft
-        - Active period: no reports yet (users will create their own)
+    Layout (periods sorted oldest → newest, last one is the active period):
+        - Oldest past period: submitted + approved (creates Approval APPROVED).
+        - Middle past period: submitted, awaiting review (Approval PENDING).
+        - Newest past period: mix of pending and rejected (Approval REJECTED + reason).
+        - Active period: a chunk of drafts + a few submitted (PENDING) so the
+          KPIs and approvals queue have fresh items on day one.
+
+    Going through ApprovalsOrchestrator (rather than TimekeepingService directly)
+    is intentional — it writes Approval rows, ApprovalEvents, status history and
+    audit events so the dashboard's Recent Activity feed has content.
     """
     past_periods = periods[:-1]
+    active_period = periods[-1]
     report_count = 0
     entry_count = 0
+    approval_count = 0
 
     for index, period in enumerate(past_periods):
         chosen = rng.sample(employees, k=min(REPORTS_PER_PAST_PERIOD, len(employees)))
         for employee in chosen:
-            report = TimekeepingService.create_time_report(
-                tenant_id,
-                period.id,
-                TimeReportEntity(employee_id=employee.id),
-                user_id,
+            report = _create_report_with_entries(
+                tenant_id, user_id, period, employee, rng
             )
             report_count += 1
+            entry_count += report.entry_count
 
-            n_entries = rng.randint(ENTRIES_PER_REPORT_MIN, ENTRIES_PER_REPORT_MAX)
-            period_days = (period.end_date - period.start_date).days + 1
-            for _ in range(n_entries):
-                entry_date = period.start_date + timedelta(
-                    days=rng.randint(0, period_days - 1)
-                )
-                hours = Decimal(f"{rng.uniform(6.0, 9.0):.2f}")
-                TimekeepingService.create_time_entry(
-                    tenant_id,
-                    report.id,
-                    TimeEntryEntity(
-                        date=entry_date,
-                        hours=hours,
-                        description=f"Work on {entry_date.strftime('%A')}",
-                    ),
-                    user_id,
-                )
-                entry_count += 1
-
-            if index <= 1:
-                TimekeepingService.submit_time_report(tenant_id, report.id, user_id)
             if index == 0:
-                TimekeepingService.approve_time_report(tenant_id, report.id, user_id)
+                approval = ApprovalsOrchestrator.submit_report_for_approval(
+                    tenant_id, report.id, user_id
+                )
+                ApprovalsOrchestrator.approve_report(tenant_id, approval.id, user_id)
+                approval_count += 1
+            elif index == 1:
+                ApprovalsOrchestrator.submit_report_for_approval(
+                    tenant_id, report.id, user_id
+                )
+                approval_count += 1
+            else:
+                approval = ApprovalsOrchestrator.submit_report_for_approval(
+                    tenant_id, report.id, user_id
+                )
+                if rng.random() < 0.4:
+                    ApprovalsOrchestrator.reject_report(
+                        tenant_id,
+                        approval.id,
+                        RejectApprovalIn(reason=rng.choice(REJECT_REASONS)),
+                        user_id,
+                    )
+                approval_count += 1
 
-    return report_count, entry_count
+    active_employees = rng.sample(
+        employees, k=min(ACTIVE_PERIOD_REPORTS, len(employees))
+    )
+    submitted_set = set(
+        rng.sample(range(len(active_employees)), k=ACTIVE_PERIOD_SUBMITTED)
+    )
+    for i, employee in enumerate(active_employees):
+        report = _create_report_with_entries(
+            tenant_id, user_id, active_period, employee, rng
+        )
+        report_count += 1
+        entry_count += report.entry_count
+        if i in submitted_set:
+            ApprovalsOrchestrator.submit_report_for_approval(
+                tenant_id, report.id, user_id
+            )
+            approval_count += 1
+
+    return report_count, entry_count, approval_count
+
+
+class _SeededReport:
+    __slots__ = ("entry_count", "id")
+
+    def __init__(self, report_id: int, entry_count: int):
+        self.id = report_id
+        self.entry_count = entry_count
+
+
+def _create_report_with_entries(
+    tenant_id: int,
+    user_id: int,
+    period,
+    employee: EmployeeOut,
+    rng: Random,
+) -> _SeededReport:
+    report = TimekeepingService.create_time_report(
+        tenant_id,
+        period.id,
+        TimeReportEntity(employee_id=employee.id),
+        user_id,
+    )
+    n_entries = rng.randint(ENTRIES_PER_REPORT_MIN, ENTRIES_PER_REPORT_MAX)
+    period_days = (period.end_date - period.start_date).days + 1
+    used_dates: set[date] = set()
+    created = 0
+    attempts = 0
+    while created < n_entries and attempts < n_entries * 4:
+        attempts += 1
+        offset = rng.randint(0, period_days - 1)
+        entry_date = period.start_date + timedelta(days=offset)
+        if entry_date.weekday() >= 5 and rng.random() < 0.85:
+            continue
+        if entry_date in used_dates:
+            continue
+        used_dates.add(entry_date)
+        hours = Decimal(f"{rng.uniform(6.5, 9.5):.2f}")
+        if rng.random() < 0.15:
+            hours = Decimal(f"{rng.uniform(9.0, 10.5):.2f}")
+        TimekeepingService.create_time_entry(
+            tenant_id,
+            report.id,
+            TimeEntryEntity(
+                date=entry_date,
+                hours=hours,
+                description=f"Work on {entry_date.strftime('%A')}",
+            ),
+            user_id,
+        )
+        created += 1
+    return _SeededReport(report.id, created)
 
 
 def _seed_overtime_rules(tenant_id: int, user_id: int) -> int:
