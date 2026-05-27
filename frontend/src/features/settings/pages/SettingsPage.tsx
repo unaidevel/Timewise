@@ -44,11 +44,11 @@ export default function SettingsPage() {
             <Building2 className="size-4 mr-1.5" />
             {t("settings.tabs.org")}
           </TabsTrigger>
-          <TabsTrigger value="depts">
+          <TabsTrigger value="depts" data-tour="settings-tab-depts">
             <Layers className="size-4 mr-1.5" />
             {t("settings.tabs.depts")}
           </TabsTrigger>
-          <TabsTrigger value="costRules">
+          <TabsTrigger value="costRules" data-tour="settings-tab-costrules">
             <Calculator className="size-4 mr-1.5" />
             {t("settings.tabs.costRules")}
           </TabsTrigger>

@@ -24,7 +24,6 @@ import { useAuthStore } from "@/features/auth/store";
 import { useCostTrend } from "@/features/costing/hooks";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
-import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { usePeriods } from "@/features/periods/hooks";
 import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
@@ -114,7 +113,6 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
   return (
     <div className="space-y-8">
-      <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -122,18 +120,12 @@ function Dashboard({ tenantId }: { tenantId: number }) {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("dashboard.summary")}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <LiveClock
-            className="text-right [&>div:first-child]:text-3xl [&>div:last-child]:text-xs [&>div:last-child]:mt-1"
-            locale={locale}
-            timezone={timezone}
-            showSeconds
-          />
-          <div className="flex gap-2">
-            <Button variant="outline">{t("dashboard.export")}</Button>
-            <Button>{t("dashboard.newReport")}</Button>
-          </div>
-        </div>
+        <LiveClock
+          className="text-right [&>div:first-child]:text-5xl [&>div:first-child]:font-light [&>div:last-child]:text-sm [&>div:last-child]:mt-1.5"
+          locale={locale}
+          timezone={timezone}
+          showSeconds
+        />
       </header>
 
       <section

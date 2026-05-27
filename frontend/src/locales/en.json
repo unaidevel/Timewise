@@ -46,7 +46,13 @@
       "approvals": "Approvals",
       "costing": "Costing",
       "audit": "Audit",
-      "settings": "Settings"
+      "settings": "Settings",
+      "groups": {
+        "people": "People & Org",
+        "time": "Time",
+        "finance": "Finance",
+        "admin": "Admin"
+      }
     }
   },
   "auth": {
@@ -73,7 +79,8 @@
       "signIn": "Sign in",
       "success": "Account created",
       "successNeedLogin": "Account created — sign in",
-      "error": "Could not create the account"
+      "error": "Could not create the account",
+      "errorEmailTaken": "An account with this email already exists"
     },
     "hero": {
       "title": "People, time and cost — all in one place.",
@@ -141,6 +148,22 @@
           "title": "Employee list",
           "body": "Each row shows the employee's name, email, department (colour-coded), role, hire date and current status. Click a row to open a quick-view panel, or click the name to go to their full profile where you can see their full history, assign a manager, change department and deactivate them."
         },
+        "departments": {
+          "title": "Departments",
+          "body": "Departments group your employees for reporting and cost breakdowns. You can create as many as you need — Engineering, Product, Design, Operations, and so on. Each employee belongs to one department at a time."
+        },
+        "departmentsTable": {
+          "title": "Department list",
+          "body": "Each row shows the department name, its current status (Active / Inactive) and the date it was created. You can deactivate a department at any time — employees assigned to it keep their history but will need to be reassigned if you create new reports."
+        },
+        "roles": {
+          "title": "Roles",
+          "body": "Roles define the job function of an employee and, most importantly, their hourly rate used in cost calculations. A role can be something like «Senior Engineer» or «Junior Designer» — the name is yours to choose."
+        },
+        "rolesTable": {
+          "title": "Role list",
+          "body": "Each row shows the role name, its status and creation date. You can deactivate roles that are no longer in use. When an employee is assigned a new role, their hourly rate updates automatically for any future reports."
+        },
         "periods": {
           "title": "Periods",
           "body": "Periods are the time windows that group hour reports — typically monthly. The demo has three periods: January, February and March. Open any period to see all the reports submitted inside it."
@@ -148,6 +171,18 @@
         "periodsTable": {
           "title": "Period list",
           "body": "Each row shows the period name, start and end date, status (open or closed) and the lock date. Locking a period is a one-way action: it prevents any further hour entries and freezes costs for that month — useful for payroll cut-offs. The «Lock» button appears on rows that are still open."
+        },
+        "time": {
+          "title": "Log hours",
+          "body": "This is where employees record their daily hours. Each period gets its own report — simply click the day cell, enter your hours (you can use decimals like 7.5), and save. Once the period is complete you submit the report for manager approval."
+        },
+        "timeGrid": {
+          "title": "Hour entry grid",
+          "body": "Each cell represents one day in the period. Enter hours directly — 0 clears the entry. The total and any overtime are calculated in real time at the bottom of the card. When you're done, hit «Submit» to send it for review."
+        },
+        "timePeriodsList": {
+          "title": "Your periods",
+          "body": "All available periods appear here. Click any period to switch to it and review or edit your entries. The active one is highlighted with a primary border. Periods that have already been approved or locked are read-only."
         },
         "reports": {
           "title": "Time reports",
@@ -169,6 +204,26 @@
           "title": "Pending · Approved · Rejected",
           "body": "Switch between tabs to see reports in each state. «Pending» shows what needs your attention. «Approved» gives you a history of accepted reports. «Rejected» shows what was sent back for correction — each card shows the employee name, period, total hours logged and the date it was submitted."
         },
+        "approvalsList": {
+          "title": "Approval cards",
+          "body": "Each card shows the employee, the period, the total hours logged and when the report was submitted. Expand a card to see the daily breakdown before deciding. Hit «Approve» to accept or «Reject» to send it back with a note explaining what needs correcting."
+        },
+        "costing": {
+          "title": "Costing",
+          "body": "Costing turns approved hours into labor costs. It applies your overtime rules (daily and weekly multipliers) to each employee's hourly rate and gives you a full cost breakdown — by period, by department and by employee."
+        },
+        "costingKpis": {
+          "title": "Cost summary",
+          "body": "These four cards show the total cost, regular cost, overtime cost and average hourly rate for the selected period. Use the period selector in the top-right to switch between months."
+        },
+        "costingByDept": {
+          "title": "Cost by department",
+          "body": "The bar chart breaks total cost by department, colored with your department palette. The breakdown list on the right shows each department's share as a percentage — useful for spotting cost concentration."
+        },
+        "costingByEmployee": {
+          "title": "Cost by employee",
+          "body": "This table shows cost per employee: their hourly rate, total hours, overtime hours and total cost. You can export this as a CSV for payroll or finance — click «Export CSV» in the header."
+        },
         "audit": {
           "title": "Audit log",
           "body": "The audit log is the complete tamper-evident history of everything that has happened in this workspace — every login, hour entry, approval, department change and more. Only admins can see it."
@@ -186,12 +241,28 @@
           "body": "Settings is where you configure the workspace itself. You have four sections: Organization (name, country, currency), Departments, Cost rules (overtime multipliers) and Members. Let's take a closer look."
         },
         "settingsTabs": {
-          "title": "Organization · Departments · Cost rules",
-          "body": "The first three tabs cover the workspace setup. «Organization» lets you set the public name, legal name, country, default timezone and currency used in all cost calculations. «Departments» groups employees for reporting. «Cost rules» defines overtime multipliers — for example ×1.5 for weekend hours."
+          "title": "Four settings sections",
+          "body": "Settings has four tabs: Organization, Departments, Cost rules and Members. Let's step through each one."
+        },
+        "settingsOrg": {
+          "title": "Organization",
+          "body": "Here you set the workspace identity: public name, legal name, country, default timezone and the currency used across all cost calculations. Changes here affect every report and export in the workspace."
+        },
+        "settingsDepts": {
+          "title": "Departments tab",
+          "body": "You can also manage departments directly from Settings without leaving this page. Create, rename or deactivate departments here — changes apply immediately to the employee directory and cost reports."
+        },
+        "settingsCostRules": {
+          "title": "Cost rules",
+          "body": "Cost rules define how overtime is calculated. You set the weekly threshold (hours before weekly OT kicks in), the daily threshold (hours before daily OT kicks in) and the multipliers for each (e.g. ×1.5 for weekly OT, ×2 for daily OT). All costing and reports use these figures."
         },
         "settingsMembers": {
           "title": "Members — who can log in",
-          "body": "The Members tab controls who has access to this workspace and with what role. You can invite a user and link them to an employee profile so their hours are tracked under their account. Roles range from Employee (can only log their own hours) to Owner (full admin access). That's the full tour — you're all set. You can replay it at any time by clicking the compass icon in the top-right corner of the header."
+          "body": "The Members tab controls who has access to this workspace and with what role. You can invite a user and link them to an employee profile so their hours are tracked under their account. Roles range from Employee (can only log their own hours) to Owner (full admin access)."
+        },
+        "finish": {
+          "title": "You're all set! 🎉",
+          "body": "That's the full tour. Whenever you want to replay it, just click this button — the compass icon in the header. It's always there."
         }
       }
     }

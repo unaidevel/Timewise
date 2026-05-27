@@ -7,7 +7,6 @@ export default function HomeRouter() {
   const members = useMembers(tenantId);
   const isAdmin = useIsTenantAdmin(tenantId);
 
-  if (tenantId == null) return <HomePage />;
-  if (!members.data) return null;
+  if (tenantId == null || !members.data) return <HomePage />;
   return isAdmin ? <HomePage /> : <MySpacePage />;
 }

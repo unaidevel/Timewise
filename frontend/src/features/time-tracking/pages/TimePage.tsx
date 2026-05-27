@@ -166,7 +166,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-end justify-between flex-wrap gap-4">
+      <header data-tour="time-header" className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t("timekeeping.time.title")}</h1>
           {meEmployee ? (
@@ -215,7 +215,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
         />
       )}
 
-      <Card>
+      <Card data-tour="time-periods-list">
         <CardHeader>
           <CardTitle className="text-base">{t("timekeeping.time.recentPeriods")}</CardTitle>
         </CardHeader>
@@ -546,7 +546,7 @@ function ReportEditor({
   }
 
   return (
-    <Card>
+    <Card data-tour="time-grid">
       <CardHeader className="flex-row items-center justify-between flex-wrap gap-3">
         <div>
           <CardTitle className="text-base">{periodName}</CardTitle>

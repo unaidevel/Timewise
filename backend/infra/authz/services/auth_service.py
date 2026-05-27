@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, cast
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import FieldDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 
@@ -389,11 +390,16 @@ class AuthService:
         full_name: FullName,
     ) -> None:
         first_name, _, last_name = full_name.value.partition(" ")
+
+        def _get_field(*_: object) -> None:
+            raise FieldDoesNotExist
+
         validation_user = SimpleNamespace(
             username=email.value,
             email=email.value,
             first_name=first_name,
             last_name=last_name,
+            _meta=SimpleNamespace(get_field=_get_field),
         )
 
         try:

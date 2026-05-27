@@ -46,7 +46,13 @@
       "approvals": "Aprobaciones",
       "costing": "Costing",
       "audit": "Auditoría",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "groups": {
+        "people": "Personas",
+        "time": "Tiempo",
+        "finance": "Finanzas",
+        "admin": "Admin"
+      }
     }
   },
   "auth": {
@@ -73,7 +79,8 @@
       "signIn": "Inicia sesión",
       "success": "Cuenta creada",
       "successNeedLogin": "Cuenta creada — inicia sesión",
-      "error": "No se pudo crear la cuenta"
+      "error": "No se pudo crear la cuenta",
+      "errorEmailTaken": "Ya existe una cuenta con este email"
     },
     "hero": {
       "title": "Personas, tiempo y coste — en un solo lugar.",
@@ -141,6 +148,22 @@
           "title": "Lista de empleados",
           "body": "Cada fila muestra el nombre, email, departamento (con código de color), rol, fecha de incorporación y estado actual. Haz clic en una fila para abrir un panel de vista rápida, o en el nombre para ir al perfil completo donde puedes ver el historial, asignar un responsable, cambiar departamento y desactivar al empleado."
         },
+        "departments": {
+          "title": "Departamentos",
+          "body": "Los departamentos agrupan a tus empleados para reportes y desglose de costes. Puedes crear tantos como necesites — Ingeniería, Producto, Diseño, Operaciones, etc. Cada empleado pertenece a un departamento en cada momento."
+        },
+        "departmentsTable": {
+          "title": "Lista de departamentos",
+          "body": "Cada fila muestra el nombre del departamento, su estado actual (Activo / Inactivo) y la fecha de creación. Puedes desactivar un departamento en cualquier momento — los empleados asignados conservan su historial pero deberán reasignarse si creas nuevos reportes."
+        },
+        "roles": {
+          "title": "Roles",
+          "body": "Los roles definen la función laboral de un empleado y, sobre todo, su tarifa por hora usada en los cálculos de coste. Un rol puede ser algo como «Ingeniero Senior» o «Diseñador Junior» — el nombre lo eliges tú."
+        },
+        "rolesTable": {
+          "title": "Lista de roles",
+          "body": "Cada fila muestra el nombre del rol, su estado y la fecha de creación. Puedes desactivar roles que ya no se usen. Cuando se asigna un nuevo rol a un empleado, su tarifa por hora se actualiza automáticamente para los reportes futuros."
+        },
         "periods": {
           "title": "Periodos",
           "body": "Los periodos son las ventanas de tiempo que agrupan los reportes de horas — habitualmente mensual. El demo tiene tres periodos: enero, febrero y marzo. Abre cualquier periodo para ver todos los reportes enviados en él."
@@ -148,6 +171,18 @@
         "periodsTable": {
           "title": "Lista de periodos",
           "body": "Cada fila muestra el nombre del periodo, fechas de inicio y fin, estado (abierto o cerrado) y la fecha de cierre. Cerrar un periodo es una acción irreversible: impide añadir más entradas de horas y congela los costes de ese mes — útil para el corte de nómina. El botón «Cerrar» aparece en las filas que siguen abiertas."
+        },
+        "time": {
+          "title": "Fichar horas",
+          "body": "Aquí los empleados registran sus horas diarias. Cada periodo tiene su propio reporte — haz clic en la celda del día, introduce las horas (puedes usar decimales como 7,5) y guarda. Una vez terminado el periodo, envías el reporte para que el responsable lo apruebe."
+        },
+        "timeGrid": {
+          "title": "Cuadrícula de horas",
+          "body": "Cada celda representa un día del periodo. Introduce las horas directamente — un 0 borra la entrada. El total y las horas extra se calculan en tiempo real en la parte inferior. Cuando termines, pulsa «Enviar» para mandarlo a revisión."
+        },
+        "timePeriodsList": {
+          "title": "Tus periodos",
+          "body": "Todos los periodos disponibles aparecen aquí. Haz clic en cualquiera para cambiar a él y revisar o editar tus entradas. El activo se resalta con un borde de color primario. Los periodos ya aprobados o cerrados son de solo lectura."
         },
         "reports": {
           "title": "Reportes de horas",
@@ -169,6 +204,26 @@
           "title": "Pendiente · Aprobado · Rechazado",
           "body": "Cambia entre pestañas para ver los reportes en cada estado. «Pendiente» muestra lo que necesita tu atención. «Aprobado» es el historial de reportes aceptados. «Rechazado» muestra lo que se devolvió para corregir — cada tarjeta indica el empleado, el periodo, las horas totales registradas y la fecha de envío."
         },
+        "approvalsList": {
+          "title": "Tarjetas de aprobación",
+          "body": "Cada tarjeta muestra el empleado, el periodo, las horas totales registradas y cuándo se envió el reporte. Expande una tarjeta para ver el desglose diario antes de decidir. Pulsa «Aprobar» para aceptarlo o «Rechazar» para devolverlo con una nota explicando qué hay que corregir."
+        },
+        "costing": {
+          "title": "Costing",
+          "body": "Costing convierte las horas aprobadas en costes laborales. Aplica tus reglas de horas extra (multiplicadores diario y semanal) a la tarifa por hora de cada empleado y ofrece un desglose completo — por periodo, por departamento y por empleado."
+        },
+        "costingKpis": {
+          "title": "Resumen de costes",
+          "body": "Estas cuatro tarjetas muestran el coste total, coste ordinario, coste de horas extra y tarifa media por hora para el periodo seleccionado. Usa el selector de periodo en la esquina superior derecha para cambiar de mes."
+        },
+        "costingByDept": {
+          "title": "Coste por departamento",
+          "body": "El gráfico de barras desglosa el coste total por departamento con el color de tu paleta. La lista de la derecha muestra la proporción de cada departamento como porcentaje — útil para detectar concentraciones de coste."
+        },
+        "costingByEmployee": {
+          "title": "Coste por empleado",
+          "body": "Esta tabla muestra el coste por empleado: tarifa por hora, horas totales, horas extra y coste total. Puedes exportarla como CSV para nóminas o finanzas — haz clic en «Exportar CSV» en la cabecera."
+        },
         "audit": {
           "title": "Registro de auditoría",
           "body": "El registro de auditoría es el historial completo e inalterable de todo lo que ha ocurrido en este workspace — cada inicio de sesión, entrada de horas, aprobación, cambio de departamento y más. Solo los administradores pueden verlo."
@@ -186,12 +241,28 @@
           "body": "Ajustes es donde configuras el workspace. Tienes cuatro secciones: Organización (nombre, país, moneda), Departamentos, Reglas de coste (multiplicadores de horas extra) y Miembros. Vamos a verlas más de cerca."
         },
         "settingsTabs": {
-          "title": "Organización · Departamentos · Reglas de coste",
-          "body": "Las tres primeras pestañas cubren la configuración del workspace. «Organización» permite establecer el nombre público, nombre legal, país, zona horaria por defecto y la moneda usada en todos los cálculos de coste. «Departamentos» agrupa empleados para los reportes. «Reglas de coste» define los multiplicadores de horas extra — por ejemplo ×1,5 para horas de fin de semana."
+          "title": "Cuatro secciones de ajustes",
+          "body": "Ajustes tiene cuatro pestañas: Organización, Departamentos, Reglas de coste y Miembros. Vamos a verlas una a una."
+        },
+        "settingsOrg": {
+          "title": "Organización",
+          "body": "Aquí configuras la identidad del workspace: nombre público, nombre legal, país, zona horaria por defecto y la moneda usada en todos los cálculos de coste. Los cambios afectan a todos los reportes y exportaciones del workspace."
+        },
+        "settingsDepts": {
+          "title": "Pestaña de departamentos",
+          "body": "También puedes gestionar departamentos directamente desde Ajustes sin salir de esta página. Crea, renombra o desactiva departamentos — los cambios se aplican de inmediato al directorio de empleados y a los reportes de coste."
+        },
+        "settingsCostRules": {
+          "title": "Reglas de coste",
+          "body": "Las reglas de coste definen cómo se calculan las horas extra. Puedes configurar el umbral semanal (horas antes de que entren las horas extra semanales), el umbral diario y los multiplicadores para cada caso (ej. ×1,5 para horas extra semanales, ×2 para diarias). Todos los cálculos de costing usan estas cifras."
         },
         "settingsMembers": {
           "title": "Miembros — quién puede entrar",
-          "body": "La pestaña Miembros controla quién tiene acceso al workspace y con qué rol. Puedes invitar a un usuario y vincularlo a un perfil de empleado para que sus horas queden registradas en su cuenta. Los roles van desde Empleado (solo puede registrar sus propias horas) hasta Propietario (acceso total de administrador). Eso es todo el tour — ya estas listo. Puedes volver a verlo en cualquier momento haciendo clic en el icono de brujula en la esquina superior derecha del encabezado."
+          "body": "La pestaña Miembros controla quién tiene acceso al workspace y con qué rol. Puedes invitar a un usuario y vincularlo a un perfil de empleado para que sus horas queden registradas en su cuenta. Los roles van desde Empleado (solo puede registrar sus propias horas) hasta Propietario (acceso total de administrador)."
+        },
+        "finish": {
+          "title": "¡Ya estás listo! 🎉",
+          "body": "Eso es todo el tour. Cuando quieras volver a verlo, haz clic en este botón — el icono de brújula en el encabezado. Siempre estará ahí."
         }
       }
     }

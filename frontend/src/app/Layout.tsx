@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  BarChart2,
   Calculator,
+  CalendarRange,
   Check,
   CheckSquare,
   ChevronsUpDown,
@@ -11,6 +13,8 @@ import {
   Leaf,
   LogOut,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
   ScrollText,
   Search,
   Settings,
@@ -19,7 +23,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
@@ -35,6 +39,7 @@ import {
 } from "@/components/shadcn/dropdown-menu";
 import { useLogout } from "@/features/auth/hooks";
 import { useAuthStore } from "@/features/auth/store";
+import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { TourRunner } from "@/features/onboarding/components/TourRunner";
 import { useTourStore } from "@/features/onboarding/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
@@ -51,6 +56,11 @@ type NavItem = {
   tourId?: string;
 };
 
+type NavGroup = {
+  label?: string; // undefined → no header (standalone item or first group)
+  items: NavItem[];
+};
+
 export function Layout() {
   const location = useLocation();
   const { theme, toggle } = useTheme();
@@ -62,61 +72,141 @@ export function Layout() {
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const isAdmin = useIsTenantAdmin(currentTenantId);
   const startTour = useTourStore((s) => s.startTour);
-  const nav: NavItem[] = [
+  const navGroups: NavGroup[] = [
     {
-      to: "/",
-      label: t("layout.nav.home"),
-      icon: LayoutDashboard,
-      end: true,
-      tourId: "nav-home",
+      items: [
+        {
+          to: "/",
+          label: t("layout.nav.home"),
+          icon: LayoutDashboard,
+          end: true,
+          tourId: "nav-home",
+        },
+      ],
     },
     {
-      to: "/employees",
-      label: t("layout.nav.employees"),
-      icon: Users,
-      adminOnly: true,
-      tourId: "nav-employees",
+      label: t("layout.nav.groups.people"),
+      items: [
+        {
+          to: "/employees",
+          label: t("layout.nav.employees"),
+          icon: Users,
+          adminOnly: true,
+          tourId: "nav-employees",
+        },
+        {
+          to: "/departments",
+          label: t("layout.nav.departments"),
+          icon: FolderKanban,
+          adminOnly: true,
+          tourId: "nav-departments",
+        },
+        {
+          to: "/roles",
+          label: t("layout.nav.roles"),
+          icon: Tag,
+          adminOnly: true,
+          tourId: "nav-roles",
+        },
+      ],
     },
     {
-      to: "/departments",
-      label: t("layout.nav.departments"),
-      icon: FolderKanban,
-      adminOnly: true,
-    },
-    { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true },
-    {
-      to: "/periods",
-      label: t("layout.nav.periods"),
-      icon: Clock,
-      adminOnly: true,
-      tourId: "nav-periods",
-    },
-    { to: "/time", label: t("layout.nav.time"), icon: Clock },
-    { to: "/reports", label: t("layout.nav.reports"), icon: Clock, tourId: "nav-reports" },
-    {
-      to: "/approvals",
-      label: t("layout.nav.approvals"),
-      icon: CheckSquare,
-      tourId: "nav-approvals",
-    },
-    { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
-    {
-      to: "/audit",
-      label: t("layout.nav.audit"),
-      icon: ScrollText,
-      adminOnly: true,
-      tourId: "nav-audit",
+      label: t("layout.nav.groups.time"),
+      items: [
+        {
+          to: "/periods",
+          label: t("layout.nav.periods"),
+          icon: CalendarRange,
+          adminOnly: true,
+          tourId: "nav-periods",
+        },
+        { to: "/time", label: t("layout.nav.time"), icon: Clock, tourId: "nav-time" },
+        { to: "/reports", label: t("layout.nav.reports"), icon: BarChart2, tourId: "nav-reports" },
+      ],
     },
     {
-      to: "/settings",
-      label: t("layout.nav.settings"),
-      icon: Settings,
-      adminOnly: true,
-      tourId: "nav-settings",
+      label: t("layout.nav.groups.finance"),
+      items: [
+        {
+          to: "/approvals",
+          label: t("layout.nav.approvals"),
+          icon: CheckSquare,
+          tourId: "nav-approvals",
+        },
+        {
+          to: "/costing",
+          label: t("layout.nav.costing"),
+          icon: Calculator,
+          adminOnly: true,
+          tourId: "nav-costing",
+        },
+      ],
+    },
+    {
+      label: t("layout.nav.groups.admin"),
+      items: [
+        {
+          to: "/audit",
+          label: t("layout.nav.audit"),
+          icon: ScrollText,
+          adminOnly: true,
+          tourId: "nav-audit",
+        },
+        {
+          to: "/settings",
+          label: t("layout.nav.settings"),
+          icon: Settings,
+          adminOnly: true,
+          tourId: "nav-settings",
+        },
+      ],
     },
   ];
-  const visibleNav = nav.filter((item) => !item.adminOnly || isAdmin);
-  const [collapsed, setCollapsed] = useState(false);
+  // Filter admin-only items; drop groups that end up empty after filtering.
+  const visibleGroups = navGroups
+    .map((g) => ({ ...g, items: g.items.filter((item) => !item.adminOnly || isAdmin) }))
+    .filter((g) => g.items.length > 0);
+  const SIDEBAR_MIN = 180;
+  const SIDEBAR_MAX = 320;
+  const SIDEBAR_COLLAPSED = 68;
+  const COLLAPSE_THRESHOLD = 120; // drag below this → snap to icon-only
+
+  const [sidebarWidth, setSidebarWidth] = useState(244);
+  const collapsed = sidebarWidth === SIDEBAR_COLLAPSED;
+  const isDragging = useRef(false);
+
+  const toggleCollapse = useCallback(() => {
+    setSidebarWidth((w) => (w === SIDEBAR_COLLAPSED ? 244 : SIDEBAR_COLLAPSED));
+  }, []);
+
+  const onDragHandleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!isDragging.current) return;
+      const newWidth = ev.clientX;
+      if (newWidth < COLLAPSE_THRESHOLD) {
+        setSidebarWidth(SIDEBAR_COLLAPSED);
+      } else {
+        setSidebarWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, newWidth)));
+      }
+    };
+
+    const onMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
+
   const palette = useCommandPalette();
 
   useEffect(() => {
@@ -138,11 +228,15 @@ export function Layout() {
   return (
     <div className="min-h-screen flex bg-background text-foreground">
       <aside
-        className={cn(
-          "hidden md:flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-200",
-          collapsed ? "w-[68px]" : "w-[244px]",
-        )}
+        style={{ width: sidebarWidth }}
+        className="relative hidden md:flex flex-col border-r bg-sidebar text-sidebar-foreground shrink-0"
       >
+        {/* Drag handle */}
+        <div
+          role="none"
+          onMouseDown={onDragHandleMouseDown}
+          className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 transition-colors z-10"
+        />
         <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2">
             <div className="size-8 rounded-lg bg-primary text-primary-foreground grid place-items-center">
@@ -191,45 +285,63 @@ export function Layout() {
           </div>
         )}
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {visibleNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              data-tour={item.tourId}
-              className={({ isActive }) =>
-                cn(
-                  "group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+        <nav className="flex-1 px-3 py-4 space-y-4">
+          {visibleGroups.map((group) => (
+            <div key={group.label ?? "__home"}>
+              {group.label ? (
+                collapsed ? (
+                  <hr className="border-sidebar-border mx-1 mb-2" />
+                ) : (
+                  <p className="px-2.5 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 select-none">
+                    {group.label}
+                  </p>
                 )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon className={cn("size-4", isActive && "text-primary")} />
-                  {!collapsed && <span>{item.label}</span>}
-                </>
-              )}
-            </NavLink>
+              ) : null}
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    data-tour={item.tourId}
+                    className={({ isActive }) =>
+                      cn(
+                        "group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition",
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <item.icon className={cn("size-4 shrink-0", isActive && "text-primary")} />
+                        {!collapsed && <span>{item.label}</span>}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
-
-        <div className="p-3 border-t border-sidebar-border">
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="text-xs text-muted-foreground hover:text-foreground w-full text-left px-2"
-          >
-            {collapsed ? t("layout.expand") : t("layout.collapse")}
-          </button>
-        </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3 px-4 lg:px-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleCollapse}
+            aria-label={collapsed ? t("layout.expand") : t("layout.collapse")}
+            title={collapsed ? t("layout.expand") : t("layout.collapse")}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="size-4" />
+            ) : (
+              <PanelLeftClose className="size-4" />
+            )}
+          </Button>
           <button
             type="button"
             onClick={() => palette.setOpen(true)}
@@ -273,6 +385,7 @@ export function Layout() {
             <Button
               variant="ghost"
               size="icon"
+              data-tour="restart-tour"
               onClick={startTour}
               aria-label={t("layout.startTour")}
               title={t("layout.startTour")}
@@ -316,6 +429,7 @@ export function Layout() {
         </header>
 
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
+        <DemoDataBanner />
         <TourRunner />
 
         <main className="flex-1 overflow-auto">

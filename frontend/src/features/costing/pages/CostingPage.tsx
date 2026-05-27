@@ -331,7 +331,10 @@ function Costing({ tenantId }: { tenantId: number }) {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        data-tour="costing-kpis"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         <Kpi
           icon={DollarSign}
           label={t("costing.kpi.total")}
@@ -365,7 +368,7 @@ function Costing({ tenantId }: { tenantId: number }) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div data-tour="costing-by-dept" className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle className="text-base">{t("costing.byDept.title")}</CardTitle>
@@ -447,7 +450,7 @@ function Costing({ tenantId }: { tenantId: number }) {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tour="costing-by-employee">
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">{t("costing.byEmployee.title")}</CardTitle>
           <Badge variant="secondary">
