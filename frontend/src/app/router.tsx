@@ -27,11 +27,11 @@ export const router = createBrowserRouter([
   {
     element: <AuthGuard />,
     children: [
+      { path: "/onboarding", element: <OnboardingPage /> },
       {
         element: <Layout />,
         children: [
           { path: "/", element: <HomeRouter /> },
-          { path: "/onboarding", element: <OnboardingPage /> },
           { path: "/employees", element: <EmployeesPage /> },
           { path: "/employees/:id", element: <EmployeeDetailPage /> },
           { path: "/departments", element: <DepartmentsPage /> },

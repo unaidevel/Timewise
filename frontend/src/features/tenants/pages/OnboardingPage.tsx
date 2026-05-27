@@ -52,7 +52,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br from-background to-muted/40">
+    <div className="h-screen flex items-center justify-center px-6 pb-16 bg-gradient-to-br from-background to-muted/40">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
