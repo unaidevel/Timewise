@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, Coffee, Play, Square, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LiveClock, getHourInTimezone, useNow } from "@/components/LiveClock";
+import { getHourInTimezone, LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";

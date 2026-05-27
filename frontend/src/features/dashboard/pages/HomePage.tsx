@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { LiveClock, getHourInTimezone, useNow } from "@/components/LiveClock";
+import { getHourInTimezone, LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
@@ -136,7 +136,10 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         </div>
       </header>
 
-      <section data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section
+        data-tour="dashboard-kpis"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      >
         {kpis.map((k, i) => (
           <motion.div
             key={k.label}

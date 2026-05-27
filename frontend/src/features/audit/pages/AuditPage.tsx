@@ -132,7 +132,10 @@ export default function AuditPage() {
         <p className="text-sm text-muted-foreground mt-1">{t("audit.subtitle")}</p>
       </header>
 
-      <Card data-tour="audit-filters" className="sticky top-16 z-10 backdrop-blur-md bg-background/85">
+      <Card
+        data-tour="audit-filters"
+        className="sticky top-16 z-10 backdrop-blur-md bg-background/85"
+      >
         <CardContent className="py-4 grid gap-3 md:grid-cols-[1fr_1fr_180px_220px_auto]">
           <div className="space-y-1.5">
             <Label className="text-xs">{t("audit.filters.action")}</Label>

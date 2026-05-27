@@ -34,9 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/shadcn/dropdown-menu";
 import { useLogout } from "@/features/auth/hooks";
-import { TourRunner } from "@/features/onboarding/components/TourRunner";
-
 import { useAuthStore } from "@/features/auth/store";
+import { TourRunner } from "@/features/onboarding/components/TourRunner";
 import { useTourStore } from "@/features/onboarding/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
 import { useTenantStore } from "@/features/tenants/store";
@@ -101,7 +100,13 @@ export function Layout() {
       tourId: "nav-approvals",
     },
     { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
-    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true, tourId: "nav-audit" },
+    {
+      to: "/audit",
+      label: t("layout.nav.audit"),
+      icon: ScrollText,
+      adminOnly: true,
+      tourId: "nav-audit",
+    },
     {
       to: "/settings",
       label: t("layout.nav.settings"),
@@ -289,10 +294,7 @@ export function Layout() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel asChild>
-                  <Link
-                    to="/profile"
-                    className="block focus:bg-accent hover:bg-accent rounded-sm"
-                  >
+                  <Link to="/profile" className="block focus:bg-accent hover:bg-accent rounded-sm">
                     <div className="text-sm font-medium">{user?.full_name}</div>
                     <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
                   </Link>

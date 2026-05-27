@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ACTIONS, EVENTS, type EventData, Joyride, STATUS, type Step } from "react-joyride";
 import { useNavigate } from "react-router";
-import {
-  ACTIONS,
-  type EventData,
-  EVENTS,
-  Joyride,
-  STATUS,
-  type Step,
-} from "react-joyride";
 import { useMarkTourCompleted } from "@/features/auth/hooks";
 import { useTourStore } from "@/features/onboarding/store";
 
