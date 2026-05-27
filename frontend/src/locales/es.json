@@ -258,7 +258,11 @@
         },
         "settingsMembers": {
           "title": "Miembros — quién puede entrar",
-          "body": "La pestaña Miembros controla quién tiene acceso al workspace y con qué rol. Puedes invitar a un usuario y vincularlo a un perfil de empleado para que sus horas queden registradas en su cuenta. Los roles van desde Empleado (solo puede registrar sus propias horas) hasta Propietario (acceso total de administrador). Eso es todo el tour — ya estas listo. Puedes volver a verlo en cualquier momento haciendo clic en el icono de brujula en la esquina superior derecha del encabezado."
+          "body": "La pestaña Miembros controla quién tiene acceso al workspace y con qué rol. Puedes invitar a un usuario y vincularlo a un perfil de empleado para que sus horas queden registradas en su cuenta. Los roles van desde Empleado (solo puede registrar sus propias horas) hasta Propietario (acceso total de administrador)."
+        },
+        "finish": {
+          "title": "¡Ya estás listo! 🎉",
+          "body": "Eso es todo el tour. Cuando quieras volver a verlo, haz clic en este botón — el icono de brújula en el encabezado. Siempre estará ahí."
         }
       }
     }

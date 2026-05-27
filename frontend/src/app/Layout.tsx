@@ -328,6 +328,7 @@ export function Layout() {
             <Button
               variant="ghost"
               size="icon"
+              data-tour="restart-tour"
               onClick={startTour}
               aria-label={t("layout.startTour")}
               title={t("layout.startTour")}

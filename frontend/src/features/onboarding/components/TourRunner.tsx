@@ -342,6 +342,15 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
+      // ── 36. Finish — restart tour button ──────────────────────────────────
+      {
+        target: '[data-tour="restart-tour"]',
+        title: t("onboarding.tour.steps.finish.title"),
+        content: t("onboarding.tour.steps.finish.body"),
+        route: "/",
+        placement: "bottom",
+        skipScroll: true,
+      },
     ],
     [t],
   );
@@ -422,6 +431,37 @@ export function TourRunner() {
         zIndex: 10000,
         spotlightPadding: 8,
         overlayColor: "rgba(0, 0, 0, 0.55)",
+      }}
+      styles={{
+        tooltip: {
+          borderRadius: 16,
+          padding: "20px 24px 16px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        },
+        tooltipTitle: {
+          fontSize: 15,
+          fontWeight: 600,
+          marginBottom: 6,
+        },
+        tooltipContent: {
+          fontSize: 13,
+          lineHeight: 1.6,
+          padding: "0 0 4px",
+        },
+        buttonPrimary: {
+          borderRadius: 8,
+          fontSize: 13,
+          padding: "6px 16px",
+        },
+        buttonBack: {
+          borderRadius: 8,
+          fontSize: 13,
+          padding: "6px 12px",
+        },
+        buttonSkip: {
+          fontSize: 12,
+          opacity: 0.6,
+        },
       }}
     />
   );

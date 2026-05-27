@@ -258,7 +258,11 @@
         },
         "settingsMembers": {
           "title": "Members — who can log in",
-          "body": "The Members tab controls who has access to this workspace and with what role. You can invite a user and link them to an employee profile so their hours are tracked under their account. Roles range from Employee (can only log their own hours) to Owner (full admin access). That's the full tour — you're all set. You can replay it at any time by clicking the compass icon in the top-right corner of the header."
+          "body": "The Members tab controls who has access to this workspace and with what role. You can invite a user and link them to an employee profile so their hours are tracked under their account. Roles range from Employee (can only log their own hours) to Owner (full admin access)."
+        },
+        "finish": {
+          "title": "You're all set! 🎉",
+          "body": "That's the full tour. Whenever you want to replay it, just click this button — the compass icon in the header. It's always there."
         }
       }
     }
