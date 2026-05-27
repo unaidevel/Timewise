@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bell,
   Calculator,
   Check,
   CheckSquare,
   ChevronsUpDown,
   Clock,
+  Compass,
   FolderKanban,
   LayoutDashboard,
   Leaf,
@@ -37,6 +37,7 @@ import { useLogout } from "@/features/auth/hooks";
 import { TourRunner } from "@/features/onboarding/components/TourRunner";
 
 import { useAuthStore } from "@/features/auth/store";
+import { useTourStore } from "@/features/onboarding/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
 import { useTenantStore } from "@/features/tenants/store";
 import { useTheme } from "@/hooks/use-theme";
@@ -61,6 +62,7 @@ export function Layout() {
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const isAdmin = useIsTenantAdmin(currentTenantId);
+  const startTour = useTourStore((s) => s.startTour);
   const nav: NavItem[] = [
     {
       to: "/",
@@ -99,7 +101,7 @@ export function Layout() {
       tourId: "nav-approvals",
     },
     { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
-    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true },
+    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true, tourId: "nav-audit" },
     {
       to: "/settings",
       label: t("layout.nav.settings"),
@@ -266,11 +268,11 @@ export function Layout() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
-              aria-label={t("layout.notifications")}
+              onClick={startTour}
+              aria-label={t("layout.startTour")}
+              title={t("layout.startTour")}
             >
-              <Bell className="size-4" />
-              <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary" />
+              <Compass className="size-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
