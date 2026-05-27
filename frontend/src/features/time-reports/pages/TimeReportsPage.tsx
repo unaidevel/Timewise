@@ -49,7 +49,7 @@ export default function TimeReportsPage() {
   const [status, setStatus] = useState<"all" | "draft" | "submitted" | "approved" | "rejected">(
     "all",
   );
-  const [scope, setScope] = useState<Scope>("mine");
+  const [scope, setScope] = useState<Scope>("all");
   const effectiveScope: Scope = isAdmin ? scope : "mine";
 
   const reportQueries = useQueries({
@@ -142,7 +142,7 @@ export default function TimeReportsPage() {
         )}
       </header>
 
-      <div className="flex flex-wrap gap-2 items-center">
+      <div data-tour="reports-filters" className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -167,7 +167,7 @@ export default function TimeReportsPage() {
         </Select>
       </div>
 
-      <Card>
+      <Card data-tour="reports-table">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

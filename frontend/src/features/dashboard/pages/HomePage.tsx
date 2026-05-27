@@ -136,7 +136,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {kpis.map((k, i) => (
           <motion.div
             key={k.label}
@@ -165,8 +165,8 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
+      <section data-tour="dashboard-charts" className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2" data-tour="dashboard-cost-trend">
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base">{t("dashboard.costTrend.title")}</CardTitle>
@@ -305,7 +305,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="dashboard-activity">
           <CardHeader>
             <CardTitle className="text-base">{t("dashboard.activity.title")}</CardTitle>
             <p className="text-xs text-muted-foreground">{t("dashboard.activity.subtitle")}</p>

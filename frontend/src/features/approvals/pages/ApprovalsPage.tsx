@@ -87,7 +87,7 @@ export default function ApprovalsPage() {
       ) : (
         <>
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-            <TabsList>
+            <TabsList data-tour="approvals-tabs">
               <TabsTrigger value="pending">
                 {t("timekeeping.approvals.tabs.pending")}
                 <Badge variant="secondary" className="ml-2 px-1.5">
@@ -136,7 +136,7 @@ export default function ApprovalsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <div data-tour="approvals-list" className="space-y-2">
               {filtered.map((a) => (
                 <ApprovalCard key={a.id} approval={a} onReject={() => setRejecting(a)} />
               ))}

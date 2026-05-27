@@ -39,8 +39,8 @@ export default function SettingsPage() {
       </header>
 
       <Tabs value={tab} onValueChange={onTabChange}>
-        <TabsList>
-          <TabsTrigger value="org">
+        <TabsList data-tour="settings-tabs">
+          <TabsTrigger value="org" data-tour="settings-tab-org">
             <Building2 className="size-4 mr-1.5" />
             {t("settings.tabs.org")}
           </TabsTrigger>
@@ -52,7 +52,7 @@ export default function SettingsPage() {
             <Calculator className="size-4 mr-1.5" />
             {t("settings.tabs.costRules")}
           </TabsTrigger>
-          <TabsTrigger value="members">
+          <TabsTrigger value="members" data-tour="settings-tab-members">
             <Users className="size-4 mr-1.5" />
             {t("settings.tabs.members")}
           </TabsTrigger>
