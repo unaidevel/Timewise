@@ -82,15 +82,15 @@ export function Layout() {
       label: t("layout.nav.groups.people"),
       items: [
         { to: "/employees", label: t("layout.nav.employees"), icon: Users, adminOnly: true, tourId: "nav-employees" },
-        { to: "/departments", label: t("layout.nav.departments"), icon: FolderKanban, adminOnly: true },
-        { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true },
+        { to: "/departments", label: t("layout.nav.departments"), icon: FolderKanban, adminOnly: true, tourId: "nav-departments" },
+        { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true, tourId: "nav-roles" },
       ],
     },
     {
       label: t("layout.nav.groups.time"),
       items: [
         { to: "/periods", label: t("layout.nav.periods"), icon: CalendarRange, adminOnly: true, tourId: "nav-periods" },
-        { to: "/time", label: t("layout.nav.time"), icon: Clock },
+        { to: "/time", label: t("layout.nav.time"), icon: Clock, tourId: "nav-time" },
         { to: "/reports", label: t("layout.nav.reports"), icon: BarChart2, tourId: "nav-reports" },
       ],
     },
@@ -98,7 +98,7 @@ export function Layout() {
       label: t("layout.nav.groups.finance"),
       items: [
         { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare, tourId: "nav-approvals" },
-        { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
+        { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true, tourId: "nav-costing" },
       ],
     },
     {

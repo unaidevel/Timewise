@@ -69,7 +69,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 5. Employees — search & filters ──────────────────────────────────
+      // ── 6. Employees — search & filters ──────────────────────────────────
       {
         target: '[data-tour="employees-filters"]',
         title: t("onboarding.tour.steps.employeesFilters.title"),
@@ -78,7 +78,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 6. Employees — table ──────────────────────────────────────────────
+      // ── 7. Employees — table ─────────────────────────────────────────────
       {
         target: '[data-tour="employees-table"]',
         title: t("onboarding.tour.steps.employeesTable.title"),
@@ -87,7 +87,43 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 7. Periods nav ────────────────────────────────────────────────────
+      // ── 8. Departments nav ────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-departments"]',
+        title: t("onboarding.tour.steps.departments.title"),
+        content: t("onboarding.tour.steps.departments.body"),
+        route: "/departments",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 9. Departments — table ────────────────────────────────────────────
+      {
+        target: '[data-tour="departments-table"]',
+        title: t("onboarding.tour.steps.departmentsTable.title"),
+        content: t("onboarding.tour.steps.departmentsTable.body"),
+        route: "/departments",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 10. Roles nav ─────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-roles"]',
+        title: t("onboarding.tour.steps.roles.title"),
+        content: t("onboarding.tour.steps.roles.body"),
+        route: "/roles",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 11. Roles — table ─────────────────────────────────────────────────
+      {
+        target: '[data-tour="roles-table"]',
+        title: t("onboarding.tour.steps.rolesTable.title"),
+        content: t("onboarding.tour.steps.rolesTable.body"),
+        route: "/roles",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 12. Periods nav ───────────────────────────────────────────────────
       {
         target: '[data-tour="nav-periods"]',
         title: t("onboarding.tour.steps.periods.title"),
@@ -96,7 +132,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 8. Periods — table ────────────────────────────────────────────────
+      // ── 13. Periods — table ───────────────────────────────────────────────
       {
         target: '[data-tour="periods-table"]',
         title: t("onboarding.tour.steps.periodsTable.title"),
@@ -105,7 +141,34 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 9. Reports nav ────────────────────────────────────────────────────
+      // ── 14. Time nav ──────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-time"]',
+        title: t("onboarding.tour.steps.time.title"),
+        content: t("onboarding.tour.steps.time.body"),
+        route: "/time",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 15. Time — grid ───────────────────────────────────────────────────
+      {
+        target: '[data-tour="time-grid"]',
+        title: t("onboarding.tour.steps.timeGrid.title"),
+        content: t("onboarding.tour.steps.timeGrid.body"),
+        route: "/time",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 16. Time — periods list ───────────────────────────────────────────
+      {
+        target: '[data-tour="time-periods-list"]',
+        title: t("onboarding.tour.steps.timePeriodsList.title"),
+        content: t("onboarding.tour.steps.timePeriodsList.body"),
+        route: "/time",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 17. Reports nav ───────────────────────────────────────────────────
       {
         target: '[data-tour="nav-reports"]',
         title: t("onboarding.tour.steps.reports.title"),
@@ -114,7 +177,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 10. Reports — filters ─────────────────────────────────────────────
+      // ── 18. Reports — filters ─────────────────────────────────────────────
       {
         target: '[data-tour="reports-filters"]',
         title: t("onboarding.tour.steps.reportsFilters.title"),
@@ -123,7 +186,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 11. Reports — table ───────────────────────────────────────────────
+      // ── 19. Reports — table ───────────────────────────────────────────────
       {
         target: '[data-tour="reports-table"]',
         title: t("onboarding.tour.steps.reportsTable.title"),
@@ -132,7 +195,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 12. Approvals nav ─────────────────────────────────────────────────
+      // ── 20. Approvals nav ─────────────────────────────────────────────────
       {
         target: '[data-tour="nav-approvals"]',
         title: t("onboarding.tour.steps.approvals.title"),
@@ -141,7 +204,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 13. Approvals — status tabs ───────────────────────────────────────
+      // ── 21. Approvals — status tabs ───────────────────────────────────────
       {
         target: '[data-tour="approvals-tabs"]',
         title: t("onboarding.tour.steps.approvalsTabs.title"),
@@ -150,7 +213,52 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 14. Audit nav ─────────────────────────────────────────────────────
+      // ── 22. Approvals — list ──────────────────────────────────────────────
+      {
+        target: '[data-tour="approvals-list"]',
+        title: t("onboarding.tour.steps.approvalsList.title"),
+        content: t("onboarding.tour.steps.approvalsList.body"),
+        route: "/approvals",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 23. Costing nav ───────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-costing"]',
+        title: t("onboarding.tour.steps.costing.title"),
+        content: t("onboarding.tour.steps.costing.body"),
+        route: "/costing",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 24. Costing — KPIs ────────────────────────────────────────────────
+      {
+        target: '[data-tour="costing-kpis"]',
+        title: t("onboarding.tour.steps.costingKpis.title"),
+        content: t("onboarding.tour.steps.costingKpis.body"),
+        route: "/costing",
+        placement: "bottom",
+        skipScroll: true,
+      },
+      // ── 25. Costing — by department ───────────────────────────────────────
+      {
+        target: '[data-tour="costing-by-dept"]',
+        title: t("onboarding.tour.steps.costingByDept.title"),
+        content: t("onboarding.tour.steps.costingByDept.body"),
+        route: "/costing",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 26. Costing — by employee ─────────────────────────────────────────
+      {
+        target: '[data-tour="costing-by-employee"]',
+        title: t("onboarding.tour.steps.costingByEmployee.title"),
+        content: t("onboarding.tour.steps.costingByEmployee.body"),
+        route: "/costing",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 27. Audit nav ─────────────────────────────────────────────────────
       {
         target: '[data-tour="nav-audit"]',
         title: t("onboarding.tour.steps.audit.title"),
@@ -159,7 +267,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 15. Audit — filters ───────────────────────────────────────────────
+      // ── 28. Audit — filters ───────────────────────────────────────────────
       {
         target: '[data-tour="audit-filters"]',
         title: t("onboarding.tour.steps.auditFilters.title"),
@@ -168,7 +276,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 16. Audit — table ─────────────────────────────────────────────────
+      // ── 29. Audit — table ─────────────────────────────────────────────────
       {
         target: '[data-tour="audit-table"]',
         title: t("onboarding.tour.steps.auditTable.title"),
@@ -177,7 +285,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 17. Settings nav ──────────────────────────────────────────────────
+      // ── 30. Settings nav ──────────────────────────────────────────────────
       {
         target: '[data-tour="nav-settings"]',
         title: t("onboarding.tour.steps.settings.title"),
@@ -186,7 +294,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 15. Settings — tabs ───────────────────────────────────────────────
+      // ── 31. Settings — tabs ───────────────────────────────────────────────
       {
         target: '[data-tour="settings-tabs"]',
         title: t("onboarding.tour.steps.settingsTabs.title"),
@@ -195,7 +303,36 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 16. Settings — Members tab ────────────────────────────────────────
+      // ── 32. Settings — Org tab ────────────────────────────────────────────
+      {
+        target: '[data-tour="settings-tab-org"]',
+        title: t("onboarding.tour.steps.settingsOrg.title"),
+        content: t("onboarding.tour.steps.settingsOrg.body"),
+        route: "/settings",
+        placement: "bottom",
+        skipScroll: true,
+      },
+      // ── 33. Settings — Depts tab ──────────────────────────────────────────
+      {
+        target: '[data-tour="settings-tab-depts"]',
+        title: t("onboarding.tour.steps.settingsDepts.title"),
+        content: t("onboarding.tour.steps.settingsDepts.body"),
+        route: "/settings",
+        search: "?tab=depts",
+        placement: "bottom",
+        skipScroll: true,
+      },
+      // ── 34. Settings — Cost Rules tab ─────────────────────────────────────
+      {
+        target: '[data-tour="settings-tab-costrules"]',
+        title: t("onboarding.tour.steps.settingsCostRules.title"),
+        content: t("onboarding.tour.steps.settingsCostRules.body"),
+        route: "/settings",
+        search: "?tab=costRules",
+        placement: "bottom",
+        skipScroll: true,
+      },
+      // ── 35. Settings — Members tab ────────────────────────────────────────
       {
         target: '[data-tour="settings-tab-members"]',
         title: t("onboarding.tour.steps.settingsMembers.title"),
