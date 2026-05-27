@@ -1504,6 +1504,10 @@ export type UserResponse = {
      */
     timezone?: string | null;
     /**
+     * Tour Completed At
+     */
+    tour_completed_at?: string | null;
+    /**
      * Created At
      */
     created_at: string;
@@ -4311,6 +4315,37 @@ export type UpdateMyTimezoneApiV1AuthMeTimezonePutResponses = {
 };
 
 export type UpdateMyTimezoneApiV1AuthMeTimezonePutResponse = UpdateMyTimezoneApiV1AuthMeTimezonePutResponses[keyof UpdateMyTimezoneApiV1AuthMeTimezonePutResponses];
+
+export type MarkMyTourCompletedApiV1AuthMeTourPutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/me/tour';
+};
+
+export type MarkMyTourCompletedApiV1AuthMeTourPutErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+    /**
+     * Too Many Requests
+     */
+    429: unknown;
+};
+
+export type MarkMyTourCompletedApiV1AuthMeTourPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type MarkMyTourCompletedApiV1AuthMeTourPutResponse = MarkMyTourCompletedApiV1AuthMeTourPutResponses[keyof MarkMyTourCompletedApiV1AuthMeTourPutResponses];
 
 export type UpdateMyPasswordApiV1AuthMePasswordPutData = {
     body: UpdatePasswordRequest;

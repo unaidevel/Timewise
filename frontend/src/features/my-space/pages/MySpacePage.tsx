@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, Coffee, Play, Square, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LiveClock, useNow } from "@/components/LiveClock";
+import { getHourInTimezone, LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shadcn/card";
@@ -31,10 +31,11 @@ export default function MySpacePage() {
   const [onBreak, setOnBreak] = useState(false);
 
   const firstName = user?.full_name?.split(" ")[0] ?? t("dashboard.greetingFallback");
+  const hour = getHourInTimezone(now, timezone);
   const greeting =
-    now.getHours() < 12
+    hour < 12
       ? t("dashboard.greetingMorning")
-      : now.getHours() < 18
+      : hour < 18
         ? t("dashboard.greetingAfternoon")
         : t("dashboard.greetingEvening");
 

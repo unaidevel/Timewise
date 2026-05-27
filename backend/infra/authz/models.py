@@ -10,6 +10,7 @@ class AuthUserModel(models.Model):
     password_hash = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     timezone = models.CharField(max_length=64, null=True, blank=True, default=None)
+    tour_completed_at = models.DateTimeField(null=True, blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

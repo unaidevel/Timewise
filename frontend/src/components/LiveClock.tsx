@@ -10,6 +10,15 @@ export function useNow(intervalMs = 1000): Date {
   return now;
 }
 
+export function getHourInTimezone(date: Date, timezone?: string): number {
+  const hour = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: false,
+    timeZone: timezone,
+  }).format(date);
+  return Number.parseInt(hour, 10);
+}
+
 interface LiveClockProps {
   className?: string;
   showSeconds?: boolean;

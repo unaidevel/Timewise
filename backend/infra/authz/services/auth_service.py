@@ -141,6 +141,12 @@ class AuthService:
         return AuthRepository.update_user_timezone(entity)
 
     @staticmethod
+    def mark_tour_completed(user_id: int) -> AuthUser:
+        if not AuthRepository.find_user_by_id(user_id):
+            raise NotFound(f"User {user_id} not found.")
+        return AuthRepository.mark_tour_completed(user_id, timezone.now())
+
+    @staticmethod
     def rotate_session_after_password_change(
         user: AuthUser,
         client: ClientContext,

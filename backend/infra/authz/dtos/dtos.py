@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
     full_name: str
     is_active: bool
     timezone: str | None = None
+    tour_completed_at: datetime | None = None
     created_at: datetime
 
 

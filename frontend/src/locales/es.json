@@ -28,9 +28,9 @@
     "themeToggle": "Cambiar tema",
     "languageMenu": "Idioma",
     "notifications": "Notificaciones",
+    "startTour": "Iniciar tour guiado",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
-    "preferences": "Preferencias",
     "workspaces": "Workspaces",
     "expand": "Expandir",
     "collapse": "Contraer",
@@ -102,9 +102,98 @@
       "description": "Creamos un equipo de ejemplo (departamentos, empleados, periodos, reportes). Puedes editarlos o borrarlos después.",
       "startEmpty": "Empezar de cero",
       "load": "Cargar demo",
+      "loadTooltip": "Cargamos datos de ejemplo y te mostramos las funciones principales.",
       "loading": "Cargando…",
       "successToast": "Datos de demo cargados",
       "errorToast": "No se pudieron cargar los datos"
+    },
+    "tour": {
+      "back": "Atrás",
+      "next": "Siguiente",
+      "skip": "Saltar tour",
+      "finish": "Finalizar",
+      "steps": {
+        "home": {
+          "title": "Bienvenido a TimeWise",
+          "body": "Este es tu centro de mando. Desde aquí tienes una visión global del workspace: personas, horas, costes y acciones pendientes. Vamos a recorrer cada sección."
+        },
+        "dashboardKpis": {
+          "title": "Resumen del workspace",
+          "body": "Estas cuatro tarjetas te dan un snapshot en tiempo real: empleados activos (el demo tiene 8), aprobaciones pendientes de revisión, periodos abiertos y departamentos. Se actualizan automáticamente cuando el equipo registra horas."
+        },
+        "dashboardCost": {
+          "title": "Tendencia de coste laboral",
+          "body": "Este gráfico muestra el coste laboral total periodo a periodo. En el demo verás varios meses de datos — pasa el ratón por un punto para ver la cifra exacta. Debajo, el gráfico de barras desglosa el coste por departamento para detectar dónde se concentran las horas."
+        },
+        "dashboardActivity": {
+          "title": "Actividad reciente",
+          "body": "Este feed muestra las ultimas acciones realizadas en el workspace en orden cronologico inverso — reportes enviados, horas registradas, aprobaciones, cambios de departamento y mas. Cada entrada enlaza al recurso afectado para que puedas ir directamente a el. Utiliza los mismos datos que el registro de Auditoria completo, que veras mas adelante en el tour."
+        },
+        "employees": {
+          "title": "Empleados",
+          "body": "Aquí gestionas a cada persona del equipo. Cada empleado tiene nombre, email, departamento, rol, fecha de incorporación, horas semanales contratadas y tarifa por hora. El demo incluye 8 empleados en Ingeniería, Producto y Diseño."
+        },
+        "employeesFilters": {
+          "title": "Buscar y filtrar",
+          "body": "Puedes buscar por nombre o email y filtrar por estado (Activo / Inactivo). Muy útil cuando el equipo crece — simplemente escribe un nombre para ir directo a esa persona."
+        },
+        "employeesTable": {
+          "title": "Lista de empleados",
+          "body": "Cada fila muestra el nombre, email, departamento (con código de color), rol, fecha de incorporación y estado actual. Haz clic en una fila para abrir un panel de vista rápida, o en el nombre para ir al perfil completo donde puedes ver el historial, asignar un responsable, cambiar departamento y desactivar al empleado."
+        },
+        "periods": {
+          "title": "Periodos",
+          "body": "Los periodos son las ventanas de tiempo que agrupan los reportes de horas — habitualmente mensual. El demo tiene tres periodos: enero, febrero y marzo. Abre cualquier periodo para ver todos los reportes enviados en él."
+        },
+        "periodsTable": {
+          "title": "Lista de periodos",
+          "body": "Cada fila muestra el nombre del periodo, fechas de inicio y fin, estado (abierto o cerrado) y la fecha de cierre. Cerrar un periodo es una acción irreversible: impide añadir más entradas de horas y congela los costes de ese mes — útil para el corte de nómina. El botón «Cerrar» aparece en las filas que siguen abiertas."
+        },
+        "reports": {
+          "title": "Reportes de horas",
+          "body": "Cada empleado envía un reporte por periodo. Un reporte contiene entradas de horas individuales (fecha, inicio, fin, descripción). El demo muestra reportes en distintos estados: Borrador, Enviado y Aprobado."
+        },
+        "reportsFilters": {
+          "title": "Buscar y filtrar",
+          "body": "Filtra reportes por estado — Borrador (aún editándose), Enviado (esperando aprobación), Aprobado o Rechazado. La línea de resumen en la cabecera indica cuántos reportes hay en cada estado en todos los periodos."
+        },
+        "reportsTable": {
+          "title": "Lista de reportes",
+          "body": "Cada fila muestra el ID del reporte, el periodo al que pertenece, el empleado (o «El mío» en vista personal), su estado y la fecha de envío. Haz clic en «Ver» para abrir el reporte completo: verás cada hora registrada, el total, el desglose de coste por regla de horas extra y el historial completo de estados."
+        },
+        "approvals": {
+          "title": "Aprobaciones",
+          "body": "Cuando un empleado envía un reporte aparece aquí. Como gestor, revisas las horas y las apruebas o rechazas con un motivo. El demo tiene varios reportes pendientes listos para actuar — fíjate en el badge junto a «Pendiente»."
+        },
+        "approvalsTabs": {
+          "title": "Pendiente · Aprobado · Rechazado",
+          "body": "Cambia entre pestañas para ver los reportes en cada estado. «Pendiente» muestra lo que necesita tu atención. «Aprobado» es el historial de reportes aceptados. «Rechazado» muestra lo que se devolvió para corregir — cada tarjeta indica el empleado, el periodo, las horas totales registradas y la fecha de envío."
+        },
+        "audit": {
+          "title": "Registro de auditoría",
+          "body": "El registro de auditoría es el historial completo e inalterable de todo lo que ha ocurrido en este workspace — cada inicio de sesión, entrada de horas, aprobación, cambio de departamento y más. Solo los administradores pueden verlo."
+        },
+        "auditFilters": {
+          "title": "Filtrar eventos",
+          "body": "Puedes filtrar eventos por nombre de acción (ej. \"time_report.submitted\"), tipo de recurso (ej. \"TimeReport\"), resultado (Éxito / Error) y por actor. El filtro es en tiempo real — los resultados se actualizan mientras escribes, sin necesidad de pulsar enter."
+        },
+        "auditTable": {
+          "title": "Filas de eventos",
+          "body": "Cada fila muestra cuándo ocurrió, quién lo hizo, el código de acción, el recurso afectado y si tuvo éxito. Haz clic en cualquier fila para expandirla y ver el payload de metadatos completo. Los admins también pueden adjuntar notas a cualquier evento — útil para marcar incidencias o añadir contexto de investigación. Los enlaces de recurso te llevan directamente al reporte, periodo o empleado afectado."
+        },
+        "settings": {
+          "title": "Ajustes",
+          "body": "Ajustes es donde configuras el workspace. Tienes cuatro secciones: Organización (nombre, país, moneda), Departamentos, Reglas de coste (multiplicadores de horas extra) y Miembros. Vamos a verlas más de cerca."
+        },
+        "settingsTabs": {
+          "title": "Organización · Departamentos · Reglas de coste",
+          "body": "Las tres primeras pestañas cubren la configuración del workspace. «Organización» permite establecer el nombre público, nombre legal, país, zona horaria por defecto y la moneda usada en todos los cálculos de coste. «Departamentos» agrupa empleados para los reportes. «Reglas de coste» define los multiplicadores de horas extra — por ejemplo ×1,5 para horas de fin de semana."
+        },
+        "settingsMembers": {
+          "title": "Miembros — quién puede entrar",
+          "body": "La pestaña Miembros controla quién tiene acceso al workspace y con qué rol. Puedes invitar a un usuario y vincularlo a un perfil de empleado para que sus horas queden registradas en su cuenta. Los roles van desde Empleado (solo puede registrar sus propias horas) hasta Propietario (acceso total de administrador). Eso es todo el tour — ya estas listo. Puedes volver a verlo en cualquier momento haciendo clic en el icono de brujula en la esquina superior derecha del encabezado."
+        }
+      }
     }
   },
   "dashboard": {
@@ -240,24 +329,6 @@
       "sprintReviewWhen": "Vie · 16:00",
       "tagMeeting": "Reunión",
       "tagOneOnOne": "1:1"
-    }
-  },
-  "preferences": {
-    "title": "Preferencias",
-    "subtitle": "Ajustes que se aplican a tu cuenta en este dispositivo.",
-    "save": "Guardar",
-    "saving": "Guardando…",
-    "savedToast": "Preferencias actualizadas",
-    "saveError": "No se pudieron guardar las preferencias",
-    "loading": "Cargando…",
-    "timezone": {
-      "title": "Zona horaria",
-      "description": "Elige cómo se muestran las fechas y horas para ti. Deja la opción de la organización para seguir el valor del workspace.",
-      "label": "Zona horaria de visualización",
-      "inheritOption": "Usar la de la organización ({{tz}})",
-      "useOrgDefault": "Usar la de la organización",
-      "usingOrgDefault": "Actualmente heredas la zona horaria de la organización: {{tz}}.",
-      "usingOverride": "Actualmente la sobrescribes con {{tz}}."
     }
   },
   "commandPalette": {
@@ -475,14 +546,15 @@
     }
   },
   "profile": {
-    "title": "Tu perfil",
-    "description": "Actualiza tu nombre, email o contraseña.",
+    "title": "Perfil",
+    "subtitle": "Gestiona los datos de tu cuenta y la preferencia de zona horaria.",
     "save": "Guardar",
     "submitting": "Guardando…",
     "tabs": {
       "name": "Nombre",
       "email": "Email",
-      "password": "Contraseña"
+      "password": "Contraseña",
+      "timezone": "Zona horaria"
     },
     "name": {
       "label": "Nombre completo",
@@ -505,6 +577,17 @@
       "errorToast": "No se pudo cambiar la contraseña.",
       "wrongCurrentToast": "La contraseña actual es incorrecta.",
       "weakToast": "La nueva contraseña es demasiado débil."
+    },
+    "timezone": {
+      "description": "Elige cómo se muestran las fechas y horas para ti. Deja la opción de la organización para seguir el valor del workspace.",
+      "label": "Zona horaria de visualización",
+      "loading": "Cargando…",
+      "inheritOption": "Usar la de la organización ({{tz}})",
+      "useOrgDefault": "Usar la de la organización",
+      "usingOrgDefault": "Actualmente heredas la zona horaria de la organización: {{tz}}.",
+      "usingOverride": "Actualmente la sobrescribes con {{tz}}.",
+      "successToast": "Preferencia de zona horaria actualizada.",
+      "errorToast": "No se pudo actualizar la preferencia de zona horaria."
     }
   },
   "settings": {
@@ -529,6 +612,7 @@
         "legalName": "Razón social",
         "country": "País",
         "timezone": "Zona horaria",
+        "timezoneHint": "Cada usuario puede sobreescribir la zona horaria en sus preferencias.",
         "currency": "Moneda",
         "vatNumber": "CIF / NIF"
       },

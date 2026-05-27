@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/shadcn/dialog";
+import { useTourStore } from "@/features/onboarding/store";
 import { useCurrentTenantId, useSeedDemoData, useTenantIsEmpty } from "@/features/tenants/hooks";
 
 const DISMISS_KEY = "timewise-demo-data-dismissed";
@@ -35,6 +36,7 @@ export function DemoDataBanner() {
   const tenantId = useCurrentTenantId();
   const isEmpty = useTenantIsEmpty(tenantId);
   const seed = useSeedDemoData(tenantId);
+  const startTour = useTourStore((s) => s.startTour);
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() =>
     tenantId == null ? false : isDismissed(tenantId),
@@ -73,9 +75,15 @@ export function DemoDataBanner() {
               {t("onboarding.demoModal.startEmpty")}
             </Button>
             <Button
+              title={t("onboarding.demoModal.loadTooltip")}
               onClick={() =>
                 seed.mutate(undefined, {
-                  onSuccess: () => toast.success(t("onboarding.demoModal.successToast")),
+                  onSuccess: () => {
+                    toast.success(t("onboarding.demoModal.successToast"));
+                    if (tenantId != null) markDismissed(tenantId);
+                    setDismissed(true);
+                    startTour();
+                  },
                   onError: () => toast.error(t("onboarding.demoModal.errorToast")),
                 })
               }

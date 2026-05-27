@@ -11,6 +11,7 @@ import {
   getMeApiV1AuthMeGet,
   loginUserApiV1AuthLoginPost,
   logoutUserApiV1AuthLogoutPost,
+  markMyTourCompletedApiV1AuthMeTourPut,
   registerApiV1AuthRegisterPost,
   updateMyEmailApiV1AuthMeEmailPut,
   updateMyNameApiV1AuthMeNamePut,
@@ -112,6 +113,22 @@ export function useUpdateMyTimezone() {
   return useMutation({
     mutationFn: async (body: UpdateTimezoneRequest) => {
       const { data, error } = await updateMyTimezoneApiV1AuthMeTimezonePut({ body });
+      if (error || !data) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      setUser(data);
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
+  });
+}
+
+export function useMarkTourCompleted() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await markMyTourCompletedApiV1AuthMeTourPut({});
       if (error || !data) throw error;
       return data;
     },

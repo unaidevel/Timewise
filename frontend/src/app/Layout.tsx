@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bell,
   Calculator,
   Check,
   CheckSquare,
   ChevronsUpDown,
   Clock,
+  Compass,
   FolderKanban,
   LayoutDashboard,
   Leaf,
@@ -14,7 +14,6 @@ import {
   ScrollText,
   Search,
   Settings,
-  SlidersHorizontal,
   Sun,
   Tag,
   User,
@@ -34,10 +33,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/shadcn/dropdown-menu";
-import { ProfileDialog } from "@/features/auth/components/ProfileDialog";
 import { useLogout } from "@/features/auth/hooks";
-
 import { useAuthStore } from "@/features/auth/store";
+import { TourRunner } from "@/features/onboarding/components/TourRunner";
+import { useTourStore } from "@/features/onboarding/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
 import { useTenantStore } from "@/features/tenants/store";
 import { useTheme } from "@/hooks/use-theme";
@@ -49,6 +48,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   end?: boolean;
   adminOnly?: boolean;
+  tourId?: string;
 };
 
 export function Layout() {
@@ -61,9 +61,22 @@ export function Layout() {
   const { currentTenantId, setCurrentTenantId } = useTenantStore();
   const currentTenant = tenants.find((t) => t.id === currentTenantId) ?? tenants[0] ?? null;
   const isAdmin = useIsTenantAdmin(currentTenantId);
+  const startTour = useTourStore((s) => s.startTour);
   const nav: NavItem[] = [
-    { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true },
-    { to: "/employees", label: t("layout.nav.employees"), icon: Users, adminOnly: true },
+    {
+      to: "/",
+      label: t("layout.nav.home"),
+      icon: LayoutDashboard,
+      end: true,
+      tourId: "nav-home",
+    },
+    {
+      to: "/employees",
+      label: t("layout.nav.employees"),
+      icon: Users,
+      adminOnly: true,
+      tourId: "nav-employees",
+    },
     {
       to: "/departments",
       label: t("layout.nav.departments"),
@@ -71,17 +84,39 @@ export function Layout() {
       adminOnly: true,
     },
     { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true },
-    { to: "/periods", label: t("layout.nav.periods"), icon: Clock, adminOnly: true },
+    {
+      to: "/periods",
+      label: t("layout.nav.periods"),
+      icon: Clock,
+      adminOnly: true,
+      tourId: "nav-periods",
+    },
     { to: "/time", label: t("layout.nav.time"), icon: Clock },
-    { to: "/reports", label: t("layout.nav.reports"), icon: Clock },
-    { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare },
+    { to: "/reports", label: t("layout.nav.reports"), icon: Clock, tourId: "nav-reports" },
+    {
+      to: "/approvals",
+      label: t("layout.nav.approvals"),
+      icon: CheckSquare,
+      tourId: "nav-approvals",
+    },
     { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true },
-    { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true },
-    { to: "/settings", label: t("layout.nav.settings"), icon: Settings, adminOnly: true },
+    {
+      to: "/audit",
+      label: t("layout.nav.audit"),
+      icon: ScrollText,
+      adminOnly: true,
+      tourId: "nav-audit",
+    },
+    {
+      to: "/settings",
+      label: t("layout.nav.settings"),
+      icon: Settings,
+      adminOnly: true,
+      tourId: "nav-settings",
+    },
   ];
   const visibleNav = nav.filter((item) => !item.adminOnly || isAdmin);
   const [collapsed, setCollapsed] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const palette = useCommandPalette();
 
   useEffect(() => {
@@ -162,6 +197,7 @@ export function Layout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              data-tour={item.tourId}
               className={({ isActive }) =>
                 cn(
                   "group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition",
@@ -237,11 +273,11 @@ export function Layout() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
-              aria-label={t("layout.notifications")}
+              onClick={startTour}
+              aria-label={t("layout.startTour")}
+              title={t("layout.startTour")}
             >
-              <Bell className="size-4" />
-              <span className="absolute top-2 right-2 size-1.5 rounded-full bg-primary" />
+              <Compass className="size-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -257,22 +293,17 @@ export function Layout() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel
-                  className="cursor-pointer focus:bg-accent hover:bg-accent rounded-sm"
-                  onClick={() => setProfileOpen(true)}
-                >
-                  <div className="text-sm font-medium">{user?.full_name}</div>
-                  <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
+                <DropdownMenuLabel asChild>
+                  <Link to="/profile" className="block focus:bg-accent hover:bg-accent rounded-sm">
+                    <div className="text-sm font-medium">{user?.full_name}</div>
+                    <div className="text-xs text-muted-foreground font-normal">{user?.email}</div>
+                  </Link>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                  <User className="size-4 mr-2" />
-                  {t("layout.profile")}
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/preferences">
-                    <SlidersHorizontal className="size-4 mr-2" />
-                    {t("layout.preferences")}
+                  <Link to="/profile">
+                    <User className="size-4 mr-2" />
+                    {t("layout.profile")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout.mutate()}>
@@ -284,8 +315,8 @@ export function Layout() {
           </div>
         </header>
 
-        <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
+        <TourRunner />
 
         <main className="flex-1 overflow-auto">
           <AnimatePresence mode="wait">

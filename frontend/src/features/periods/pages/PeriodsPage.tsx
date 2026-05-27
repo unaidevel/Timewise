@@ -25,7 +25,7 @@ export default function PeriodsPage() {
         description={t("timekeeping.periods.subtitle")}
         action={<Button onClick={() => setOpen(true)}>{t("timekeeping.periods.new")}</Button>}
       />
-      <CardBody className="p-0">
+      <CardBody data-tour="periods-table" className="p-0">
         {isLoading ? (
           <div className="flex justify-center p-8">
             <Spinner />
