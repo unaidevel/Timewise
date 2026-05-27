@@ -28,6 +28,7 @@
     "themeToggle": "Toggle theme",
     "languageMenu": "Language",
     "notifications": "Notifications",
+    "startTour": "Start guided tour",
     "logout": "Log out",
     "profile": "Profile",
     "workspaces": "Workspaces",
@@ -114,27 +115,83 @@
       "steps": {
         "home": {
           "title": "Welcome to TimeWise",
-          "body": "This is your dashboard. We'll walk you through the main areas in under a minute."
+          "body": "This is your command centre. From here you can see your whole workspace at a glance — people, hours, costs and pending actions. Let's walk through each section."
+        },
+        "dashboardKpis": {
+          "title": "Workspace overview",
+          "body": "These four cards give you a live snapshot: active employees (the demo has 8), pending approvals waiting for your review, open periods and departments. They update automatically as your team logs hours."
+        },
+        "dashboardCost": {
+          "title": "Labor cost trend",
+          "body": "This chart shows total labor cost period by period. In the demo you'll see several months of data — hover a point to see the exact figure. Below it, the bar chart breaks cost down by department so you can spot where hours are concentrated."
+        },
+        "dashboardActivity": {
+          "title": "Recent activity",
+          "body": "This feed shows the latest actions taken across the workspace in reverse chronological order — reports submitted, hours logged, approvals, department changes and more. Each entry links to the affected resource so you can jump straight to it. It draws from the same data as the full Audit log, which you will see later in the tour."
         },
         "employees": {
           "title": "Employees",
-          "body": "Manage the people in your organization — hourly rates, contracts, departments and roles."
+          "body": "Here you manage every person on your team. Each employee has a name, email, department, role, hire date, weekly contracted hours and an hourly rate. The demo has 8 employees across Engineering, Product and Design."
+        },
+        "employeesFilters": {
+          "title": "Search & filter",
+          "body": "You can search by name or email and filter by status (Active / Inactive). This is handy once your team grows — just type a name to jump straight to that person."
+        },
+        "employeesTable": {
+          "title": "Employee list",
+          "body": "Each row shows the employee's name, email, department (colour-coded), role, hire date and current status. Click a row to open a quick-view panel, or click the name to go to their full profile where you can see their full history, assign a manager, change department and deactivate them."
         },
         "periods": {
           "title": "Periods",
-          "body": "Define the date ranges that group time entries. Create monthly or custom periods here."
+          "body": "Periods are the time windows that group hour reports — typically monthly. The demo has three periods: January, February and March. Open any period to see all the reports submitted inside it."
+        },
+        "periodsTable": {
+          "title": "Period list",
+          "body": "Each row shows the period name, start and end date, status (open or closed) and the lock date. Locking a period is a one-way action: it prevents any further hour entries and freezes costs for that month — useful for payroll cut-offs. The «Lock» button appears on rows that are still open."
         },
         "reports": {
           "title": "Time reports",
-          "body": "Each employee logs hours into a report tied to a period. Open one to see entries and totals."
+          "body": "Each employee submits one report per period. A report contains individual hour entries (date, start, end, description). The demo shows reports in different states: Draft, Submitted and Approved."
+        },
+        "reportsFilters": {
+          "title": "Search & filter",
+          "body": "Filter reports by status — Draft (still being edited), Submitted (waiting for approval), Approved or Rejected. The summary line at the top tells you how many reports are in each state across all periods."
+        },
+        "reportsTable": {
+          "title": "Report list",
+          "body": "Each row shows the report ID, the period it belongs to, the employee (or «Mine» in personal view), its status and the submission date. Click «View» to open the full report: you'll see every logged hour, the total, the cost breakdown by overtime rule, and the full status history."
         },
         "approvals": {
           "title": "Approvals",
-          "body": "Submitted reports show up here for managers to approve or reject."
+          "body": "When an employee submits a report it lands here. As a manager you review the hours and either approve or reject with a reason. The demo has several pending reports ready to act on — look at the badge next to «Pending»."
+        },
+        "approvalsTabs": {
+          "title": "Pending · Approved · Rejected",
+          "body": "Switch between tabs to see reports in each state. «Pending» shows what needs your attention. «Approved» gives you a history of accepted reports. «Rejected» shows what was sent back for correction — each card shows the employee name, period, total hours logged and the date it was submitted."
+        },
+        "audit": {
+          "title": "Audit log",
+          "body": "The audit log is the complete tamper-evident history of everything that has happened in this workspace — every login, hour entry, approval, department change and more. Only admins can see it."
+        },
+        "auditFilters": {
+          "title": "Filtering events",
+          "body": "You can narrow down events by action name (e.g. \"time_report.submitted\"), resource type (e.g. \"TimeReport\"), outcome (Success / Failure) and by actor. The filter is live — results update as you type, without pressing enter."
+        },
+        "auditTable": {
+          "title": "Event rows",
+          "body": "Each row shows when it happened, who did it, the action code, the affected resource and whether it succeeded. Click any row to expand it and see the full metadata payload. Admins can also attach notes to any event — useful for flagging incidents or adding investigation context. Clickable resource links let you jump straight to the affected report, period or employee."
         },
         "settings": {
           "title": "Settings",
-          "body": "Manage your organization, members, departments and cost rules. That's the tour — happy timekeeping."
+          "body": "Settings is where you configure the workspace itself. You have four sections: Organization (name, country, currency), Departments, Cost rules (overtime multipliers) and Members. Let's take a closer look."
+        },
+        "settingsTabs": {
+          "title": "Organization · Departments · Cost rules",
+          "body": "The first three tabs cover the workspace setup. «Organization» lets you set the public name, legal name, country, default timezone and currency used in all cost calculations. «Departments» groups employees for reporting. «Cost rules» defines overtime multipliers — for example ×1.5 for weekend hours."
+        },
+        "settingsMembers": {
+          "title": "Members — who can log in",
+          "body": "The Members tab controls who has access to this workspace and with what role. You can invite a user and link them to an employee profile so their hours are tracked under their account. Roles range from Employee (can only log their own hours) to Owner (full admin access). That's the full tour — you're all set. You can replay it at any time by clicking the compass icon in the top-right corner of the header."
         }
       }
     }
