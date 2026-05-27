@@ -46,7 +46,13 @@
       "approvals": "Approvals",
       "costing": "Costing",
       "audit": "Audit",
-      "settings": "Settings"
+      "settings": "Settings",
+      "groups": {
+        "people": "People & Org",
+        "time": "Time",
+        "finance": "Finance",
+        "admin": "Admin"
+      }
     }
   },
   "auth": {
