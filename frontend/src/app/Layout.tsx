@@ -233,6 +233,7 @@ export function Layout() {
       >
         {/* Drag handle */}
         <div
+          role="none"
           onMouseDown={onDragHandleMouseDown}
           className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 transition-colors z-10"
         />
@@ -285,8 +286,8 @@ export function Layout() {
         )}
 
         <nav className="flex-1 px-3 py-4 space-y-4">
-          {visibleGroups.map((group, gi) => (
-            <div key={gi}>
+          {visibleGroups.map((group) => (
+            <div key={group.label ?? "__home"}>
               {group.label ? (
                 collapsed ? (
                   <hr className="border-sidebar-border mx-1 mb-2" />
