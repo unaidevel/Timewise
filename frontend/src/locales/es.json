@@ -73,7 +73,8 @@
       "signIn": "Inicia sesión",
       "success": "Cuenta creada",
       "successNeedLogin": "Cuenta creada — inicia sesión",
-      "error": "No se pudo crear la cuenta"
+      "error": "No se pudo crear la cuenta",
+      "errorEmailTaken": "Ya existe una cuenta con este email"
     },
     "hero": {
       "title": "Personas, tiempo y coste — en un solo lugar.",

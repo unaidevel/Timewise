@@ -10,6 +10,15 @@ import { Label } from "@/components/shadcn/label";
 import { AuthHero } from "@/features/auth/components/AuthHero";
 import { useLogin, useRegister } from "../hooks";
 
+function extractErrorMessages(error: unknown): string[] {
+  if (error && typeof error === "object" && "detail" in error) {
+    const detail = (error as { detail: unknown }).detail;
+    if (Array.isArray(detail)) return detail.map(String);
+    if (typeof detail === "string") return [detail];
+  }
+  return [];
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const register = useRegister();
@@ -18,9 +27,11 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [formErrors, setFormErrors] = useState<string[]>([]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormErrors([]);
     register.mutate(
       { full_name: fullName, email, password },
       {
@@ -39,7 +50,15 @@ export default function RegisterPage() {
             },
           );
         },
-        onError: () => toast.error(t("auth.register.error")),
+        onError: (error: unknown) => {
+          const raw = extractErrorMessages(error);
+          const messages = raw.map((msg) =>
+            msg.toLowerCase().includes("email") && msg.toLowerCase().includes("exist")
+              ? t("auth.register.errorEmailTaken")
+              : msg,
+          );
+          setFormErrors(messages.length ? messages : [t("auth.register.error")]);
+        },
       },
     );
   }
@@ -94,10 +113,19 @@ export default function RegisterPage() {
                 minLength={8}
                 autoComplete="new-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setFormErrors([]); }}
               />
               <p className="text-xs text-muted-foreground">{t("auth.register.passwordHint")}</p>
             </div>
+            {formErrors.length > 0 && (
+              <ul className="space-y-1">
+                {formErrors.map((msg) => (
+                  <li key={msg} className="text-sm text-destructive">
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            )}
             <Button type="submit" className="w-full h-11" disabled={submitting}>
               {submitting ? <Loader2 className="size-4 animate-spin" /> : t("auth.register.submit")}
             </Button>

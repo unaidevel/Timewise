@@ -73,7 +73,8 @@
       "signIn": "Sign in",
       "success": "Account created",
       "successNeedLogin": "Account created — sign in",
-      "error": "Could not create the account"
+      "error": "Could not create the account",
+      "errorEmailTaken": "An account with this email already exists"
     },
     "hero": {
       "title": "People, time and cost — all in one place.",
