@@ -120,18 +120,12 @@ function Dashboard({ tenantId }: { tenantId: number }) {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("dashboard.summary")}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <LiveClock
-            className="text-right [&>div:first-child]:text-3xl [&>div:last-child]:text-xs [&>div:last-child]:mt-1"
-            locale={locale}
-            timezone={timezone}
-            showSeconds
-          />
-          <div className="flex gap-2">
-            <Button variant="outline">{t("dashboard.export")}</Button>
-            <Button>{t("dashboard.newReport")}</Button>
-          </div>
-        </div>
+        <LiveClock
+          className="text-right [&>div:first-child]:text-5xl [&>div:first-child]:font-light [&>div:last-child]:text-sm [&>div:last-child]:mt-1.5"
+          locale={locale}
+          timezone={timezone}
+          showSeconds
+        />
       </header>
 
       <section
