@@ -24,7 +24,6 @@ import { useAuthStore } from "@/features/auth/store";
 import { useCostTrend } from "@/features/costing/hooks";
 import { useDepartments } from "@/features/departments/hooks";
 import { useEmployees } from "@/features/employees/hooks";
-import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { usePeriods } from "@/features/periods/hooks";
 import { useCurrentTenantId, useOrganizationProfile } from "@/features/tenants/hooks";
 
@@ -114,7 +113,6 @@ function Dashboard({ tenantId }: { tenantId: number }) {
 
   return (
     <div className="space-y-8">
-      <DemoDataBanner />
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">

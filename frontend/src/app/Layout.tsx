@@ -35,6 +35,7 @@ import {
 } from "@/components/shadcn/dropdown-menu";
 import { useLogout } from "@/features/auth/hooks";
 import { useAuthStore } from "@/features/auth/store";
+import { DemoDataBanner } from "@/features/onboarding/components/DemoDataBanner";
 import { TourRunner } from "@/features/onboarding/components/TourRunner";
 import { useTourStore } from "@/features/onboarding/store";
 import { useIsTenantAdmin, useTenants } from "@/features/tenants/hooks";
@@ -316,6 +317,7 @@ export function Layout() {
         </header>
 
         <CommandPalette open={palette.open} onOpenChange={palette.setOpen} />
+        <DemoDataBanner />
         <TourRunner />
 
         <main className="flex-1 overflow-auto">
