@@ -75,21 +75,51 @@ export function Layout() {
   const navGroups: NavGroup[] = [
     {
       items: [
-        { to: "/", label: t("layout.nav.home"), icon: LayoutDashboard, end: true, tourId: "nav-home" },
+        {
+          to: "/",
+          label: t("layout.nav.home"),
+          icon: LayoutDashboard,
+          end: true,
+          tourId: "nav-home",
+        },
       ],
     },
     {
       label: t("layout.nav.groups.people"),
       items: [
-        { to: "/employees", label: t("layout.nav.employees"), icon: Users, adminOnly: true, tourId: "nav-employees" },
-        { to: "/departments", label: t("layout.nav.departments"), icon: FolderKanban, adminOnly: true, tourId: "nav-departments" },
-        { to: "/roles", label: t("layout.nav.roles"), icon: Tag, adminOnly: true, tourId: "nav-roles" },
+        {
+          to: "/employees",
+          label: t("layout.nav.employees"),
+          icon: Users,
+          adminOnly: true,
+          tourId: "nav-employees",
+        },
+        {
+          to: "/departments",
+          label: t("layout.nav.departments"),
+          icon: FolderKanban,
+          adminOnly: true,
+          tourId: "nav-departments",
+        },
+        {
+          to: "/roles",
+          label: t("layout.nav.roles"),
+          icon: Tag,
+          adminOnly: true,
+          tourId: "nav-roles",
+        },
       ],
     },
     {
       label: t("layout.nav.groups.time"),
       items: [
-        { to: "/periods", label: t("layout.nav.periods"), icon: CalendarRange, adminOnly: true, tourId: "nav-periods" },
+        {
+          to: "/periods",
+          label: t("layout.nav.periods"),
+          icon: CalendarRange,
+          adminOnly: true,
+          tourId: "nav-periods",
+        },
         { to: "/time", label: t("layout.nav.time"), icon: Clock, tourId: "nav-time" },
         { to: "/reports", label: t("layout.nav.reports"), icon: BarChart2, tourId: "nav-reports" },
       ],
@@ -97,15 +127,38 @@ export function Layout() {
     {
       label: t("layout.nav.groups.finance"),
       items: [
-        { to: "/approvals", label: t("layout.nav.approvals"), icon: CheckSquare, tourId: "nav-approvals" },
-        { to: "/costing", label: t("layout.nav.costing"), icon: Calculator, adminOnly: true, tourId: "nav-costing" },
+        {
+          to: "/approvals",
+          label: t("layout.nav.approvals"),
+          icon: CheckSquare,
+          tourId: "nav-approvals",
+        },
+        {
+          to: "/costing",
+          label: t("layout.nav.costing"),
+          icon: Calculator,
+          adminOnly: true,
+          tourId: "nav-costing",
+        },
       ],
     },
     {
       label: t("layout.nav.groups.admin"),
       items: [
-        { to: "/audit", label: t("layout.nav.audit"), icon: ScrollText, adminOnly: true, tourId: "nav-audit" },
-        { to: "/settings", label: t("layout.nav.settings"), icon: Settings, adminOnly: true, tourId: "nav-settings" },
+        {
+          to: "/audit",
+          label: t("layout.nav.audit"),
+          icon: ScrollText,
+          adminOnly: true,
+          tourId: "nav-audit",
+        },
+        {
+          to: "/settings",
+          label: t("layout.nav.settings"),
+          icon: Settings,
+          adminOnly: true,
+          tourId: "nav-settings",
+        },
       ],
     },
   ];
@@ -271,7 +324,6 @@ export function Layout() {
             </div>
           ))}
         </nav>
-
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -283,7 +335,11 @@ export function Layout() {
             aria-label={collapsed ? t("layout.expand") : t("layout.collapse")}
             title={collapsed ? t("layout.expand") : t("layout.collapse")}
           >
-            {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+            {collapsed ? (
+              <PanelLeftOpen className="size-4" />
+            ) : (
+              <PanelLeftClose className="size-4" />
+            )}
           </Button>
           <button
             type="button"

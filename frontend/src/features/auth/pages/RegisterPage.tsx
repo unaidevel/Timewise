@@ -113,7 +113,10 @@ export default function RegisterPage() {
                 minLength={8}
                 autoComplete="new-password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setFormErrors([]); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFormErrors([]);
+                }}
               />
               <p className="text-xs text-muted-foreground">{t("auth.register.passwordHint")}</p>
             </div>
