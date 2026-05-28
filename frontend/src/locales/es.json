@@ -180,6 +180,10 @@
           "title": "Cuadrícula de horas",
           "body": "Cada celda representa un día del periodo. Introduce las horas directamente — un 0 borra la entrada. El total y las horas extra se calculan en tiempo real en la parte inferior. Cuando termines, pulsa «Enviar» para mandarlo a revisión."
         },
+        "timeCreateReport": {
+          "title": "Crea tu primer reporte",
+          "body": "Todavía no tienes un reporte para el periodo actual. Haz clic en este botón para crearlo — luego introduce tus horas día a día y envíalo para su aprobación."
+        },
         "timePeriodsList": {
           "title": "Tus periodos",
           "body": "Todos los periodos disponibles aparecen aquí. Haz clic en cualquiera para cambiar a él y revisar o editar tus entradas. El activo se resalta con un borde de color primario. Los periodos ya aprobados o cerrados son de solo lectura."

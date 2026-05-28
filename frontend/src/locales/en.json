@@ -180,6 +180,10 @@
           "title": "Hour entry grid",
           "body": "Each cell represents one day in the period. Enter hours directly — 0 clears the entry. The total and any overtime are calculated in real time at the bottom of the card. When you're done, hit «Submit» to send it for review."
         },
+        "timeCreateReport": {
+          "title": "Create your first report",
+          "body": "You don't have a report for the current period yet. Click this button to create one — then enter your hours day by day and submit it for approval."
+        },
         "timePeriodsList": {
           "title": "Your periods",
           "body": "All available periods appear here. Click any period to switch to it and review or edit your entries. The active one is highlighted with a primary border. Periods that have already been approved or locked are read-only."
