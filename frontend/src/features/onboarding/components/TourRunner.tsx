@@ -150,7 +150,16 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 15. Time — grid ───────────────────────────────────────────────────
+      // ── 15. Time — create report ─────────────────────────────────────────
+      {
+        target: '[data-tour="time-create-report"]',
+        title: t("onboarding.tour.steps.timeCreateReport.title"),
+        content: t("onboarding.tour.steps.timeCreateReport.body"),
+        route: "/time",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 16. Time — grid ───────────────────────────────────────────────────
       {
         target: '[data-tour="time-grid"]',
         title: t("onboarding.tour.steps.timeGrid.title"),
@@ -159,7 +168,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 16. Time — periods list ───────────────────────────────────────────
+      // ── 17. Time — periods list ───────────────────────────────────────────
       {
         target: '[data-tour="time-periods-list"]',
         title: t("onboarding.tour.steps.timePeriodsList.title"),

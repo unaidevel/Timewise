@@ -407,7 +407,7 @@ function NoReportCard({
       <CardContent>
         <div className="rounded-lg border border-dashed p-8 text-center space-y-3">
           <p className="text-sm text-muted-foreground">{t("timekeeping.time.noReportYet")}</p>
-          <Button onClick={onCreate} disabled={isCreating}>
+          <Button data-tour="time-create-report" onClick={onCreate} disabled={isCreating}>
             {isCreating ? t("timekeeping.time.creating") : t("timekeeping.time.createReport")}
           </Button>
         </div>
