@@ -16,12 +16,13 @@ export function TourRunner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const shouldRun = useTourStore((s) => s.shouldRun);
+  const tourMode = useTourStore((s) => s.tourMode);
   const stopTour = useTourStore((s) => s.stopTour);
   const markCompleted = useMarkTourCompleted();
   const [stepIndex, setStepIndex] = useState(0);
   const pendingAdvance = useRef<number | null>(null);
 
-  const steps: TourStep[] = useMemo(
+  const demoSteps: TourStep[] = useMemo(
     () => [
       // ── 1. Home nav ───────────────────────────────────────────────────────
       {
@@ -177,7 +178,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 17. Reports nav ───────────────────────────────────────────────────
+      // ── 18. Reports nav ───────────────────────────────────────────────────
       {
         target: '[data-tour="nav-reports"]',
         title: t("onboarding.tour.steps.reports.title"),
@@ -186,7 +187,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 18. Reports — filters ─────────────────────────────────────────────
+      // ── 19. Reports — filters ─────────────────────────────────────────────
       {
         target: '[data-tour="reports-filters"]',
         title: t("onboarding.tour.steps.reportsFilters.title"),
@@ -195,7 +196,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 19. Reports — table ───────────────────────────────────────────────
+      // ── 20. Reports — table ───────────────────────────────────────────────
       {
         target: '[data-tour="reports-table"]',
         title: t("onboarding.tour.steps.reportsTable.title"),
@@ -204,7 +205,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 20. Approvals nav ─────────────────────────────────────────────────
+      // ── 21. Approvals nav ─────────────────────────────────────────────────
       {
         target: '[data-tour="nav-approvals"]',
         title: t("onboarding.tour.steps.approvals.title"),
@@ -213,7 +214,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 21. Approvals — status tabs ───────────────────────────────────────
+      // ── 22. Approvals — status tabs ───────────────────────────────────────
       {
         target: '[data-tour="approvals-tabs"]',
         title: t("onboarding.tour.steps.approvalsTabs.title"),
@@ -222,7 +223,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 22. Approvals — list ──────────────────────────────────────────────
+      // ── 23. Approvals — list ──────────────────────────────────────────────
       {
         target: '[data-tour="approvals-list"]',
         title: t("onboarding.tour.steps.approvalsList.title"),
@@ -231,7 +232,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 23. Costing nav ───────────────────────────────────────────────────
+      // ── 24. Costing nav ───────────────────────────────────────────────────
       {
         target: '[data-tour="nav-costing"]',
         title: t("onboarding.tour.steps.costing.title"),
@@ -240,7 +241,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 24. Costing — KPIs ────────────────────────────────────────────────
+      // ── 25. Costing — KPIs ────────────────────────────────────────────────
       {
         target: '[data-tour="costing-kpis"]',
         title: t("onboarding.tour.steps.costingKpis.title"),
@@ -249,7 +250,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 25. Costing — by department ───────────────────────────────────────
+      // ── 26. Costing — by department ───────────────────────────────────────
       {
         target: '[data-tour="costing-by-dept"]',
         title: t("onboarding.tour.steps.costingByDept.title"),
@@ -258,7 +259,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 26. Costing — by employee ─────────────────────────────────────────
+      // ── 27. Costing — by employee ─────────────────────────────────────────
       {
         target: '[data-tour="costing-by-employee"]',
         title: t("onboarding.tour.steps.costingByEmployee.title"),
@@ -267,7 +268,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 27. Audit nav ─────────────────────────────────────────────────────
+      // ── 28. Audit nav ─────────────────────────────────────────────────────
       {
         target: '[data-tour="nav-audit"]',
         title: t("onboarding.tour.steps.audit.title"),
@@ -276,7 +277,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 28. Audit — filters ───────────────────────────────────────────────
+      // ── 29. Audit — filters ───────────────────────────────────────────────
       {
         target: '[data-tour="audit-filters"]',
         title: t("onboarding.tour.steps.auditFilters.title"),
@@ -285,7 +286,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 29. Audit — table ─────────────────────────────────────────────────
+      // ── 30. Audit — table ─────────────────────────────────────────────────
       {
         target: '[data-tour="audit-table"]',
         title: t("onboarding.tour.steps.auditTable.title"),
@@ -294,7 +295,7 @@ export function TourRunner() {
         placement: "top",
         skipScroll: true,
       },
-      // ── 30. Settings nav ──────────────────────────────────────────────────
+      // ── 31. Settings nav ──────────────────────────────────────────────────
       {
         target: '[data-tour="nav-settings"]',
         title: t("onboarding.tour.steps.settings.title"),
@@ -303,7 +304,7 @@ export function TourRunner() {
         placement: "right",
         skipScroll: true,
       },
-      // ── 31. Settings — tabs ───────────────────────────────────────────────
+      // ── 32. Settings — tabs ───────────────────────────────────────────────
       {
         target: '[data-tour="settings-tabs"]',
         title: t("onboarding.tour.steps.settingsTabs.title"),
@@ -312,7 +313,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 32. Settings — Org tab ────────────────────────────────────────────
+      // ── 33. Settings — Org tab ────────────────────────────────────────────
       {
         target: '[data-tour="settings-tab-org"]',
         title: t("onboarding.tour.steps.settingsOrg.title"),
@@ -321,7 +322,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 33. Settings — Depts tab ──────────────────────────────────────────
+      // ── 34. Settings — Depts tab ──────────────────────────────────────────
       {
         target: '[data-tour="settings-tab-depts"]',
         title: t("onboarding.tour.steps.settingsDepts.title"),
@@ -331,7 +332,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 34. Settings — Cost Rules tab ─────────────────────────────────────
+      // ── 35. Settings — Cost Rules tab ─────────────────────────────────────
       {
         target: '[data-tour="settings-tab-costrules"]',
         title: t("onboarding.tour.steps.settingsCostRules.title"),
@@ -341,7 +342,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 35. Settings — Members tab ────────────────────────────────────────
+      // ── 36. Settings — Members tab ────────────────────────────────────────
       {
         target: '[data-tour="settings-tab-members"]',
         title: t("onboarding.tour.steps.settingsMembers.title"),
@@ -351,7 +352,7 @@ export function TourRunner() {
         placement: "bottom",
         skipScroll: true,
       },
-      // ── 36. Finish — restart tour button ──────────────────────────────────
+      // ── 37. Finish — restart tour button ──────────────────────────────────
       {
         target: '[data-tour="restart-tour"]',
         title: t("onboarding.tour.steps.finish.title"),
@@ -363,6 +364,132 @@ export function TourRunner() {
     ],
     [t],
   );
+
+  const scratchSteps: TourStep[] = useMemo(
+    () => [
+      // ── 1. Home nav ───────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-home"]',
+        title: t("onboarding.scratchTour.steps.home.title"),
+        content: t("onboarding.scratchTour.steps.home.body"),
+        route: "/",
+        placement: "right",
+        disableBeacon: true,
+        skipScroll: true,
+      },
+      // ── 2. Employees nav ──────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-employees"]',
+        title: t("onboarding.scratchTour.steps.employees.title"),
+        content: t("onboarding.scratchTour.steps.employees.body"),
+        route: "/employees",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 3. Departments nav ────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-departments"]',
+        title: t("onboarding.scratchTour.steps.departments.title"),
+        content: t("onboarding.scratchTour.steps.departments.body"),
+        route: "/departments",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 4. Roles nav ──────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-roles"]',
+        title: t("onboarding.scratchTour.steps.roles.title"),
+        content: t("onboarding.scratchTour.steps.roles.body"),
+        route: "/roles",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 5. Roles — table ──────────────────────────────────────────────────
+      {
+        target: '[data-tour="roles-table"]',
+        title: t("onboarding.scratchTour.steps.rolesTable.title"),
+        content: t("onboarding.scratchTour.steps.rolesTable.body"),
+        route: "/roles",
+        placement: "top",
+        skipScroll: true,
+      },
+      // ── 6. Periods nav ────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-periods"]',
+        title: t("onboarding.scratchTour.steps.periods.title"),
+        content: t("onboarding.scratchTour.steps.periods.body"),
+        route: "/periods",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 7. Time nav ───────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-time"]',
+        title: t("onboarding.scratchTour.steps.time.title"),
+        content: t("onboarding.scratchTour.steps.time.body"),
+        route: "/time",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 8. Reports nav ────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-reports"]',
+        title: t("onboarding.scratchTour.steps.reports.title"),
+        content: t("onboarding.scratchTour.steps.reports.body"),
+        route: "/reports",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 9. Approvals nav ──────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-approvals"]',
+        title: t("onboarding.scratchTour.steps.approvals.title"),
+        content: t("onboarding.scratchTour.steps.approvals.body"),
+        route: "/approvals",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 10. Costing nav ───────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-costing"]',
+        title: t("onboarding.scratchTour.steps.costing.title"),
+        content: t("onboarding.scratchTour.steps.costing.body"),
+        route: "/costing",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 11. Audit nav ─────────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-audit"]',
+        title: t("onboarding.scratchTour.steps.audit.title"),
+        content: t("onboarding.scratchTour.steps.audit.body"),
+        route: "/audit",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 12. Settings nav ──────────────────────────────────────────────────
+      {
+        target: '[data-tour="nav-settings"]',
+        title: t("onboarding.scratchTour.steps.settings.title"),
+        content: t("onboarding.scratchTour.steps.settings.body"),
+        route: "/settings",
+        placement: "right",
+        skipScroll: true,
+      },
+      // ── 13. Finish — go create your first department ──────────────────────
+      {
+        target: '[data-tour="nav-departments"]',
+        title: t("onboarding.scratchTour.steps.finish.title"),
+        content: t("onboarding.scratchTour.steps.finish.body"),
+        route: "/departments",
+        placement: "right",
+        skipScroll: true,
+      },
+    ],
+    [t],
+  );
+
+  const steps = tourMode === "scratch" ? scratchSteps : demoSteps;
 
   const finish = useCallback(() => {
     stopTour();
@@ -408,9 +535,10 @@ export function TourRunner() {
   useEffect(() => {
     if (shouldRun) {
       setStepIndex(0);
-      navigate("/");
+      const startRoute = tourMode === "scratch" ? "/settings" : "/";
+      navigate(startRoute);
     }
-  }, [shouldRun, navigate]);
+  }, [shouldRun, tourMode, navigate]);
 
   useEffect(() => {
     return () => {

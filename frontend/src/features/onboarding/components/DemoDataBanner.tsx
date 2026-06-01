@@ -11,8 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/shadcn/dialog";
+import { useAuthStore } from "@/features/auth/store";
+import { useCreateDepartment } from "@/features/departments/hooks";
+import { useCreateEmployee } from "@/features/employees/hooks";
 import { useTourStore } from "@/features/onboarding/store";
 import { useCurrentTenantId, useSeedDemoData, useTenantIsEmpty } from "@/features/tenants/hooks";
+import { type OwnerEmployeeFormData, OwnerEmployeeModal } from "./OwnerEmployeeModal";
 
 const DISMISS_KEY = "timewise-demo-data-dismissed";
 
@@ -32,68 +36,112 @@ function markDismissed(tenantId: number): void {
   }
 }
 
+type Step = "choose" | "employee";
+
 export function DemoDataBanner() {
   const tenantId = useCurrentTenantId();
   const isEmpty = useTenantIsEmpty(tenantId);
   const seed = useSeedDemoData(tenantId);
-  const startTour = useTourStore((s) => s.startTour);
+  const createDepartment = useCreateDepartment(tenantId);
+  const createEmployee = useCreateEmployee(tenantId);
+  const user = useAuthStore((s) => s.user);
+  const { startTour, startScratchTour } = useTourStore();
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() =>
     tenantId == null ? false : isDismissed(tenantId),
   );
+  const [step, setStep] = useState<Step>("choose");
 
   const open = tenantId != null && isEmpty && !dismissed;
 
   function handleStartEmpty() {
     if (tenantId != null) markDismissed(tenantId);
     setDismissed(true);
+    startScratchTour();
+  }
+
+  function handleLoadDemo() {
+    setStep("employee");
+  }
+
+  async function handleEmployeeSubmit(formData: OwnerEmployeeFormData) {
+    seed.mutate(undefined, {
+      onSuccess: async () => {
+        if (!formData.skip && user) {
+          try {
+            let deptId = formData.departmentId;
+            if (formData.newDepartmentName) {
+              const dept = await createDepartment.mutateAsync({
+                name: formData.newDepartmentName,
+              });
+              deptId = dept.id;
+            }
+            await createEmployee.mutateAsync({
+              full_name: user.full_name,
+              email: user.email,
+              department_id: deptId!,
+              role_id: formData.roleId,
+              hourly_rate: formData.hourlyRate,
+              contract_hours_per_week: formData.contractHours,
+              hired_at: new Date().toISOString().slice(0, 10),
+              user_id: user.id,
+            });
+          } catch {
+            // Employee creation failing shouldn't block the demo flow
+          }
+        }
+        toast.success(t("onboarding.demoModal.successToast"));
+        if (tenantId != null) markDismissed(tenantId);
+        setDismissed(true);
+        setStep("choose");
+        startTour();
+      },
+      onError: () => toast.error(t("onboarding.demoModal.errorToast")),
+    });
   }
 
   return (
-    <Dialog open={open}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
-          className="fixed left-1/2 top-1/2 z-50 grid w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2 gap-6 border bg-background p-8 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-xl"
-          onEscapeKeyDown={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <div className="mx-auto mb-2 size-12 rounded-full bg-primary/10 grid place-items-center">
-              <Sparkles className="size-6 text-primary" />
-            </div>
-            <DialogTitle className="text-center text-xl">
-              {t("onboarding.demoModal.title")}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {t("onboarding.demoModal.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-center gap-2">
-            <Button variant="outline" onClick={handleStartEmpty} disabled={seed.isPending}>
-              {t("onboarding.demoModal.startEmpty")}
-            </Button>
-            <Button
-              title={t("onboarding.demoModal.loadTooltip")}
-              onClick={() =>
-                seed.mutate(undefined, {
-                  onSuccess: () => {
-                    toast.success(t("onboarding.demoModal.successToast"));
-                    if (tenantId != null) markDismissed(tenantId);
-                    setDismissed(true);
-                    startTour();
-                  },
-                  onError: () => toast.error(t("onboarding.demoModal.errorToast")),
-                })
-              }
-              disabled={seed.isPending}
-            >
-              {seed.isPending ? t("onboarding.demoModal.loading") : t("onboarding.demoModal.load")}
-            </Button>
-          </DialogFooter>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </Dialog>
+    <>
+      <Dialog open={open && step === "choose"}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <DialogPrimitive.Content
+            className="fixed left-1/2 top-1/2 z-50 grid w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2 gap-6 border bg-background p-8 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-xl"
+            onEscapeKeyDown={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+          >
+            <DialogHeader>
+              <div className="mx-auto mb-2 size-12 rounded-full bg-primary/10 grid place-items-center">
+                <Sparkles className="size-6 text-primary" />
+              </div>
+              <DialogTitle className="text-center text-xl">
+                {t("onboarding.demoModal.title")}
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                {t("onboarding.demoModal.description")}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:justify-center gap-2">
+              <Button variant="outline" onClick={handleStartEmpty} disabled={seed.isPending}>
+                {t("onboarding.demoModal.startEmpty")}
+              </Button>
+              <Button
+                title={t("onboarding.demoModal.loadTooltip")}
+                onClick={handleLoadDemo}
+                disabled={seed.isPending}
+              >
+                {t("onboarding.demoModal.load")}
+              </Button>
+            </DialogFooter>
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </Dialog>
+
+      <OwnerEmployeeModal
+        open={open && step === "employee"}
+        onSubmit={handleEmployeeSubmit}
+      />
+    </>
   );
 }
