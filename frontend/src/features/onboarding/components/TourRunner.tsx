@@ -498,7 +498,7 @@ export function TourRunner() {
   }, [stopTour, markCompleted]);
 
   const goToStep = useCallback(
-    (index: number) => {
+    (index: number, direction: 1 | -1 = 1) => {
       if (index < 0 || index >= steps.length) {
         finish();
         return;
@@ -506,10 +506,14 @@ export function TourRunner() {
       const step = steps[index];
       const targetPath = step.route + (step.search ?? "");
       navigate(targetPath);
-      // Small delay to let React render the target element before Joyride tries to find it
       pendingAdvance.current = window.setTimeout(() => {
-        setStepIndex(index);
         pendingAdvance.current = null;
+        const selector = typeof step.target === "string" ? step.target : null;
+        if (selector && !document.querySelector(selector)) {
+          goToStep(index + direction, direction);
+          return;
+        }
+        setStepIndex(index);
       }, 120);
     },
     [steps, navigate, finish],
@@ -525,8 +529,8 @@ export function TourRunner() {
       }
 
       if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-        const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-        goToStep(nextIndex);
+        const direction = action === ACTIONS.PREV ? -1 : 1;
+        goToStep(index + direction, direction);
       }
     },
     [goToStep, finish],
