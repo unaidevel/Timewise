@@ -92,7 +92,7 @@ export default function OnboardingPage() {
                       .replace(/^-|-$/g, ""),
                   );
                 }}
-                placeholder="Acme Robotics"
+                placeholder="TimeWise Inc."
               />
             </div>
             <div className="space-y-2">
