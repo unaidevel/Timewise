@@ -27,6 +27,7 @@ not the *what*. The diff already shows the what.
 | `test`   | Adding or updating tests                                                     |
 | `chore`  | Tooling, deps, generated files (SDK regen, lockfile), no user-visible change |
 | `refactor` | Internal restructure with no behavior change                               |
+| `perf`   | Performance / bundle improvement with no behavior change                      |
 | `style`  | Formatting / lint fixes only — no logic change                               |
 | `docs`   | Documentation only                                                           |
 | `build`  | Build system, package manager, CI config                                     |

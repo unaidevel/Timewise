@@ -114,6 +114,23 @@
       "successToast": "Demo data loaded",
       "errorToast": "Could not load the data"
     },
+    "ownerEmployee": {
+      "title": "Set up your employee profile",
+      "description": "We'll link this profile to your account so you can log hours and try the full workflow.",
+      "fullName": "Full name",
+      "email": "Email",
+      "department": "Department",
+      "role": "Role",
+      "hourlyRate": "Hourly rate",
+      "contractHours": "Contract hours / week",
+      "selectPlaceholder": "Select…",
+      "newDepartment": "New department…",
+      "newDepartmentName": "Department name",
+      "newDepartmentPlaceholder": "e.g. Engineering",
+      "skip": "Skip for now",
+      "create": "Create profile",
+      "creating": "Creating…"
+    },
     "tour": {
       "back": "Back",
       "next": "Next",
@@ -179,6 +196,10 @@
         "timeGrid": {
           "title": "Hour entry grid",
           "body": "Each cell represents one day in the period. Enter hours directly — 0 clears the entry. The total and any overtime are calculated in real time at the bottom of the card. When you're done, hit «Submit» to send it for review."
+        },
+        "timeCreateReport": {
+          "title": "Create your first report",
+          "body": "You don't have a report for the current period yet. Click this button to create one — then enter your hours day by day and submit it for approval."
         },
         "timePeriodsList": {
           "title": "Your periods",
@@ -263,6 +284,62 @@
         "finish": {
           "title": "You're all set! 🎉",
           "body": "That's the full tour. Whenever you want to replay it, just click this button — the compass icon in the header. It's always there."
+        }
+      }
+    },
+    "scratchTour": {
+      "steps": {
+        "home": {
+          "title": "Your dashboard",
+          "body": "This is your home base. Once you have data it'll show KPIs, cost trends, and recent activity. For now, let's take a quick look around."
+        },
+        "employees": {
+          "title": "Employees",
+          "body": "This is where you manage your team. Once you've created at least one department you'll be able to add employee profiles here."
+        },
+        "departments": {
+          "title": "Departments",
+          "body": "Departments group your employees — Engineering, Sales, Operations, whatever fits your structure. You'll create your first one here in a moment."
+        },
+        "roles": {
+          "title": "Roles",
+          "body": "Roles control what each person can do in the app. The defaults (Employee, Manager, Owner) cover most cases."
+        },
+        "rolesTable": {
+          "title": "Built-in roles",
+          "body": "These roles are ready to use. Assign one to each employee when you create their profile — no setup needed."
+        },
+        "periods": {
+          "title": "Periods",
+          "body": "Periods define the time windows for logging hours — monthly, bi-weekly, whatever fits your workflow. Create one here and employees can start tracking."
+        },
+        "time": {
+          "title": "Time tracking",
+          "body": "Once employees exist, they log their daily hours here. Each period gets its own report which is then submitted for approval."
+        },
+        "reports": {
+          "title": "Reports",
+          "body": "A full list of every time report across all employees and periods. You'll see drafts, submitted, approved, and rejected reports here once your team starts logging."
+        },
+        "approvals": {
+          "title": "Approvals",
+          "body": "Managers review and approve submitted reports here. Once your team is set up and logging hours, this is where the workflow completes."
+        },
+        "costing": {
+          "title": "Costing",
+          "body": "This section breaks down labour costs by department and employee. It populates automatically once reports are approved — great for tracking budgets."
+        },
+        "audit": {
+          "title": "Audit log",
+          "body": "Every action in the app is recorded here — who did what and when. Useful for tracking changes and keeping a clear record."
+        },
+        "settings": {
+          "title": "Settings",
+          "body": "Configure your organization profile, manage departments, set overtime rules, and invite teammates."
+        },
+        "finish": {
+          "title": "First step: create a department",
+          "body": "Everything starts here. Create your first department — then you can add employees, open a period, and your team can start logging hours."
         }
       }
     }

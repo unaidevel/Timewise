@@ -114,6 +114,23 @@
       "successToast": "Datos de demo cargados",
       "errorToast": "No se pudieron cargar los datos"
     },
+    "ownerEmployee": {
+      "title": "Crea tu perfil de empleado",
+      "description": "Vincularemos este perfil a tu cuenta para que puedas registrar horas y probar el flujo completo.",
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "department": "Departamento",
+      "role": "Rol",
+      "hourlyRate": "Tarifa por hora",
+      "contractHours": "Horas contratadas / semana",
+      "selectPlaceholder": "Seleccionar…",
+      "newDepartment": "Nuevo departamento…",
+      "newDepartmentName": "Nombre del departamento",
+      "newDepartmentPlaceholder": "ej. Ingeniería",
+      "skip": "Omitir por ahora",
+      "create": "Crear perfil",
+      "creating": "Creando…"
+    },
     "tour": {
       "back": "Atrás",
       "next": "Siguiente",
@@ -179,6 +196,10 @@
         "timeGrid": {
           "title": "Cuadrícula de horas",
           "body": "Cada celda representa un día del periodo. Introduce las horas directamente — un 0 borra la entrada. El total y las horas extra se calculan en tiempo real en la parte inferior. Cuando termines, pulsa «Enviar» para mandarlo a revisión."
+        },
+        "timeCreateReport": {
+          "title": "Crea tu primer reporte",
+          "body": "Todavía no tienes un reporte para el periodo actual. Haz clic en este botón para crearlo — luego introduce tus horas día a día y envíalo para su aprobación."
         },
         "timePeriodsList": {
           "title": "Tus periodos",
@@ -263,6 +284,62 @@
         "finish": {
           "title": "¡Ya estás listo! 🎉",
           "body": "Eso es todo el tour. Cuando quieras volver a verlo, haz clic en este botón — el icono de brújula en el encabezado. Siempre estará ahí."
+        }
+      }
+    },
+    "scratchTour": {
+      "steps": {
+        "home": {
+          "title": "Tu dashboard",
+          "body": "Este es tu punto de partida. Cuando tengas datos mostrará KPIs, tendencias de coste y actividad reciente. Por ahora, echemos un vistazo rápido."
+        },
+        "employees": {
+          "title": "Empleados",
+          "body": "Aquí gestionas tu equipo. Una vez hayas creado al menos un departamento podrás añadir perfiles de empleado."
+        },
+        "departments": {
+          "title": "Departamentos",
+          "body": "Los departamentos agrupan a tus empleados — Ingeniería, Ventas, Operaciones, lo que encaje. Crearás el primero aquí en un momento."
+        },
+        "roles": {
+          "title": "Roles",
+          "body": "Los roles controlan lo que puede hacer cada persona en la app. Los predeterminados (Empleado, Manager, Owner) cubren la mayoría de casos."
+        },
+        "rolesTable": {
+          "title": "Roles predefinidos",
+          "body": "Estos roles están listos para usar. Asigna uno a cada empleado al crear su perfil — no necesitas configuración extra."
+        },
+        "periods": {
+          "title": "Periodos",
+          "body": "Los periodos definen las ventanas de tiempo para registrar horas — mensual, quincenal, lo que encaje. Crea uno aquí y los empleados podrán empezar a fichar."
+        },
+        "time": {
+          "title": "Registro de horas",
+          "body": "Una vez existan empleados, registran sus horas diarias aquí. Cada periodo genera su propio reporte que se envía para aprobación."
+        },
+        "reports": {
+          "title": "Reportes",
+          "body": "Lista completa de todos los reportes de tiempo de empleados y periodos. Verás borradores, enviados, aprobados y rechazados cuando tu equipo empiece a fichar."
+        },
+        "approvals": {
+          "title": "Aprobaciones",
+          "body": "Los managers revisan y aprueban los reportes enviados aquí. Cuando tu equipo esté configurado y fichando, aquí se completa el flujo."
+        },
+        "costing": {
+          "title": "Costes",
+          "body": "Esta sección desglosa los costes laborales por departamento y empleado. Se rellena automáticamente cuando los reportes son aprobados — ideal para controlar presupuestos."
+        },
+        "audit": {
+          "title": "Registro de auditoría",
+          "body": "Cada acción en la app queda registrada aquí — quién hizo qué y cuándo. Útil para seguir cambios y mantener un historial claro."
+        },
+        "settings": {
+          "title": "Ajustes",
+          "body": "Configura el perfil de tu organización, gestiona departamentos, define reglas de horas extra e invita a compañeros."
+        },
+        "finish": {
+          "title": "Primer paso: crea un departamento",
+          "body": "Todo empieza aquí. Crea tu primer departamento — después podrás añadir empleados, abrir un periodo y tu equipo podrá empezar a fichar."
         }
       }
     }

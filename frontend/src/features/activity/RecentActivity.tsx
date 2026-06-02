@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { AuditEventOut, EmployeeOut, TenantMemberResponse } from "@/client";
@@ -91,7 +91,7 @@ function ActivityRow({ event, actor, member, index }: ActivityRowProps) {
     .toUpperCase();
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04 }}
@@ -109,7 +109,7 @@ function ActivityRow({ event, actor, member, index }: ActivityRowProps) {
         </p>
         <p className="text-xs text-muted-foreground mt-1">{relativeTime(event.occurred_at, t)}</p>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

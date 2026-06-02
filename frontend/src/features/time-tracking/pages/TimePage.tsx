@@ -99,7 +99,7 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
   const { t } = useTranslation();
 
   const sortedPeriods = useMemo(
-    () => [...(periods.data ?? [])].sort((a, b) => b.start_date.localeCompare(a.start_date)),
+    () => (periods.data ?? []).toSorted((a, b) => b.start_date.localeCompare(a.start_date)),
     [periods.data],
   );
 
@@ -120,6 +120,10 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
     })();
     const savedMatch = saved != null ? employees.data.find((e) => e.id === saved) : undefined;
     const fallback = employees.data.find((e) => e.is_active) ?? employees.data[0];
+    // False positive: one-time lazy init of a user-selectable value from an
+    // external store (localStorage) + async data, not a prop mirror. Guarded to
+    // run once; user overrides it afterward, so it can't be derived in render.
+    // react-doctor-disable-next-line react-doctor/no-derived-state
     setEmployeeIdState(matchByUser?.id ?? savedMatch?.id ?? fallback?.id ?? null);
   }, [employees.data, user, tenantId, employeeId]);
 
@@ -407,7 +411,7 @@ function NoReportCard({
       <CardContent>
         <div className="rounded-lg border border-dashed p-8 text-center space-y-3">
           <p className="text-sm text-muted-foreground">{t("timekeeping.time.noReportYet")}</p>
-          <Button onClick={onCreate} disabled={isCreating}>
+          <Button data-tour="time-create-report" onClick={onCreate} disabled={isCreating}>
             {isCreating ? t("timekeeping.time.creating") : t("timekeeping.time.createReport")}
           </Button>
         </div>
@@ -595,7 +599,7 @@ function ReportEditor({
           >
             {days.slice(0, 31).map((date) => (
               <DayCell
-                key={date}
+                key={`${date}:${entryByDate.get(date)?.hours ?? ""}`}
                 date={date}
                 entry={entryByDate.get(date)}
                 disabled={!editable}
@@ -626,12 +630,7 @@ function DayCell({
   disabled: boolean;
   onCommit: (raw: string) => void;
 }) {
-  const initial = entry ? String(Number(entry.hours)) : "";
-  const [value, setValue] = useState(initial);
-
-  useEffect(() => {
-    setValue(entry ? String(Number(entry.hours)) : "");
-  }, [entry]);
+  const [value, setValue] = useState(entry ? String(Number(entry.hours)) : "");
 
   return (
     <div className="border-r last:border-r-0 border-b lg:border-b-0 p-4">

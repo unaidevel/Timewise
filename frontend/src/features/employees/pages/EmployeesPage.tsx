@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   Briefcase,
   Building2,
@@ -11,7 +11,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import type { EmployeeOut } from "@/client";
@@ -172,7 +172,7 @@ export default function EmployeesPage() {
                       </TableRow>
                     ))}
                   {filtered.map((e, i) => (
-                    <motion.tr
+                    <m.tr
                       key={e.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -227,7 +227,7 @@ export default function EmployeesPage() {
                           {e.is_active ? t("common.active") : t("common.inactive")}
                         </Badge>
                       </TableCell>
-                    </motion.tr>
+                    </m.tr>
                   ))}
                   {!employees.isLoading && filtered.length === 0 && (
                     <TableRow>
@@ -324,7 +324,9 @@ export default function EmployeesPage() {
       </Dialog>
 
       <CreateEmployeeDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-      <EditEmployeeDialog employee={editing} onClose={() => setEditing(null)} />
+      {editing && (
+        <EditEmployeeDialog key={editing.id} employee={editing} onClose={() => setEditing(null)} />
+      )}
     </div>
   );
 }
@@ -609,36 +611,24 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
-function EditEmployeeDialog({
-  employee,
-  onClose,
-}: {
-  employee: EmployeeOut | null;
-  onClose: () => void;
-}) {
+function EditEmployeeDialog({ employee, onClose }: { employee: EmployeeOut; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const update = useUpdateEmployee(tenantId);
   const { t } = useTranslation();
-  const [form, setForm] = useState({ full_name: "", email: "", hired_at: "" });
-
-  useEffect(() => {
-    if (employee) {
-      setForm({
-        full_name: employee.full_name,
-        email: employee.email,
-        hired_at: employee.hired_at,
-      });
-    }
-  }, [employee]);
+  // Mounted only while editing and keyed on employee.id, so this seeds once.
+  const [form, setForm] = useState({
+    full_name: employee.full_name,
+    email: employee.email,
+    hired_at: employee.hired_at,
+  });
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!employee) return;
     update.mutate({ id: employee.id, body: form }, { onSuccess: onClose });
   }
 
   return (
-    <Dialog open={!!employee} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("workforce.employees.edit.title")}</DialogTitle>

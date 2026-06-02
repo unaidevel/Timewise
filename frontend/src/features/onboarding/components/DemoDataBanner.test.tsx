@@ -53,6 +53,7 @@ describe("DemoDataBanner", () => {
     mockEmpty();
     let seedCalled = false;
     server.use(
+      http.get(`${BASE}/api/v1/tenants/${TENANT_ID}/roles`, () => HttpResponse.json([])),
       http.post(`${BASE}/api/v1/tenants/${TENANT_ID}/demo-data`, () => {
         seedCalled = true;
         return HttpResponse.json(
@@ -71,8 +72,13 @@ describe("DemoDataBanner", () => {
 
     render(<DemoDataBanner />, { wrapper: createRouterWrapper("/") });
 
-    const btn = await screen.findByRole("button", { name: "Load demo" });
-    await userEvent.click(btn);
+    // Step 1: choosing "Load demo" opens the owner-employee modal.
+    const loadBtn = await screen.findByRole("button", { name: "Load demo" });
+    await userEvent.click(loadBtn);
+
+    // Step 2: skipping the owner-employee step still seeds the demo data.
+    const skipBtn = await screen.findByRole("button", { name: "Skip for now" });
+    await userEvent.click(skipBtn);
 
     await waitFor(() => expect(seedCalled).toBe(true));
   });

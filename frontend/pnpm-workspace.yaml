@@ -1,0 +1,5 @@
+# Supply-chain hardening: refuse to install package versions newer than 7 days
+# (10080 minutes), so malware caught and unpublished within hours never lands.
+minimumReleaseAge: 10080
+blockExoticSubdeps: true
+trustPolicy: no-downgrade

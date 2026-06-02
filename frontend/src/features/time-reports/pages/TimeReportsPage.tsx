@@ -1,5 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, Clock, Filter, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -194,7 +194,7 @@ export default function TimeReportsPage() {
                   </TableRow>
                 ))}
               {filtered.map((r, i) => (
-                <motion.tr
+                <m.tr
                   key={r.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -221,7 +221,7 @@ export default function TimeReportsPage() {
                       {t("timekeeping.reports.view")} <ArrowRight className="size-3.5 ml-1" />
                     </Link>
                   </TableCell>
-                </motion.tr>
+                </m.tr>
               ))}
               {!isLoading && filtered.length === 0 && (
                 <TableRow>

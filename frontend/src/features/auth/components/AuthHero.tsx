@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CheckCircle2, Clock, TrendingUp, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -23,7 +23,7 @@ export function AuthHero() {
       />
 
       <div className="relative max-w-md text-primary-foreground">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -34,11 +34,11 @@ export function AuthHero() {
           <p className="mt-4 text-primary-foreground/80 leading-relaxed">
             {t("auth.hero.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         <div className="mt-10 grid grid-cols-2 gap-3">
           {kpis.map((kpi, i) => (
-            <motion.div
+            <m.div
               key={kpi.label}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -48,7 +48,7 @@ export function AuthHero() {
               <kpi.icon className="size-4 opacity-80" />
               <div className="mt-3 text-2xl font-semibold tracking-tight">{kpi.value}</div>
               <div className="text-xs opacity-70">{kpi.label}</div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
