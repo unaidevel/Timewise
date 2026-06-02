@@ -62,7 +62,15 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
       (e) => String(e.id) === inviteParam && e.user_id == null && e.is_active,
     );
     if (match) {
+      // False positive: deep-link (?invite=) seed set once async data arrives and
+      // cleared on dialog close (handleOpenChange) — lifecycle is tied to user-
+      // controllable `open`, so it isn't a value derivable during render.
+      // react-doctor-disable-next-line react-doctor/no-derived-state
       setPrefilledEmployeeId(String(match.id));
+      // False positive: this opens a deep-linked (?invite=) dialog once async
+      // query data (employees.data) arrives — the rule's documented async carve-out.
+      // `open` is user-closable, so it can't be derived from the URL during render.
+      // react-doctor-disable-next-line react-doctor/no-adjust-state-on-prop-change
       setOpen(true);
     }
   }, [inviteParam, employees.data]);

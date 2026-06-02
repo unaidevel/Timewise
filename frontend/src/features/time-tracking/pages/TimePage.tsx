@@ -120,6 +120,10 @@ function TimeTracking({ tenantId }: { tenantId: number }) {
     })();
     const savedMatch = saved != null ? employees.data.find((e) => e.id === saved) : undefined;
     const fallback = employees.data.find((e) => e.is_active) ?? employees.data[0];
+    // False positive: one-time lazy init of a user-selectable value from an
+    // external store (localStorage) + async data, not a prop mirror. Guarded to
+    // run once; user overrides it afterward, so it can't be derived in render.
+    // react-doctor-disable-next-line react-doctor/no-derived-state
     setEmployeeIdState(matchByUser?.id ?? savedMatch?.id ?? fallback?.id ?? null);
   }, [employees.data, user, tenantId, employeeId]);
 
