@@ -138,10 +138,7 @@ export function DemoDataBanner() {
         </DialogPrimitive.Portal>
       </Dialog>
 
-      <OwnerEmployeeModal
-        open={open && step === "employee"}
-        onSubmit={handleEmployeeSubmit}
-      />
+      <OwnerEmployeeModal open={open && step === "employee"} onSubmit={handleEmployeeSubmit} />
     </>
   );
 }

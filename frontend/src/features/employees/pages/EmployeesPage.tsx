@@ -611,13 +611,7 @@ function CreateEmployeeDialog({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
-function EditEmployeeDialog({
-  employee,
-  onClose,
-}: {
-  employee: EmployeeOut;
-  onClose: () => void;
-}) {
+function EditEmployeeDialog({ employee, onClose }: { employee: EmployeeOut; onClose: () => void }) {
   const tenantId = useCurrentTenantId();
   const update = useUpdateEmployee(tenantId);
   const { t } = useTranslation();

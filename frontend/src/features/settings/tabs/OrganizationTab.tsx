@@ -65,7 +65,9 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
   }
 
   // Remount (and re-seed the editable form) whenever the saved profile changes.
-  return <OrganizationForm key={profile.dataUpdatedAt} tenantId={tenantId} profile={profile.data} />;
+  return (
+    <OrganizationForm key={profile.dataUpdatedAt} tenantId={tenantId} profile={profile.data} />
+  );
 }
 
 function OrganizationForm({

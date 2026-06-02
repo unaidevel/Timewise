@@ -16,7 +16,9 @@ const RolesPage = lazy(() => import("@/features/roles/pages/RolesPage"));
 const PeriodsPage = lazy(() => import("@/features/periods/pages/PeriodsPage"));
 const PeriodDetailPage = lazy(() => import("@/features/periods/pages/PeriodDetailPage"));
 const TimeReportsPage = lazy(() => import("@/features/time-reports/pages/TimeReportsPage"));
-const TimeReportDetailPage = lazy(() => import("@/features/time-reports/pages/TimeReportDetailPage"));
+const TimeReportDetailPage = lazy(
+  () => import("@/features/time-reports/pages/TimeReportDetailPage"),
+);
 const ApprovalsPage = lazy(() => import("@/features/approvals/pages/ApprovalsPage"));
 const CostingRuleDetailPage = lazy(
   () => import("@/features/costing-rules/pages/CostingRuleDetailPage"),
