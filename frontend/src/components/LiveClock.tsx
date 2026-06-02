@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function useNow(intervalMs = 1000): Date {
@@ -35,25 +35,36 @@ export function LiveClock({
   locale,
 }: LiveClockProps) {
   const now = useNow(1000);
-  const parts = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    timeZone: timezone,
-  }).formatToParts(now);
+  // Recreated only when locale/timezone change — not every tick (this re-renders 1×/s).
+  const timeFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZone: timezone,
+      }),
+    [locale, timezone],
+  );
+  const dateFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: timezone,
+      }),
+    [locale, timezone],
+  );
+  const parts = timeFormat.formatToParts(now);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
   const hh = get("hour");
   const mm = get("minute");
   const ss = get("second");
 
-  const dateStr = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: timezone,
-  }).format(now);
+  const dateStr = dateFormat.format(now);
 
   return (
     <div className={className}>

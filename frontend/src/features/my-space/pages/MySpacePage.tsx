@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { Calendar, Clock, Coffee, Play, Square, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getHourInTimezone, LiveClock, useNow } from "@/components/LiveClock";
 import { Badge } from "@/components/shadcn/badge";
@@ -45,12 +45,19 @@ export default function MySpacePage() {
   const es = Math.floor((elapsedMs % 60000) / 1000);
   const elapsed = `${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}:${String(es).padStart(2, "0")}`;
 
-  const headerDate = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    timeZone: timezone,
-  }).format(now);
+  // Memoize the formatter (depends only on locale/timezone), not the result —
+  // this component re-renders every second via useNow().
+  const headerDateFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        timeZone: timezone,
+      }),
+    [locale, timezone],
+  );
+  const headerDate = headerDateFormat.format(now);
 
   const upcoming = [
     {
