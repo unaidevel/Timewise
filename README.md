@@ -100,13 +100,9 @@ cp backend/.env/.env.example backend/.env/.env
 docker compose up --build
 ```
 
-**3. Run migrations**
+**3. Open the app**
 
-```bash
-docker compose run --rm admin uv run python manage.py migrate
-```
-
-**4. Open the app**
+The dev compose runs `migrate` and `collectstatic` automatically on startup, so no separate migration step is needed.
 
 | Service | URL |
 |---|---|
