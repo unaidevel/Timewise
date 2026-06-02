@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, Leaf, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,7 +53,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="h-screen flex items-center justify-center px-6 pb-16 bg-gradient-to-br from-background to-muted/40">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
@@ -121,7 +121,7 @@ export default function OnboardingPage() {
             </Button>
           </form>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

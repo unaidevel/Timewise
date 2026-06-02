@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Calendar, Clock, Coffee, Play, Square, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,7 +80,7 @@ export default function MySpacePage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
@@ -108,7 +108,7 @@ export default function MySpacePage() {
                 : t("mySpace.status.notClocked")}
             </span>
           </div>
-        </motion.div>
+        </m.div>
 
         <Card className="overflow-hidden border bg-gradient-to-br from-card via-card to-primary/5">
           <CardContent className="p-6 lg:p-8">

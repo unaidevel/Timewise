@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowUpRight, CheckSquare, Clock, DollarSign, MoreHorizontal, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -133,7 +133,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
         className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
       >
         {kpis.map((k, i) => (
-          <motion.div
+          <m.div
             key={k.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -156,7 +156,7 @@ function Dashboard({ tenantId }: { tenantId: number }) {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </m.div>
         ))}
       </section>
 

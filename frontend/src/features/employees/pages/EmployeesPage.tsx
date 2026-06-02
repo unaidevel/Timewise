@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   Briefcase,
   Building2,
@@ -172,7 +172,7 @@ export default function EmployeesPage() {
                       </TableRow>
                     ))}
                   {filtered.map((e, i) => (
-                    <motion.tr
+                    <m.tr
                       key={e.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -227,7 +227,7 @@ export default function EmployeesPage() {
                           {e.is_active ? t("common.active") : t("common.inactive")}
                         </Badge>
                       </TableCell>
-                    </motion.tr>
+                    </m.tr>
                   ))}
                   {!employees.isLoading && filtered.length === 0 && (
                     <TableRow>

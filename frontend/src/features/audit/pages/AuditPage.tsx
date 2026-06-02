@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronDown, ChevronRight, ExternalLink, Pencil, ScrollText, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -264,7 +264,7 @@ function Row({
 
   return (
     <>
-      <motion.div
+      <m.div
         layout
         className={cn(
           "grid grid-cols-[40px_180px_1fr_1fr_1fr_110px_60px] gap-3 px-4 py-3 text-sm border-b items-center hover:bg-muted/30 transition-colors cursor-pointer",
@@ -346,7 +346,7 @@ function Row({
             </Button>
           )}
         </div>
-      </motion.div>
+      </m.div>
 
       {open && (
         <div className="px-4 py-4 bg-muted/10 border-b grid gap-4 md:grid-cols-2">
