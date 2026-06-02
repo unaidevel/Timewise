@@ -375,9 +375,10 @@ function Row({
         </div>
       )}
 
-      {isAdmin && (
+      {isAdmin && editing && (
         <EditNotesDialog
-          open={editing}
+          key={event.id}
+          open
           onOpenChange={setEditing}
           event={event}
           tenantId={tenantId}

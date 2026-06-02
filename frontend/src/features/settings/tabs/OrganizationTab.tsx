@@ -45,35 +45,12 @@ function toFormState(profile: OrganizationProfileOut): FormState {
 export function OrganizationTab({ tenantId }: { tenantId: number }) {
   const { t } = useTranslation();
   const profile = useOrganizationProfile(tenantId);
-  const timezones = useTimezones();
-  if (timezones.error) console.error("Failed to load timezones", timezones.error);
-  const update = useUpdateOrganizationProfile(tenantId);
-  const canEdit = useIsTenantAdmin(tenantId);
-
-  const [form, setForm] = useState<FormState | null>(null);
-
-  useEffect(() => {
-    if (profile.data) setForm(toFormState(profile.data));
-  }, [profile.data]);
 
   useEffect(() => {
     if (profile.error) toast.error(t("settings.org.loadError"));
   }, [profile.error, t]);
 
-  const upd = <K extends keyof FormState>(k: K, v: FormState[K]) =>
-    setForm((p) => (p ? { ...p, [k]: v } : p));
-
-  async function save() {
-    if (!form) return;
-    try {
-      await update.mutateAsync(form);
-      toast.success(t("settings.org.updated"));
-    } catch {
-      toast.error(t("settings.org.saveError"));
-    }
-  }
-
-  if (profile.isPending || !form) {
+  if (profile.isPending || !profile.data) {
     return (
       <Card>
         <CardHeader>
@@ -87,12 +64,40 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
     );
   }
 
+  // Remount (and re-seed the editable form) whenever the saved profile changes.
+  return <OrganizationForm key={profile.dataUpdatedAt} tenantId={tenantId} profile={profile.data} />;
+}
+
+function OrganizationForm({
+  tenantId,
+  profile,
+}: {
+  tenantId: number;
+  profile: OrganizationProfileOut;
+}) {
+  const { t } = useTranslation();
+  const timezones = useTimezones();
+  if (timezones.error) console.error("Failed to load timezones", timezones.error);
+  const update = useUpdateOrganizationProfile(tenantId);
+  const canEdit = useIsTenantAdmin(tenantId);
+
+  const initial = toFormState(profile);
+  const [form, setForm] = useState<FormState>(initial);
+
+  const upd = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+    setForm((p) => ({ ...p, [k]: v }));
+
+  async function save() {
+    try {
+      await update.mutateAsync(form);
+      toast.success(t("settings.org.updated"));
+    } catch {
+      toast.error(t("settings.org.saveError"));
+    }
+  }
+
   const disabled = !canEdit || update.isPending;
-  const isDirty = profile.data
-    ? (Object.keys(form) as (keyof FormState)[]).some(
-        (k) => form[k] !== toFormState(profile.data!)[k],
-      )
-    : false;
+  const isDirty = (Object.keys(form) as (keyof FormState)[]).some((k) => form[k] !== initial[k]);
 
   return (
     <Card>
@@ -170,7 +175,7 @@ export function OrganizationTab({ tenantId }: { tenantId: number }) {
           <Button
             variant="outline"
             disabled={disabled || !isDirty}
-            onClick={() => profile.data && setForm(toFormState(profile.data))}
+            onClick={() => setForm(initial)}
           >
             {t("settings.org.reset")}
           </Button>

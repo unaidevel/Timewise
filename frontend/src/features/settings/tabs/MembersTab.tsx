@@ -96,11 +96,14 @@ export function MembersTab({ tenantId }: { tenantId: number }) {
               {t("settings.members.invite")}
             </Button>
           </DialogTrigger>
-          <InviteMemberDialog
-            tenantId={tenantId}
-            prefilledEmployeeId={prefilledEmployeeId}
-            onDone={() => handleOpenChange(false)}
-          />
+          {open && (
+            <InviteMemberDialog
+              key={prefilledEmployeeId || "new"}
+              tenantId={tenantId}
+              prefilledEmployeeId={prefilledEmployeeId}
+              onDone={() => handleOpenChange(false)}
+            />
+          )}
         </Dialog>
       </CardHeader>
       <CardContent className="p-0">
@@ -164,26 +167,22 @@ function InviteMemberDialog({
   const addMember = useAddMember(tenantId);
   const linkEmployee = useLinkEmployeeUser(tenantId);
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  // Seed from the prefilled employee once at mount. The parent remounts this
+  // dialog via `key={prefilledEmployeeId}` when the prefill changes, so the
+  // initializers re-run with fresh values — no syncing effect, no extra render.
+  const prefilled = prefilledEmployeeId
+    ? (employees.data ?? []).find((e) => String(e.id) === prefilledEmployeeId)
+    : undefined;
+  const [fullName, setFullName] = useState(prefilled?.full_name ?? "");
+  const [email, setEmail] = useState(prefilled?.email ?? "");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<MemberRole>("employee");
-  const [employeeId, setEmployeeId] = useState<string>("");
+  const [employeeId, setEmployeeId] = useState<string>(prefilled ? String(prefilled.id) : "");
 
   const unlinkedEmployees = useMemo(
     () => (employees.data ?? []).filter((e) => e.user_id == null && e.is_active),
     [employees.data],
   );
-
-  useEffect(() => {
-    if (!prefilledEmployeeId) return;
-    const match = (employees.data ?? []).find((e) => String(e.id) === prefilledEmployeeId);
-    if (match) {
-      setEmployeeId(String(match.id));
-      setFullName(match.full_name);
-      setEmail(match.email);
-    }
-  }, [prefilledEmployeeId, employees.data]);
 
   const submitting = register.isPending || addMember.isPending || linkEmployee.isPending;
   const canSubmit =

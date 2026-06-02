@@ -595,7 +595,7 @@ function ReportEditor({
           >
             {days.slice(0, 31).map((date) => (
               <DayCell
-                key={date}
+                key={`${date}:${entryByDate.get(date)?.hours ?? ""}`}
                 date={date}
                 entry={entryByDate.get(date)}
                 disabled={!editable}
@@ -626,12 +626,7 @@ function DayCell({
   disabled: boolean;
   onCommit: (raw: string) => void;
 }) {
-  const initial = entry ? String(Number(entry.hours)) : "";
-  const [value, setValue] = useState(initial);
-
-  useEffect(() => {
-    setValue(entry ? String(Number(entry.hours)) : "");
-  }, [entry]);
+  const [value, setValue] = useState(entry ? String(Number(entry.hours)) : "");
 
   return (
     <div className="border-r last:border-r-0 border-b lg:border-b-0 p-4">
