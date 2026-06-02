@@ -60,6 +60,9 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 | `product/costing` | Done | Configurable rule engine mapping hours to costs |
 | `product/approvals` | Done | Multi-step approval workflow with full status history |
 | `shared/audit` | Done | Append-only audit log with admin-only update/delete |
+| `infra/licensing` | WIP / internal | Tenant licensing and entitlements |
+| `shared/notifications` | WIP / internal | Notification delivery |
+| `product/demo_data` | WIP / internal | Demo data seeding for showcase environments |
 
 ## Project structure
 
