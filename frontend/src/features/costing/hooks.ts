@@ -21,7 +21,7 @@ export function useCostTrend(tenantId: number | null) {
   const otCfg = useOvertimeConfig(tenantId);
 
   const sortedPeriods = useMemo(
-    () => [...(periods.data ?? [])].sort((a, b) => a.start_date.localeCompare(b.start_date)),
+    () => (periods.data ?? []).toSorted((a, b) => a.start_date.localeCompare(b.start_date)),
     [periods.data],
   );
 

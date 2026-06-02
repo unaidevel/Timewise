@@ -93,7 +93,7 @@ function Costing({ tenantId }: { tenantId: number }) {
   const departments = useDepartments(tenantId);
 
   const sortedPeriods = useMemo(
-    () => [...(periods.data ?? [])].sort((a, b) => b.start_date.localeCompare(a.start_date)),
+    () => (periods.data ?? []).toSorted((a, b) => b.start_date.localeCompare(a.start_date)),
     [periods.data],
   );
 
