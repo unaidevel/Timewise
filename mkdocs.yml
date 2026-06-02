@@ -1,8 +1,8 @@
 site_name: TimeWise
 site_description: Employee time tracking and labour cost management platform
-site_url: https://unaidevel.github.io/New_Portfolio
-repo_url: https://github.com/unaidevel/New_Portfolio
-repo_name: unaidevel/New_Portfolio
+site_url: https://unaidevel.github.io/Timewise
+repo_url: https://github.com/unaidevel/Timewise
+repo_name: unaidevel/Timewise
 
 theme:
   name: material
