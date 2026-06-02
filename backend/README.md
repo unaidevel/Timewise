@@ -17,7 +17,7 @@ uv sync
 Run the FastAPI app:
 
 ```powershell
-uv run uvicorn main:app --reload
+uv run uvicorn api.main:app --reload
 ```
 
 Run Django management commands:
@@ -45,7 +45,7 @@ uv run ruff check .
 
 - Prefer `uv run ...` instead of calling `.venv\Scripts\python.exe` directly.
 - `manage.py` still works because Django needs settings for ORM and migrations.
-- `core/settings.py` is intentionally minimal because FastAPI is the web layer.
+- `config/settings.py` is intentionally minimal because FastAPI is the web layer.
 - Environment variables are loaded from `backend/.env/global.env`, `backend/.env/auth.env`, `backend/.env/.env`, or `backend/.env/.env.local`.
 - Start by copying `backend/.env/.env.example` to `backend/.env/.env` and filling in your PostgreSQL values.
 - Test setup uses `POSTGRES_MAINTENANCE_DB` when present; otherwise it reuses `POSTGRES_DB` to create/drop the test database without requiring a separate `postgres` database.
@@ -61,20 +61,20 @@ docker compose up --build
 
 Services:
 
-- FastAPI: `http://127.0.0.1:8000`
-- Django admin: `http://127.0.0.1:8001/admin/`
+- FastAPI (and Django admin): `http://127.0.0.1:8000`
+- Django admin: `http://127.0.0.1:8000/admin/`
 - PostgreSQL: `localhost:5432`
 
-Run migrations in Docker:
+The dev compose runs `migrate` and `collectstatic` automatically on startup, so no separate migration step is needed. To run management commands manually:
 
 ```powershell
-docker compose run --rm admin uv run python manage.py migrate
+docker compose run --rm backend uv run python manage.py migrate
 ```
 
 Create a Django superuser in Docker:
 
 ```powershell
-docker compose run --rm admin uv run python manage.py createsuperuser
+docker compose run --rm backend uv run python manage.py createsuperuser
 ```
 
 Notes:

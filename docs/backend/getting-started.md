@@ -31,7 +31,7 @@ uv run python manage.py migrate
 **4. Start the server**
 
 ```bash
-uv run uvicorn main:app --reload
+uv run uvicorn api.main:app --reload
 ```
 
 The API is now available at `http://localhost:8000` and the interactive docs at `http://localhost:8000/docs`.

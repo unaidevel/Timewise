@@ -13,7 +13,7 @@ uv sync
 ## Running the app
 
 ```bash
-uv run uvicorn main:app --reload
+uv run uvicorn api.main:app --reload
 ```
 
 ## Common commands
@@ -54,13 +54,16 @@ docker compose up --build
 | Service | URL |
 |---|---|
 | FastAPI | http://127.0.0.1:8000 |
-| Django admin | http://127.0.0.1:8001/admin/ |
+| Django admin | http://127.0.0.1:8000/admin/ |
+| Frontend | http://127.0.0.1:3000 |
 | PostgreSQL | localhost:5432 |
+
+The dev compose runs `migrate` and `collectstatic` automatically on startup. To run management commands manually:
 
 ```bash
 # Run migrations
-docker compose run --rm admin uv run python manage.py migrate
+docker compose run --rm backend uv run python manage.py migrate
 
 # Create superuser
-docker compose run --rm admin uv run python manage.py createsuperuser
+docker compose run --rm backend uv run python manage.py createsuperuser
 ```
