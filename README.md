@@ -10,7 +10,7 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 
 ## Technical highlights
 
-- **Hexagonal architecture** (ports & adapters) strictly separating domain, application, and infrastructure layers
+- **Strict layered architecture** inspired by clean/hexagonal principles — framework-independent domain entities and one-way layer dependencies (API → Orchestrator → Service → Repository), enforced by architecture tests in CI
 - **FastAPI** as the HTTP layer with **Django ORM** for models and migrations
 - **Domain entities** with business rules enforced independently of the framework
 - **Configurable cost-rule engine** for overtime, holidays, and contract types
