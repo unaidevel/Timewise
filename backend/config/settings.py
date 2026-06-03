@@ -107,6 +107,9 @@ if not DEBUG and not CORS_ALLOWED_ORIGINS:
         "CORS_ALLOWED_ORIGINS must list explicit origins when DJANGO_DEBUG is False."
     )
 
+# Origins trusted for CSRF (Django admin login behind an HTTPS reverse proxy).
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", "")
+
 RATE_LIMIT_STORAGE_URI = os.getenv("RATE_LIMIT_STORAGE_URI", "memory://")
 RATE_LIMIT_AUTH = os.getenv("RATE_LIMIT_AUTH", "5/minute")
 RATE_LIMIT_AUTHENTICATED = os.getenv("RATE_LIMIT_AUTHENTICATED", "1000/hour")
