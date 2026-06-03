@@ -14,7 +14,8 @@ services:
       context: ./backend
     working_dir: /app
     env_file:
-      - ./backend/.env/.env
+      - path: ./backend/.env/.env
+        required: false
     environment:
       UV_PROJECT_ENVIRONMENT: /opt/venv
       POSTGRES_HOST: db
