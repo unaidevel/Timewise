@@ -4,6 +4,9 @@ name: VPS Deploy
 on:
   workflow_dispatch:
 
+# This workflow only SSHes into the VPS; it never uses GITHUB_TOKEN.
+permissions: {}
+
 concurrency:
   group: vps-deploy
   cancel-in-progress: false
