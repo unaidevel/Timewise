@@ -6,8 +6,14 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
+# VITE_API_URL is inlined into the static bundle at build time. Empty means
+# same-origin requests (/api/v1/...), which Caddy proxies to the backend.
+ARG VITE_API_URL=""
+ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm build
 
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
+# Minimal stage that only carries the built assets. The container copies dist/
+# into the shared volume that Caddy serves, then exits (see docker-compose.prod.yml).
+FROM busybox:stable
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
