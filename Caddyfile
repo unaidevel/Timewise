@@ -1,0 +1,17 @@
+timewise.unaimunoz.dev {
+	encode gzip
+
+	# Backend-owned paths: API, Django admin, its static assets and the API docs.
+	@backend path /api/* /admin/* /static/* /docs /openapi.json
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else is the React SPA. try_files falls back to index.html so
+	# client-side routes (e.g. /dashboard) survive a hard refresh.
+	handle {
+		root * /srv/frontend
+		try_files {path} /index.html
+		file_server
+	}
+}
