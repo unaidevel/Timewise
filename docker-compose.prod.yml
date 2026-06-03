@@ -1,13 +1,49 @@
+# Production overlay. Use together with the base file (the dev override is NOT
+# loaded because we pass explicit -f flags):
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Caddy terminates TLS for timewise.unaimunoz.dev, serves the static frontend
+# and proxies /api, /admin, /static and the docs to the backend. Neither the
+# backend (8000) nor Postgres (5432) is published to the host.
 services:
+  db:
+    restart: unless-stopped
+
   backend:
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    env_file:
+      - ./backend/.env/prod.env
 
+  # One-shot: copies the built assets into the shared volume that Caddy serves,
+  # then exits. Rebuild this service to ship a new frontend bundle.
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ""
+    restart: "no"
+    command: sh -c "rm -rf /srv/frontend/* && cp -r /app/dist/. /srv/frontend/"
+    volumes:
+      - frontend_dist:/srv/frontend
+
+  caddy:
+    image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - frontend_dist:/srv/frontend:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  frontend_dist:
+  caddy_data:
+  caddy_config:

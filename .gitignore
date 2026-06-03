@@ -9,6 +9,11 @@ __pycache__/
 .venv/
 .env
 .env/
+# but keep committed example templates (no secrets)
+!.env.example
+!**/.env/
+**/.env/*
+!**/.env/*.example
 *.egg-info/
 build/
 dist/
