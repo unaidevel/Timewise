@@ -120,7 +120,9 @@ def get_by_id(
 @router.post(
     "/{tenant_id}/members",
     response_model=TenantMemberResponse,
-    responses=responses_for(NotFound, Conflict, UnprocessableEntity, TooManyRequests),
+    responses=responses_for(
+        Forbidden, NotFound, Conflict, UnprocessableEntity, TooManyRequests
+    ),
     status_code=status.HTTP_201_CREATED,
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
@@ -133,8 +135,8 @@ def add_member(
     """
     Adds a user to the tenant with the role supplied in the payload.
     Returns TenantMemberResponse with HTTP 201 describing the new membership.
-    On error returns 404 (tenant or user missing), 409 (already a member), 422, or 429.
-    Caller must be an owner; cannot be used to invite by email — user must already exist.
+    On error returns 403 (caller not owner/admin), 404 (tenant or user missing), 409 (already a member), 422, or 429.
+    Caller must be an owner or admin of the tenant; cannot invite by email — user must already exist.
     """
     return TenantService.add_member(
         tenant_id,
@@ -150,40 +152,41 @@ def add_member(
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_members(
-    tenant_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[TenantMemberResponse]:
     """
-    Lists every active membership row for the given tenant.
-    Returns list[TenantMemberResponse] with per-member role and user details.
-    On error returns 404 (tenant not found) or 429 (rate limit).
-    Soft-removed memberships are filtered out — only currently active members appear.
+    Lists every membership row for the given tenant, active and soft-removed alike.
+    Returns list[TenantMemberResponse] with per-member role and user details; removed
+    rows carry a non-null left_at so callers can filter the active roster client-side.
+    On error returns 403 (caller is not a member), 404 (tenant not found), or 429 (rate limit).
     """
-    return TenantService.list_members(tenant_id)
+    return TenantService.list_members(tenant_id, current_user.id)
 
 
 @router.delete(
     "/{tenant_id}/members/{membership_id}",
     response_model=TenantMemberResponse,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def remove_member(
     tenant_id: int,
     membership_id: int,
-    _: RateLimitedUser,
+    current_user: RateLimitedUser,
     request: Request,
     reason: str = "",
 ) -> TenantMemberResponse:
     """
     Soft-removes a membership from the tenant, storing the optional 'reason' query string.
     Returns TenantMemberResponse showing the now-revoked membership.
-    On error returns 404 (membership not found in this tenant) or 429 (rate limit).
+    On error returns 403 (caller not owner/admin), 404 (membership not found in this tenant), or 429.
     Soft delete: row is preserved with a revoked_at stamp so the audit history stays intact.
     """
     return TenantService.remove_member(
         tenant_id,
         membership_id,
         reason,
+        current_user.id,
     )
 
 

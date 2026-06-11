@@ -61,10 +61,11 @@ class TenantService:
         return TenantRepository.list_for_user(user_id)
 
     @staticmethod
+    @only_admin
     def add_member(
         tenant_id: int,
         payload: AddMemberRequest,
-        invited_by_id: int,
+        user_id: int,
     ) -> TenantMemberResponse:
         entity = TenantMemberEntity(**payload.model_dump())
         tenant = TenantRepository.get_by_id(tenant_id)
@@ -79,21 +80,24 @@ class TenantService:
             tenant_id,
             entity.user_id,
             TenantMembershipEntity(role=entity.role),
-            invited_by_id,
+            user_id,
         )
 
     @staticmethod
-    def list_members(tenant_id: int) -> list[TenantMemberResponse]:
+    @any_employee
+    def list_members(tenant_id: int, user_id: int) -> list[TenantMemberResponse]:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
             raise NotFound(f"Tenant {tenant_id} not found.")
         return TenantRepository.list_memberships(tenant_id)
 
     @staticmethod
+    @only_admin
     def remove_member(
         tenant_id: int,
         membership_id: int,
         reason: str,
+        user_id: int,
     ) -> TenantMemberResponse:
         tenant = TenantRepository.get_by_id(tenant_id)
         if not tenant:
