@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from infra.common.classes import MembershipRoles
 from infra.common.exceptions import Conflict, Forbidden, NotFound
-from infra.tenants.decorators import only_admin
+from infra.tenants.decorators import any_employee, only_admin
 from infra.tenants.repositories.tenants_repository import TenantRepository
 from product.common.classes import WorkforceRoles
 from product.workforce.dtos.dtos import (
@@ -140,15 +140,19 @@ class WorkforceService:
 
         return WorkforceRepository.create_department(entity, tenant_id, user_id)
 
+    @any_employee
     @staticmethod
-    def get_department(tenant_id: int, department_id: int) -> DepartmentOut:
+    def get_department(
+        tenant_id: int, department_id: int, user_id: int
+    ) -> DepartmentOut:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
             raise NotFound(f"Department {department_id} not found.")
         return dept
 
+    @any_employee
     @staticmethod
-    def list_departments(tenant_id: int) -> list[DepartmentOut]:
+    def list_departments(tenant_id: int, user_id: int) -> list[DepartmentOut]:
         return WorkforceRepository.list_departments(tenant_id)
 
     @staticmethod
@@ -205,9 +209,10 @@ class WorkforceService:
             department_id, entity.employee_id, user_id
         )
 
+    @any_employee
     @staticmethod
     def list_department_managers(
-        tenant_id: int, department_id: int
+        tenant_id: int, department_id: int, user_id: int
     ) -> list[DepartmentManagerOut]:
         dept = WorkforceRepository.get_department_by_id(department_id)
         if not dept or dept.tenant_id != tenant_id:
@@ -249,15 +254,17 @@ class WorkforceService:
 
         return WorkforceRepository.create_role(entity, tenant_id, user_id)
 
+    @any_employee
     @staticmethod
-    def get_role(tenant_id: int, role_id: int) -> RoleOut:
+    def get_role(tenant_id: int, role_id: int, user_id: int) -> RoleOut:
         role = WorkforceRepository.get_role_by_id(role_id)
         if not role or role.tenant_id != tenant_id:
             raise NotFound(f"Role {role_id} not found.")
         return role
 
+    @any_employee
     @staticmethod
-    def list_roles(tenant_id: int) -> list[RoleOut]:
+    def list_roles(tenant_id: int, user_id: int) -> list[RoleOut]:
         return WorkforceRepository.list_roles(tenant_id)
 
     @staticmethod
@@ -351,15 +358,17 @@ class WorkforceService:
 
         return employee
 
+    @any_employee
     @staticmethod
-    def get_employee(tenant_id: int, employee_id: int) -> EmployeeOut:
+    def get_employee(tenant_id: int, employee_id: int, user_id: int) -> EmployeeOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
         return emp
 
+    @any_employee
     @staticmethod
-    def list_employees(tenant_id: int) -> list[EmployeeOut]:
+    def list_employees(tenant_id: int, user_id: int) -> list[EmployeeOut]:
         return WorkforceRepository.list_employees(tenant_id)
 
     @staticmethod
@@ -437,8 +446,11 @@ class WorkforceService:
                 raise NotFound(f"Employee {entity.manager_id} not found.")
         return WorkforceRepository.set_employee_manager(entity, user_id)
 
+    @any_employee
     @staticmethod
-    def get_direct_reports(tenant_id: int, employee_id: int) -> list[EmployeeOut]:
+    def get_direct_reports(
+        tenant_id: int, employee_id: int, user_id: int
+    ) -> list[EmployeeOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
@@ -470,9 +482,10 @@ class WorkforceService:
                 employee_id, entity.department_id, user_id
             )
 
+    @any_employee
     @staticmethod
     def get_active_department(
-        tenant_id: int, employee_id: int
+        tenant_id: int, employee_id: int, user_id: int
     ) -> EmployeeDepartmentOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
@@ -484,9 +497,10 @@ class WorkforceService:
             )
         return assignment
 
+    @any_employee
     @staticmethod
     def list_department_history(
-        tenant_id: int, employee_id: int
+        tenant_id: int, employee_id: int, user_id: int
     ) -> list[EmployeeDepartmentOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
@@ -524,8 +538,11 @@ class WorkforceService:
                 employee_id, entity.role_id, role_entity, user_id
             )
 
+    @any_employee
     @staticmethod
-    def get_active_role(tenant_id: int, employee_id: int) -> EmployeeRoleOut:
+    def get_active_role(
+        tenant_id: int, employee_id: int, user_id: int
+    ) -> EmployeeRoleOut:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")
@@ -534,8 +551,11 @@ class WorkforceService:
             raise NotFound(f"Employee {employee_id} has no active role assignment.")
         return assignment
 
+    @any_employee
     @staticmethod
-    def list_role_history(tenant_id: int, employee_id: int) -> list[EmployeeRoleOut]:
+    def list_role_history(
+        tenant_id: int, employee_id: int, user_id: int
+    ) -> list[EmployeeRoleOut]:
         emp = WorkforceRepository.get_employee_by_id(employee_id)
         if not emp or emp.tenant_id != tenant_id:
             raise NotFound(f"Employee {employee_id} not found.")

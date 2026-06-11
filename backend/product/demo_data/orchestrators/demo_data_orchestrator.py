@@ -47,9 +47,9 @@ class DemoDataOrchestrator:
     @only_owner
     @staticmethod
     def seed(tenant_id: int, user_id: int) -> dict[str, int]:
-        if WorkforceService.list_departments(tenant_id):
+        if WorkforceService.list_departments(tenant_id, user_id):
             raise Conflict("Tenant already has data; demo seed refused.")
-        if WorkforceService.list_employees(tenant_id):
+        if WorkforceService.list_employees(tenant_id, user_id):
             raise Conflict("Tenant already has data; demo seed refused.")
 
         fake = Faker("en_US")
@@ -76,7 +76,7 @@ class DemoDataOrchestrator:
 
 def _seed_all(tenant_id: int, user_id: int, fake: Faker, rng: Random) -> dict[str, int]:
     departments = _seed_departments(tenant_id, user_id)
-    roles = WorkforceService.list_roles(tenant_id)
+    roles = WorkforceService.list_roles(tenant_id, user_id)
     employees = _seed_employees(tenant_id, user_id, departments, roles, fake, rng)
     periods = _seed_periods(tenant_id, user_id)
     report_count, entry_count, approval_count = _seed_reports_and_entries(

@@ -63,37 +63,37 @@ def create_department(
 @router.get(
     "/departments",
     response_model=list[DepartmentOut],
-    responses=responses_for(TooManyRequests),
+    responses=responses_for(Forbidden, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_departments(
-    tenant_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[DepartmentOut]:
     """
     Lists every department in the tenant (active and deactivated alike).
     Returns list[DepartmentOut] ordered by name ascending.
-    On error returns 429 (rate limit); tenant scope is enforced via the URL path.
+    On error returns 403 (caller is not a member) or 429 (rate limit).
     Frontends typically filter deactivated rows client-side; no server-side filter is applied here.
     """
-    return WorkforceService.list_departments(tenant_id)
+    return WorkforceService.list_departments(tenant_id, current_user.id)
 
 
 @router.get(
     "/departments/{department_id}",
     response_model=DepartmentOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_department(
-    tenant_id: int, department_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, department_id: int, current_user: RateLimitedUser, request: Request
 ) -> DepartmentOut:
     """
     Fetches a single department by id, scoped to the tenant.
     Returns DepartmentOut with name, code, colour, and active flag.
-    On error returns 404 (department missing in tenant) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (department missing in tenant), or 429.
     Cross-tenant lookups are rejected even when the id is valid elsewhere.
     """
-    return WorkforceService.get_department(tenant_id, department_id)
+    return WorkforceService.get_department(tenant_id, department_id, current_user.id)
 
 
 @router.delete(
@@ -171,19 +171,21 @@ def assign_department_manager(
 @router.get(
     "/departments/{department_id}/managers",
     response_model=list[DepartmentManagerOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_department_managers(
-    tenant_id: int, department_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, department_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[DepartmentManagerOut]:
     """
     Lists active manager assignments for the department.
     Returns list[DepartmentManagerOut] with employee details and assignment dates.
-    On error returns 404 (department missing) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (department missing), or 429.
     Inactive/ended assignments are excluded; use the assignment row id to remove if needed.
     """
-    return WorkforceService.list_department_managers(tenant_id, department_id)
+    return WorkforceService.list_department_managers(
+        tenant_id, department_id, current_user.id
+    )
 
 
 @router.delete(
@@ -241,35 +243,37 @@ def create_role(
 @router.get(
     "/roles",
     response_model=list[RoleOut],
-    responses=responses_for(TooManyRequests),
+    responses=responses_for(Forbidden, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
-def list_roles(tenant_id: int, _: RateLimitedUser, request: Request) -> list[RoleOut]:
+def list_roles(
+    tenant_id: int, current_user: RateLimitedUser, request: Request
+) -> list[RoleOut]:
     """
     Lists every role defined in the tenant (active and deactivated alike).
     Returns list[RoleOut] ordered by title ascending.
-    On error returns 429 (rate limit); membership is enforced via the URL path.
+    On error returns 403 (caller is not a member) or 429 (rate limit).
     Deactivated roles are included so historical employee-role rows remain interpretable.
     """
-    return WorkforceService.list_roles(tenant_id)
+    return WorkforceService.list_roles(tenant_id, current_user.id)
 
 
 @router.get(
     "/roles/{role_id}",
     response_model=RoleOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_role(
-    tenant_id: int, role_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, role_id: int, current_user: RateLimitedUser, request: Request
 ) -> RoleOut:
     """
     Fetches a single role definition by id, scoped to the tenant.
     Returns RoleOut with title, level, cost band, and active flag.
-    On error returns 404 (role missing in tenant) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (role missing in tenant), or 429.
     Cross-tenant access is denied even with a valid id.
     """
-    return WorkforceService.get_role(tenant_id, role_id)
+    return WorkforceService.get_role(tenant_id, role_id, current_user.id)
 
 
 @router.delete(
@@ -346,37 +350,37 @@ def create_employee(
 @router.get(
     "/employees",
     response_model=list[EmployeeOut],
-    responses=responses_for(TooManyRequests),
+    responses=responses_for(Forbidden, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_employees(
-    tenant_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[EmployeeOut]:
     """
     Lists every employee in the tenant (active and deactivated alike).
     Returns list[EmployeeOut] ordered by full_name ascending.
-    On error returns 429 (rate limit); tenant scope is enforced via the URL path.
+    On error returns 403 (caller is not a member) or 429 (rate limit).
     Deactivated employees are kept in the list so historical references resolve.
     """
-    return WorkforceService.list_employees(tenant_id)
+    return WorkforceService.list_employees(tenant_id, current_user.id)
 
 
 @router.get(
     "/employees/{employee_id}",
     response_model=EmployeeOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_employee(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> EmployeeOut:
     """
     Fetches a single employee by id, scoped to the tenant.
     Returns EmployeeOut with personal details and current department/role/manager pointers.
-    On error returns 404 (employee missing in tenant) or 429 (rate limit).
-    Cross-tenant access is denied; non-membership surfaces as 404 to avoid leakage.
+    On error returns 403 (caller is not a member), 404 (employee missing in tenant), or 429.
+    Cross-tenant access is denied even with a valid id.
     """
-    return WorkforceService.get_employee(tenant_id, employee_id)
+    return WorkforceService.get_employee(tenant_id, employee_id, current_user.id)
 
 
 @router.delete(
@@ -479,19 +483,19 @@ def set_employee_manager(
 @router.get(
     "/employees/{employee_id}/reports",
     response_model=list[EmployeeOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_direct_reports(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[EmployeeOut]:
     """
     Lists employees whose manager_id matches the given employee (their direct reports).
     Returns list[EmployeeOut]; the array is empty if the employee manages no one.
-    On error returns 404 (employee missing) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (employee missing), or 429.
     Only direct reports are returned — descend recursively in the caller for full org-tree views.
     """
-    return WorkforceService.get_direct_reports(tenant_id, employee_id)
+    return WorkforceService.get_direct_reports(tenant_id, employee_id, current_user.id)
 
 
 # --- Department assignments ---
@@ -525,37 +529,41 @@ def assign_department(
 @router.get(
     "/employees/{employee_id}/departments/current",
     response_model=EmployeeDepartmentOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_active_department(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> EmployeeDepartmentOut:
     """
     Returns the employee's currently active department assignment (the one without an end_date).
     Returns EmployeeDepartmentOut with the active assignment row.
-    On error returns 404 (employee missing OR no active department) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (employee missing OR no active department), or 429.
     There is at most one active assignment; older ones are accessible via the history endpoint.
     """
-    return WorkforceService.get_active_department(tenant_id, employee_id)
+    return WorkforceService.get_active_department(
+        tenant_id, employee_id, current_user.id
+    )
 
 
 @router.get(
     "/employees/{employee_id}/departments",
     response_model=list[EmployeeDepartmentOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_department_history(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[EmployeeDepartmentOut]:
     """
     Lists the employee's full history of department assignments (past + current).
     Returns list[EmployeeDepartmentOut] ordered by effective_from descending.
-    On error returns 404 (employee missing) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (employee missing), or 429.
     Includes closed assignments with their end_date set; the head row is the active one.
     """
-    return WorkforceService.list_department_history(tenant_id, employee_id)
+    return WorkforceService.list_department_history(
+        tenant_id, employee_id, current_user.id
+    )
 
 
 @router.post(
@@ -586,34 +594,34 @@ def assign_role(
 @router.get(
     "/employees/{employee_id}/roles/current",
     response_model=EmployeeRoleOut,
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def get_active_role(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> EmployeeRoleOut:
     """
     Returns the employee's currently active role assignment (the one without an end_date).
     Returns EmployeeRoleOut with the active assignment row.
-    On error returns 404 (employee missing OR no active role) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (employee missing OR no active role), or 429.
     At most one role is active at a time; the history endpoint exposes the rest.
     """
-    return WorkforceService.get_active_role(tenant_id, employee_id)
+    return WorkforceService.get_active_role(tenant_id, employee_id, current_user.id)
 
 
 @router.get(
     "/employees/{employee_id}/roles",
     response_model=list[EmployeeRoleOut],
-    responses=responses_for(NotFound, TooManyRequests),
+    responses=responses_for(Forbidden, NotFound, TooManyRequests),
 )
 @limiter.limit(USER_RATE_LIMIT, key_func=user_or_ip_key)
 def list_role_history(
-    tenant_id: int, employee_id: int, _: RateLimitedUser, request: Request
+    tenant_id: int, employee_id: int, current_user: RateLimitedUser, request: Request
 ) -> list[EmployeeRoleOut]:
     """
     Lists the employee's full history of role assignments (past + current).
     Returns list[EmployeeRoleOut] ordered by effective_from descending.
-    On error returns 404 (employee missing) or 429 (rate limit).
+    On error returns 403 (caller is not a member), 404 (employee missing), or 429.
     Closed assignments retain their end_date; the head row is the currently active role.
     """
-    return WorkforceService.list_role_history(tenant_id, employee_id)
+    return WorkforceService.list_role_history(tenant_id, employee_id, current_user.id)
