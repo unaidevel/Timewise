@@ -183,7 +183,10 @@ class TenantsApiTests(TestCase):
         assert membership.role == MembershipRoles.EMPLOYEE.value
         assert membership.invited_by_id == owner_user.id
 
-    def test_add_member_returns_404_when_tenant_is_missing(self):
+    def test_add_member_returns_403_when_tenant_is_missing(self):
+        # A caller who is not an owner/admin of the target tenant (here, a
+        # non-existent one) is rejected by the authorization check before the
+        # tenant-existence lookup, so existence is never leaked.
         owner_user = self._authenticate_user(
             email="owner@example.com",
             full_name="Owner User",
@@ -204,8 +207,49 @@ class TenantsApiTests(TestCase):
                 request=build_request(),
             )
 
-        assert exc.value.status_code == 404
-        assert exc.value.detail == "Tenant 999 not found."
+        assert exc.value.status_code == 403
+
+    def test_add_member_returns_403_for_non_admin_member(self):
+        # An employee-level member of the tenant cannot add other members.
+        owner_user = self._authenticate_user(
+            email="owner@example.com",
+            full_name="Owner User",
+        )
+        employee_user = self._authenticate_user(
+            email="employee@example.com",
+            full_name="Employee User",
+        )
+        outsider_user = self._authenticate_user(
+            email="outsider@example.com",
+            full_name="Out Sider",
+        )
+        tenant = tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner_user,
+            request=build_request(),
+        )
+        tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee_user.id,
+                role=MembershipRoles.EMPLOYEE.value,
+            ),
+            current_user=owner_user,
+            request=build_request(),
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.add_member(
+                tenant_id=tenant.id,
+                payload=AddMemberRequest(
+                    user_id=outsider_user.id,
+                    role=MembershipRoles.OWNER.value,
+                ),
+                current_user=employee_user,
+                request=build_request(),
+            )
+
+        assert exc.value.status_code == 403
 
     def test_add_member_returns_409_for_duplicate_active_membership(self):
         owner_user = self._authenticate_user(
@@ -309,7 +353,29 @@ class TenantsApiTests(TestCase):
             member_user.id,
         ]
 
-    def test_list_members_returns_404_when_tenant_is_missing(self):
+    def test_list_members_returns_403_for_non_member(self):
+        # An authenticated user who is not a member of the tenant cannot read
+        # its roster (previously this leaked every tenant's members).
+        owner_user = self._authenticate_user(
+            email="owner@example.com",
+            full_name="Owner User",
+        )
+        outsider = self._authenticate_user(
+            email="outsider@example.com",
+            full_name="Out Sider",
+        )
+        tenant = tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner_user,
+            request=build_request(),
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.list_members(tenant.id, outsider, request=build_request())
+
+        assert exc.value.status_code == 403
+
+    def test_list_members_returns_403_when_tenant_is_missing(self):
         current_user = self._authenticate_user(
             email="owner@example.com",
             full_name="Owner User",
@@ -318,8 +384,7 @@ class TenantsApiTests(TestCase):
         with pytest.raises(HTTPException) as exc:
             tenants_router.list_members(999, current_user, request=build_request())
 
-        assert exc.value.status_code == 404
-        assert exc.value.detail == "Tenant 999 not found."
+        assert exc.value.status_code == 403
 
     def test_remove_member_returns_removed_membership(self):
         owner_user = self._authenticate_user(
@@ -348,7 +413,7 @@ class TenantsApiTests(TestCase):
         removed = tenants_router.remove_member(
             tenant_id=tenant.id,
             membership_id=membership.id,
-            _=owner_user,
+            current_user=owner_user,
             request=build_request(),
         )
 
@@ -356,7 +421,42 @@ class TenantsApiTests(TestCase):
         assert removed.left_at is not None
         assert removed.left_reason is None
 
-    def test_remove_member_returns_404_when_tenant_is_missing(self):
+    def test_remove_member_returns_403_for_non_admin_member(self):
+        # An employee-level member cannot evict other members.
+        owner_user = self._authenticate_user(
+            email="owner@example.com",
+            full_name="Owner User",
+        )
+        employee_user = self._authenticate_user(
+            email="employee@example.com",
+            full_name="Employee User",
+        )
+        tenant = tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner_user,
+            request=build_request(),
+        )
+        membership = tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee_user.id,
+                role=MembershipRoles.EMPLOYEE.value,
+            ),
+            current_user=owner_user,
+            request=build_request(),
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.remove_member(
+                tenant_id=tenant.id,
+                membership_id=membership.id,
+                current_user=employee_user,
+                request=build_request(),
+            )
+
+        assert exc.value.status_code == 403
+
+    def test_remove_member_returns_403_when_tenant_is_missing(self):
         current_user = self._authenticate_user(
             email="owner@example.com",
             full_name="Owner User",
@@ -366,12 +466,11 @@ class TenantsApiTests(TestCase):
             tenants_router.remove_member(
                 tenant_id=999,
                 membership_id=1,
-                _=current_user,
+                current_user=current_user,
                 request=build_request(),
             )
 
-        assert exc.value.status_code == 404
-        assert exc.value.detail == "Tenant 999 not found."
+        assert exc.value.status_code == 403
 
     def test_remove_member_returns_404_when_membership_is_missing(self):
         owner_user = self._authenticate_user(
@@ -388,12 +487,123 @@ class TenantsApiTests(TestCase):
             tenants_router.remove_member(
                 tenant_id=tenant.id,
                 membership_id=999,
-                _=owner_user,
+                current_user=owner_user,
                 request=build_request(),
             )
 
         assert exc.value.status_code == 404
         assert exc.value.detail == "Membership not found or already inactive."
+
+    def _tenant_with_admin(self):
+        """Owner-created tenant with a second user promoted to ADMIN."""
+        owner = self._authenticate_user(
+            email="owner@example.com", full_name="Owner User"
+        )
+        admin = self._authenticate_user(
+            email="admin@example.com", full_name="Admin User"
+        )
+        tenant = tenants_router.create(
+            TenantIn(name="Acme Corp", slug="acme"),
+            current_user=owner,
+            request=build_request(),
+        )
+        tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=admin.id, role=MembershipRoles.ADMIN.value
+            ),
+            current_user=owner,
+            request=build_request(),
+        )
+        return owner, admin, tenant
+
+    def test_admin_can_add_member(self):
+        # Member management is delegated to admins, not only the owner.
+        _owner, admin, tenant = self._tenant_with_admin()
+        newcomer = self._authenticate_user(
+            email="newcomer@example.com", full_name="New Comer"
+        )
+
+        membership = tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=newcomer.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            current_user=admin,
+            request=build_request(),
+        )
+
+        assert membership.user_id == newcomer.id
+        assert membership.invited_by_id == admin.id
+
+    def test_admin_can_list_and_remove_members(self):
+        owner, admin, tenant = self._tenant_with_admin()
+        target = self._authenticate_user(
+            email="target@example.com", full_name="Target User"
+        )
+        target_membership = tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=target.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            current_user=admin,
+            request=build_request(),
+        )
+
+        listed = tenants_router.list_members(tenant.id, admin, request=build_request())
+        active = {m.user_id for m in listed if m.left_at is None}
+        assert active == {owner.id, admin.id, target.id}
+
+        removed = tenants_router.remove_member(
+            tenant_id=tenant.id,
+            membership_id=target_membership.id,
+            current_user=admin,
+            request=build_request(),
+        )
+        assert removed.left_at is not None
+
+        # Soft delete: the row is retained (with left_at set) so history stays
+        # intact; the frontend filters out left_at != null when computing the
+        # active roster.
+        remaining = tenants_router.list_members(
+            tenant.id, admin, request=build_request()
+        )
+        active_after = {m.user_id for m in remaining if m.left_at is None}
+        assert active_after == {owner.id, admin.id}
+        removed_rows = {m.user_id for m in remaining if m.left_at is not None}
+        assert target.id in removed_rows
+
+    def test_member_can_list_but_not_mutate_members(self):
+        # An EMPLOYEE member may read the roster (the app derives the caller's
+        # own role from it) but cannot add or remove members.
+        owner, _admin, tenant = self._tenant_with_admin()
+        employee = self._authenticate_user(
+            email="employee@example.com", full_name="Employee User"
+        )
+        employee_membership = tenants_router.add_member(
+            tenant_id=tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            current_user=owner,
+            request=build_request(),
+        )
+
+        # Reading is allowed.
+        listed = tenants_router.list_members(
+            tenant.id, employee, request=build_request()
+        )
+        assert employee.id in {m.user_id for m in listed}
+
+        # Removing (even self) is not.
+        with pytest.raises(HTTPException) as exc:
+            tenants_router.remove_member(
+                tenant_id=tenant.id,
+                membership_id=employee_membership.id,
+                current_user=employee,
+                request=build_request(),
+            )
+        assert exc.value.status_code == 403
 
 
 def _profile_payload(**overrides) -> OrganizationProfileIn:

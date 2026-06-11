@@ -140,6 +140,15 @@ class TenantServiceMemberTests(TestCase):
     def setUp(self):
         self.owner = make_user()
         self.tenant = make_tenant(self.owner.id)
+        # TenantService.create does not create the owner membership (the
+        # orchestrator does in production), so establish it here — the member
+        # management methods now require the caller to be an owner/admin.
+        TenantService.add_membership(
+            tenant_id=self.tenant.id,
+            user_id=self.owner.id,
+            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
+            invited_by_id=None,
+        )
 
     def test_add_member_creates_membership(self):
         member = make_user("member@example.com")
@@ -149,7 +158,7 @@ class TenantServiceMemberTests(TestCase):
             payload=AddMemberRequest(
                 user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         assert membership.tenant_id == self.tenant.id
@@ -158,16 +167,37 @@ class TenantServiceMemberTests(TestCase):
         assert membership.invited_by_id == self.owner.id
         assert membership.left_at is None
 
-    def test_add_member_raises_if_tenant_not_found(self):
+    def test_add_member_rejects_non_admin_caller(self):
+        # An employee-level member cannot add other members.
+        employee = make_user("employee@example.com")
+        TenantService.add_member(
+            tenant_id=self.tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            user_id=self.owner.id,
+        )
+        outsider = make_user("outsider@example.com")
+
+        with pytest.raises(Forbidden):
+            TenantService.add_member(
+                tenant_id=self.tenant.id,
+                payload=AddMemberRequest(
+                    user_id=outsider.id, role=MembershipRoles.OWNER.value
+                ),
+                user_id=employee.id,
+            )
+
+    def test_add_member_raises_forbidden_if_tenant_not_found(self):
         member = make_user("member@example.com")
 
-        with pytest.raises(NotFound, match="Tenant 999 not found"):
+        with pytest.raises(Forbidden):
             TenantService.add_member(
                 tenant_id=999,
                 payload=AddMemberRequest(
                     user_id=member.id, role=MembershipRoles.EMPLOYEE.value
                 ),
-                invited_by_id=self.owner.id,
+                user_id=self.owner.id,
             )
 
     def test_add_member_raises_if_already_member(self):
@@ -177,7 +207,7 @@ class TenantServiceMemberTests(TestCase):
             payload=AddMemberRequest(
                 user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         with pytest.raises(Conflict):
@@ -186,7 +216,7 @@ class TenantServiceMemberTests(TestCase):
                 payload=AddMemberRequest(
                     user_id=member.id, role=MembershipRoles.ADMIN.value
                 ),
-                invited_by_id=self.owner.id,
+                user_id=self.owner.id,
             )
 
     def test_add_member_raises_on_invalid_role(self):
@@ -199,33 +229,33 @@ class TenantServiceMemberTests(TestCase):
             TenantService.add_member(
                 tenant_id=self.tenant.id,
                 payload=payload,
-                invited_by_id=self.owner.id,
+                user_id=self.owner.id,
             )
 
     def test_list_members_returns_memberships(self):
         member = make_user("member@example.com")
-        TenantService.add_membership(
-            tenant_id=self.tenant.id,
-            user_id=self.owner.id,
-            entity=TenantMembershipEntity(role=MembershipRoles.OWNER.value),
-            invited_by_id=None,
-        )
         TenantService.add_member(
             tenant_id=self.tenant.id,
             payload=AddMemberRequest(
                 user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
-        memberships = TenantService.list_members(self.tenant.id)
+        memberships = TenantService.list_members(self.tenant.id, self.owner.id)
 
         assert len(memberships) == 2
         assert [m.user_id for m in memberships] == [self.owner.id, member.id]
 
-    def test_list_members_raises_if_tenant_not_found(self):
-        with pytest.raises(NotFound, match="Tenant 999 not found"):
-            TenantService.list_members(999)
+    def test_list_members_rejects_non_member(self):
+        outsider = make_user("outsider@example.com")
+
+        with pytest.raises(Forbidden):
+            TenantService.list_members(self.tenant.id, outsider.id)
+
+    def test_list_members_raises_forbidden_if_tenant_not_found(self):
+        with pytest.raises(Forbidden):
+            TenantService.list_members(999, self.owner.id)
 
     def test_remove_member_marks_membership_inactive(self):
         member = make_user("member@example.com")
@@ -234,13 +264,14 @@ class TenantServiceMemberTests(TestCase):
             payload=AddMemberRequest(
                 user_id=member.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         removed = TenantService.remove_member(
             tenant_id=self.tenant.id,
             membership_id=membership.id,
             reason="Left the company",
+            user_id=self.owner.id,
         )
 
         assert removed.id == membership.id
@@ -249,14 +280,37 @@ class TenantServiceMemberTests(TestCase):
         stored = TenantMembershipModel.objects.get(id=membership.id)
         assert stored.left_at is not None
 
-    def test_remove_member_raises_if_tenant_not_found(self):
-        with pytest.raises(NotFound, match="Tenant 999 not found"):
-            TenantService.remove_member(tenant_id=999, membership_id=1, reason="")
+    def test_remove_member_rejects_non_admin_caller(self):
+        employee = make_user("employee@example.com")
+        membership = TenantService.add_member(
+            tenant_id=self.tenant.id,
+            payload=AddMemberRequest(
+                user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
+            ),
+            user_id=self.owner.id,
+        )
+
+        with pytest.raises(Forbidden):
+            TenantService.remove_member(
+                tenant_id=self.tenant.id,
+                membership_id=membership.id,
+                reason="",
+                user_id=employee.id,
+            )
+
+    def test_remove_member_raises_forbidden_if_tenant_not_found(self):
+        with pytest.raises(Forbidden):
+            TenantService.remove_member(
+                tenant_id=999, membership_id=1, reason="", user_id=self.owner.id
+            )
 
     def test_remove_member_raises_if_membership_not_found(self):
         with pytest.raises(NotFound, match="Membership not found or already inactive"):
             TenantService.remove_member(
-                tenant_id=self.tenant.id, membership_id=999, reason=""
+                tenant_id=self.tenant.id,
+                membership_id=999,
+                reason="",
+                user_id=self.owner.id,
             )
 
 
@@ -301,7 +355,7 @@ class OrganizationProfileServiceTests(TestCase):
             payload=AddMemberRequest(
                 user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         profile = OrganizationProfileService.get(self.tenant.id, employee.id)
@@ -345,7 +399,7 @@ class OrganizationProfileServiceTests(TestCase):
             payload=AddMemberRequest(
                 user_id=admin.id, role=MembershipRoles.ADMIN.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         updated = OrganizationProfileService.update(
@@ -361,7 +415,7 @@ class OrganizationProfileServiceTests(TestCase):
             payload=AddMemberRequest(
                 user_id=employee.id, role=MembershipRoles.EMPLOYEE.value
             ),
-            invited_by_id=self.owner.id,
+            user_id=self.owner.id,
         )
 
         with pytest.raises(Forbidden):
