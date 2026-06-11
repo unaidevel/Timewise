@@ -63,6 +63,7 @@ class DepartmentServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
 
     def test_create_department_normalizes_name(self):
         dept = WorkforceService.create_department(
@@ -99,12 +100,14 @@ class DepartmentServiceTests(TestCase):
         created = WorkforceService.create_department(
             self.tenant.id, DepartmentEntity(name="Engineering")
         )
-        found = WorkforceService.get_department(self.tenant.id, created.id)
+        found = WorkforceService.get_department(
+            self.tenant.id, created.id, self.user.id
+        )
         assert found == created
 
     def test_get_department_raises_if_not_found(self):
         with pytest.raises(NotFound, match="Department 999 not found"):
-            WorkforceService.get_department(self.tenant.id, 999)
+            WorkforceService.get_department(self.tenant.id, 999, self.user.id)
 
     def test_get_department_raises_if_belongs_to_other_tenant(self):
         other_user = make_user("other@example.com")
@@ -114,7 +117,7 @@ class DepartmentServiceTests(TestCase):
         )
 
         with pytest.raises(NotFound):
-            WorkforceService.get_department(self.tenant.id, dept.id)
+            WorkforceService.get_department(self.tenant.id, dept.id, self.user.id)
 
     def test_list_departments_returns_sorted_by_name(self):
         WorkforceService.create_department(
@@ -124,7 +127,7 @@ class DepartmentServiceTests(TestCase):
             self.tenant.id, DepartmentEntity(name="Alpha")
         )
 
-        depts = WorkforceService.list_departments(self.tenant.id)
+        depts = WorkforceService.list_departments(self.tenant.id, self.user.id)
         assert [d.name for d in depts] == ["Alpha", "Zulu"]
 
     def test_deactivate_department_marks_inactive(self):
@@ -143,6 +146,7 @@ class RoleServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
 
     def test_create_role_normalizes_name(self):
         role = WorkforceService.create_role(
@@ -163,12 +167,12 @@ class RoleServiceTests(TestCase):
         created = WorkforceService.create_role(
             self.tenant.id, RoleEntity(name="Developer")
         )
-        found = WorkforceService.get_role(self.tenant.id, created.id)
+        found = WorkforceService.get_role(self.tenant.id, created.id, self.user.id)
         assert found == created
 
     def test_get_role_raises_if_not_found(self):
         with pytest.raises(NotFound, match="Role 999 not found"):
-            WorkforceService.get_role(self.tenant.id, 999)
+            WorkforceService.get_role(self.tenant.id, 999, self.user.id)
 
     def test_deactivate_role_marks_inactive(self):
         role = WorkforceService.create_role(
@@ -186,6 +190,7 @@ class EmployeeServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
         self.dept = WorkforceService.create_department(
             self.tenant.id, DepartmentEntity(name="Engineering")
         )
@@ -239,12 +244,12 @@ class EmployeeServiceTests(TestCase):
 
     def test_get_employee_returns_employee(self):
         emp = WorkforceService.create_employee(self.tenant.id, self._employee_entity())
-        found = WorkforceService.get_employee(self.tenant.id, emp.id)
+        found = WorkforceService.get_employee(self.tenant.id, emp.id, self.user.id)
         assert found == emp
 
     def test_get_employee_raises_if_not_found(self):
         with pytest.raises(NotFound, match="Employee 999 not found"):
-            WorkforceService.get_employee(self.tenant.id, 999)
+            WorkforceService.get_employee(self.tenant.id, 999, self.user.id)
 
     def test_list_employees_returns_sorted_by_name(self):
         WorkforceService.create_employee(
@@ -256,7 +261,7 @@ class EmployeeServiceTests(TestCase):
             self._employee_entity("alice@example.com", full_name="Alice"),
         )
 
-        employees = WorkforceService.list_employees(self.tenant.id)
+        employees = WorkforceService.list_employees(self.tenant.id, self.user.id)
         assert [e.full_name for e in employees] == ["Alice", "Zara"]
 
     def test_deactivate_employee_marks_inactive(self):
@@ -273,27 +278,29 @@ class DefaultRolesServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
 
     def test_create_default_roles_creates_expected_roles(self):
         WorkforceService.create_default_roles(self.tenant.id)
 
-        roles = WorkforceService.list_roles(self.tenant.id)
+        roles = WorkforceService.list_roles(self.tenant.id, self.user.id)
         assert len(roles) == len(EXPECTED_DEFAULT_ROLE_NAMES)
         assert {r.name for r in roles} == set(EXPECTED_DEFAULT_ROLE_NAMES)
 
     def test_create_default_roles_are_all_active(self):
         WorkforceService.create_default_roles(self.tenant.id)
 
-        roles = WorkforceService.list_roles(self.tenant.id)
+        roles = WorkforceService.list_roles(self.tenant.id, self.user.id)
         assert all(r.is_active for r in roles)
 
     def test_create_default_roles_are_scoped_to_tenant(self):
         other_user = make_user("other@example.com")
         other_tenant = make_tenant(other_user.id, slug="other")
+        add_member(other_tenant.id, other_user.id, MembershipRoles.OWNER)
 
         WorkforceService.create_default_roles(self.tenant.id)
 
-        assert WorkforceService.list_roles(other_tenant.id) == []
+        assert WorkforceService.list_roles(other_tenant.id, other_user.id) == []
 
 
 class UpdateDepartmentServiceTests(TestCase):
@@ -459,8 +466,8 @@ class UpdateEmployeeServiceTests(TestCase):
         assert updated.email == "newalice@example.com"
 
     def test_update_employee_raises_on_duplicate_email(self):
-        dept = WorkforceService.list_departments(self.tenant.id)[0]
-        role = WorkforceService.list_roles(self.tenant.id)[0]
+        dept = WorkforceService.list_departments(self.tenant.id, self.owner.id)[0]
+        role = WorkforceService.list_roles(self.tenant.id, self.owner.id)[0]
         _make_employee(
             self.tenant.id, dept.id, role.id, email="bob@example.com", full_name="Bob"
         )
@@ -557,7 +564,7 @@ class DepartmentManagerServiceTests(TestCase):
         assert assignment.left_at is None
 
     def test_assign_department_manager_allows_multiple_active_managers(self):
-        role = WorkforceService.list_roles(self.tenant.id)[0]
+        role = WorkforceService.list_roles(self.tenant.id, self.owner.id)[0]
         emp2 = _make_employee(
             self.tenant.id,
             self.dept.id,
@@ -578,7 +585,7 @@ class DepartmentManagerServiceTests(TestCase):
             user_id=self.owner.id,
         )
         managers = WorkforceService.list_department_managers(
-            self.tenant.id, self.dept.id
+            self.tenant.id, self.dept.id, self.owner.id
         )
         assert len(managers) == 2
 
@@ -733,12 +740,16 @@ class EmployeeManagerServiceTests(TestCase):
             ),
             user_id=self.owner.id,
         )
-        reports = WorkforceService.get_direct_reports(self.tenant.id, self.manager.id)
+        reports = WorkforceService.get_direct_reports(
+            self.tenant.id, self.manager.id, self.owner.id
+        )
         assert len(reports) == 1
         assert reports[0].id == self.emp.id
 
     def test_get_direct_reports_returns_empty_when_none(self):
-        reports = WorkforceService.get_direct_reports(self.tenant.id, self.manager.id)
+        reports = WorkforceService.get_direct_reports(
+            self.tenant.id, self.manager.id, self.owner.id
+        )
         assert reports == []
 
 
@@ -746,6 +757,7 @@ class EmployeeCreationAssignmentServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
         self.department = WorkforceService.create_department(
             self.tenant.id,
             DepartmentEntity(name="Engineering"),
@@ -784,6 +796,7 @@ class DepartmentAssignmentServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
         self.department_one = WorkforceService.create_department(
             self.tenant.id,
             DepartmentEntity(name="Engineering"),
@@ -813,10 +826,12 @@ class DepartmentAssignmentServiceTests(TestCase):
         active_assignment = WorkforceService.get_active_department(
             self.tenant.id,
             self.employee.id,
+            self.user.id,
         )
         history = WorkforceService.list_department_history(
             self.tenant.id,
             self.employee.id,
+            self.user.id,
         )
 
         assert assignment.department_id == self.department_two.id
@@ -898,17 +913,20 @@ class DepartmentAssignmentServiceTests(TestCase):
             NotFound,
             match=f"Employee {self.employee.id} has no active department assignment",
         ):
-            WorkforceService.get_active_department(self.tenant.id, self.employee.id)
+            WorkforceService.get_active_department(
+                self.tenant.id, self.employee.id, self.user.id
+            )
 
     def test_list_department_history_raises_if_employee_not_found(self):
         with pytest.raises(NotFound, match="Employee 999 not found"):
-            WorkforceService.list_department_history(self.tenant.id, 999)
+            WorkforceService.list_department_history(self.tenant.id, 999, self.user.id)
 
 
 class RoleAssignmentServiceTests(TestCase):
     def setUp(self):
         self.user = make_user()
         self.tenant = make_tenant(self.user.id)
+        add_member(self.tenant.id, self.user.id, MembershipRoles.OWNER)
         self.department = WorkforceService.create_department(
             self.tenant.id,
             DepartmentEntity(name="Engineering"),
@@ -940,8 +958,11 @@ class RoleAssignmentServiceTests(TestCase):
         active_assignment = WorkforceService.get_active_role(
             self.tenant.id,
             self.employee.id,
+            self.user.id,
         )
-        history = WorkforceService.list_role_history(self.tenant.id, self.employee.id)
+        history = WorkforceService.list_role_history(
+            self.tenant.id, self.employee.id, self.user.id
+        )
 
         assert assignment.role_id == self.role_two.id
         assert assignment.hourly_rate == Decimal("45.00")
@@ -1024,8 +1045,10 @@ class RoleAssignmentServiceTests(TestCase):
             NotFound,
             match=f"Employee {self.employee.id} has no active role assignment",
         ):
-            WorkforceService.get_active_role(self.tenant.id, self.employee.id)
+            WorkforceService.get_active_role(
+                self.tenant.id, self.employee.id, self.user.id
+            )
 
     def test_list_role_history_raises_if_employee_not_found(self):
         with pytest.raises(NotFound, match="Employee 999 not found"):
-            WorkforceService.list_role_history(self.tenant.id, 999)
+            WorkforceService.list_role_history(self.tenant.id, 999, self.user.id)

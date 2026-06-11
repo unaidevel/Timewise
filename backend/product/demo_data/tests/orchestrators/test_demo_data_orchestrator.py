@@ -48,8 +48,8 @@ class DemoDataOrchestratorSeedTests(TestCase):
         assert counts["reports"] > 0
         assert counts["time_entries"] > 0
 
-        assert len(WorkforceService.list_departments(tenant.id)) == 5
-        assert len(WorkforceService.list_employees(tenant.id)) == 20
+        assert len(WorkforceService.list_departments(tenant.id, owner.id)) == 5
+        assert len(WorkforceService.list_employees(tenant.id, owner.id)) == 20
         assert len(TimekeepingService.list_periods(tenant.id, owner.id)) == 4
         assert len(CostingService.list_rules(tenant.id, owner.id)) == 2
 
@@ -74,8 +74,8 @@ class DemoDataOrchestratorSeedTests(TestCase):
         with pytest.raises(Conflict, match="already has data"):
             DemoDataOrchestrator.seed(tenant.id, owner.id)
 
-        assert len(WorkforceService.list_departments(tenant.id)) == 1
-        assert len(WorkforceService.list_employees(tenant.id)) == 0
+        assert len(WorkforceService.list_departments(tenant.id, owner.id)) == 1
+        assert len(WorkforceService.list_employees(tenant.id, owner.id)) == 0
 
     def test_seed_rejects_non_owner(self):
         tenant, owner = make_tenant_with_owner()
@@ -90,4 +90,4 @@ class DemoDataOrchestratorSeedTests(TestCase):
         with pytest.raises(Forbidden):
             DemoDataOrchestrator.seed(tenant.id, admin.id)
 
-        assert len(WorkforceService.list_departments(tenant.id)) == 0
+        assert len(WorkforceService.list_departments(tenant.id, owner.id)) == 0
