@@ -1,5 +1,9 @@
 {
   "devDependencies": {
-    "@commitlint/config-conventional": "^20.5.3"
+    "@commitlint/config-conventional": "^20.5.3",
+    "czg": "^1.13.1"
+  },
+  "scripts": {
+    "commit": "czg"
   }
 }
