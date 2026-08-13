@@ -128,6 +128,10 @@ describe("SettingsPage", () => {
     ) as HTMLInputElement;
     expect(publicNameInput).toBeTruthy();
 
+    await waitFor(() => {
+      expect(publicNameInput.disabled).toBe(false);
+    });
+
     await userEvent.clear(publicNameInput);
     await userEvent.type(publicNameInput, "Acme Corp");
 
