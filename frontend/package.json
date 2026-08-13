@@ -69,6 +69,7 @@
       "msw"
     ],
     "overrides": {
+      "brace-expansion": "5.0.7",
       "ws": "8.21.0"
     }
   },
