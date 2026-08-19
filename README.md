@@ -16,7 +16,7 @@ TimeWise lets companies track employee working hours, apply configurable cost ru
 - **Configurable cost-rule engine** for overtime, holidays, and contract types
 - **Multi-step approval workflow** with status history and role-based access control
 - Full **CI pipeline** with linting, static type checking, architecture validation, and PostgreSQL-backed integration tests
-- **Pre-commit hooks** enforcing Ruff and conventional commit messages locally (via [czg](https://github.com/Zhengqbbb/cz-git))
+- **Pre-commit hooks** enforcing Ruff and conventional commit messages locally (via [czg](https://github.com/Zhengqbbb/cz-git)) **pnpm.cmd commit**
 - **Docker Compose** setup for local development
 
 ## Stack
