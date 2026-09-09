@@ -9,6 +9,7 @@ overrides:
   fast-uri: 3.1.5
   js-yaml: 4.3.1
   ws: 8.21.0
+  toml: 4.1.2
 
 importers:
 
@@ -3021,8 +3022,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  toml@4.1.1:
-    resolution: {integrity: sha512-EBJnVBr3dTXdA89WVFoAIPUqkBjxPMwRqsfuo1r240tKFHXv3zgca4+NJib/h6TyvGF7vOawz0jGuryJCdNHrw==}
+  toml@4.1.2:
+    resolution: {integrity: sha512-m0vXfHODcw3gk+KONAOlVQ5yNHc3yS3B1ybM3HS1vqDoS0RWTDDVBVVTYi8hH0k+2OM1vmo9fb1WX9EVqjqfHA==}
     engines: {node: '>=20'}
 
   tough-cookie@6.0.1:
@@ -4946,7 +4947,7 @@ snapshots:
       kubernetes-types: 1.30.0
       msgpackr: 2.0.2
       multipasta: 0.2.7
-      toml: 4.1.1
+      toml: 4.1.2
       uuid: 14.0.0
       yaml: 2.9.0
 
@@ -5916,7 +5917,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  toml@4.1.1: {}
+  toml@4.1.2: {}
 
   tough-cookie@6.0.1:
     dependencies:
