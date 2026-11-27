@@ -1,3 +1,6 @@
+from datetime import date
+from unittest.mock import patch
+
 import pytest
 from django.test import TestCase
 
@@ -39,7 +42,13 @@ class DemoDataOrchestratorSeedTests(TestCase):
     def test_seed_creates_all_categories(self):
         tenant, owner = make_tenant_with_owner()
 
-        counts = DemoDataOrchestrator.seed(tenant.id, owner.id)
+        # Two consecutive 30-day periods start in August on this date.
+        with patch(
+            "product.demo_data.orchestrators.demo_data_orchestrator.date",
+            wraps=date,
+        ) as seed_date:
+            seed_date.today.return_value = date(2026, 11, 28)
+            counts = DemoDataOrchestrator.seed(tenant.id, owner.id)
 
         assert counts["departments"] == 5
         assert counts["employees"] == 20

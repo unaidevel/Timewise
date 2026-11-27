@@ -9,7 +9,7 @@ overrides:
   fast-uri: 3.1.5
   js-yaml: 4.3.1
   ws: 8.21.0
-  toml: 4.1.2
+  toml: 5.0.1
 
 importers:
 
@@ -128,8 +128,8 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5(vitest@4.1.5)
       happy-dom:
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^21.0.4
+        version: 21.0.4
       msw:
         specifier: ^2.14.2
         version: 2.14.2(@types/node@24.12.2)(typescript@6.0.2)
@@ -147,7 +147,7 @@ importers:
         version: 8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.5
-        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@20.9.0)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0))
+        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@21.0.4)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0))
 
 packages:
 
@@ -1865,6 +1865,10 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
+  buffer-image-size@0.6.4:
+    resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
+    engines: {node: '>=4.0'}
+
   bundle-name@4.1.0:
     resolution: {integrity: sha512-tjwM5exMg6BGRI+kNmTntNsvdZS1X8BFYS6tnJ2hdH0kVxM6/eVZ2xy+FqStSWvYmtfFMDLIxurorHwDKfDz5Q==}
     engines: {node: '>=18'}
@@ -2270,8 +2274,8 @@ packages:
     resolution: {integrity: sha512-5bJ+nf/UCpAjHM8i06fl7eLyVC9iuNAjm9qzkiu2ZGhM0VscSvS6WDPfAwkdkBuoXGM9FJSbKl6wylMwP9Ktig==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
-  happy-dom@20.9.0:
-    resolution: {integrity: sha512-GZZ9mKe8r646NUAf/zemnGbjYh4Bt8/MqASJY+pSm5ZDtc3YQox+4gsLI7yi1hba6o+eCsGxpHn5+iEVn31/FQ==}
+  happy-dom@21.0.4:
+    resolution: {integrity: sha512-tFm+GaLBgo6o0awHnvHaNoraVo27qJ+2tZEtZ+cIa08hXbeitrxAJajLI05hsUy/2/YTKcUjQYzHe5mCcraLBw==}
     engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
@@ -3022,8 +3026,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  toml@4.1.2:
-    resolution: {integrity: sha512-m0vXfHODcw3gk+KONAOlVQ5yNHc3yS3B1ybM3HS1vqDoS0RWTDDVBVVTYi8hH0k+2OM1vmo9fb1WX9EVqjqfHA==}
+  toml@5.0.1:
+    resolution: {integrity: sha512-EqYNA/YvUNndrA2B3O2ojzLQoTQrBxeZ9UIjQwk8t10oe6n7dwclBwd9IdZQTOKwe6vWX+AXtl6IntXRbepdxQ==}
     engines: {node: '>=20'}
 
   tough-cookie@6.0.1:
@@ -4618,7 +4622,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@20.9.0)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0))
+      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@21.0.4)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0))
 
   '@vitest/expect@4.1.5':
     dependencies:
@@ -4753,6 +4757,10 @@ snapshots:
       electron-to-chromium: 1.5.364
       node-releases: 2.0.47
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
+
+  buffer-image-size@0.6.4:
+    dependencies:
+      '@types/node': 24.12.2
 
   bundle-name@4.1.0:
     dependencies:
@@ -4947,7 +4955,7 @@ snapshots:
       kubernetes-types: 1.30.0
       msgpackr: 2.0.2
       multipasta: 0.2.7
-      toml: 4.1.2
+      toml: 5.0.1
       uuid: 14.0.0
       yaml: 2.9.0
 
@@ -5155,11 +5163,12 @@ snapshots:
 
   graphql@16.13.2: {}
 
-  happy-dom@20.9.0:
+  happy-dom@21.0.4:
     dependencies:
       '@types/node': 24.12.2
       '@types/whatwg-mimetype': 3.0.2
       '@types/ws': 8.18.1
+      buffer-image-size: 0.6.4
       entities: 7.0.1
       whatwg-mimetype: 3.0.0
       ws: 8.21.0
@@ -5917,7 +5926,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  toml@4.1.2: {}
+  toml@5.0.1: {}
 
   tough-cookie@6.0.1:
     dependencies:
@@ -6008,7 +6017,7 @@ snapshots:
       jiti: 2.7.0
       yaml: 2.9.0
 
-  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@20.9.0)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0)):
+  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/coverage-v8@4.1.5)(happy-dom@21.0.4)(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.5
       '@vitest/mocker': 4.1.5(msw@2.14.2(@types/node@24.12.2)(typescript@6.0.2))(vite@8.0.16(@types/node@24.12.2)(jiti@2.7.0)(yaml@2.9.0))
@@ -6034,7 +6043,7 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@types/node': 24.12.2
       '@vitest/coverage-v8': 4.1.5(vitest@4.1.5)
-      happy-dom: 20.9.0
+      happy-dom: 21.0.4
     transitivePeerDependencies:
       - msw
 

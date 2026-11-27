@@ -141,7 +141,7 @@ def _seed_periods(tenant_id: int, user_id: int) -> list:
             TimekeepingService.create_period(
                 tenant_id,
                 PeriodEntity(
-                    name=f"{start.strftime('%b %Y')}",
+                    name=start.strftime("%d %b %Y"),
                     start_date=start,
                     end_date=end,
                 ),
